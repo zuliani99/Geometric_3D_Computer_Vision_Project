@@ -74,35 +74,34 @@ def apply_segmentation(frame):
 if __name__ == "__main__":
 	
 	for obj in list(hyperparameters.keys()):
+		print(f'Segmentation of {obj} video')		
+  
 		input_video = cv.VideoCapture(f"../data/{obj}")
 
 		# Get video properties
 		frame_width = int(input_video.get(cv.CAP_PROP_FRAME_WIDTH))
 		frame_height = int(input_video.get(cv.CAP_PROP_FRAME_HEIGHT))
 		fps = input_video.get(cv.CAP_PROP_FPS)
+		tot_fps = int(input_video.get(cv.CAP_PROP_FRAME_COUNT))
 
 		# Create output video writer
 		output_video = cv.VideoWriter(f"./output/{obj.split('.')[0]}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), fps, (frame_width, frame_height))
-
-		pbar = tqdm(desc=f'Segmentation of {obj} video', total=fps)
-		processed_fps = 0
   
 		while True:
 			ret, frame = input_video.read()
 
-			if not ret:
-				print('error')
-				break
+			if not ret:	break
 		
 			segmented_frame = apply_segmentation(frame)
+
 
 			output_video.write(segmented_frame)
 
 			cv.imshow(f"Segmented Video of {obj}",segmented_frame)
+			if cv.waitKey(1) == ord('q'):
+				break
 			
-			processed_fps += 1
-			pbar.update(processed_fps)
-
+			
 		input_video.release()
 		output_video.release()
 		cv.destroyAllWindows()
