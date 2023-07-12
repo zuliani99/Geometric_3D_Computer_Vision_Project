@@ -1,23 +1,23 @@
 
 import cv2 as cv
 import numpy as np
-from tqdm import tqdm
 
-kernel1 = cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3))
+kernel1 = cv.getStructuringElement(cv.MORPH_RECT, (3,3))
 kernel2 = cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5))
+kernel3 = cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3))
 
 hyperparameters = {
 	'obj01.mp4': {
-     	'closing':(kernel2, 5), 'opening': (kernel2, 4)
+     	'closing':(kernel1, 15), 'opening': (kernel2, 8)
     },
 	'obj02.mp4': {
-    	'closing': (kernel1, 4), 'opening': (kernel2, 3)
+    	'closing': (kernel1, 8), 'opening': (kernel3, 7)
     },
 	'obj03.mp4': {
-    	'closing': (kernel1, 4), 'opening': (kernel2, 4)
+    	'closing': (kernel1, 8), 'opening': (kernel2, 7)
     },
 	'obj04.mp4': {
-    	'closing': (kernel1, 4), 'opening': (kernel2, 8)
+    	'closing': (kernel1, 6), 'opening': (kernel2, 10)
     }
 }
 
