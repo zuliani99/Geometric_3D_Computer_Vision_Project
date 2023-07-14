@@ -8,13 +8,13 @@ kernel3 = cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3))
 
 hyperparameters = {
 	'obj01.mp4': {
-     	'closing':(kernel1, 15), 'opening': (kernel2, 8)
+     	'closing':(kernel2, 10), 'opening': (kernel2, 7)
     },
 	'obj02.mp4': {
-    	'closing': (kernel1, 8), 'opening': (kernel3, 7)
+    	'closing': (kernel3, 6), 'opening': (kernel3, 5)
     },
 	'obj03.mp4': {
-    	'closing': (kernel1, 8), 'opening': (kernel2, 7)
+    	'closing': (kernel1, 8), 'opening': (kernel2, 10)
     },
 	'obj04.mp4': {
     	'closing': (kernel1, 6), 'opening': (kernel2, 10)
