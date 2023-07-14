@@ -2,22 +2,27 @@
 import cv2 as cv
 import numpy as np
 
-kernel1 = cv.getStructuringElement(cv.MORPH_RECT, (3,3))
-kernel2 = cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5))
-kernel3 = cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3))
 
 hyperparameters = {
 	'obj01.mp4': {
-     	'closing':(kernel2, 10), 'opening': (kernel2, 7)
+     	'closing':(cv.getStructuringElement(cv.MORPH_RECT, (3,3)), 25),
+      	'opening': (cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 5),
+       	'correction': (np.array([105,65,5]), np.array([140,255,255]))
     },
 	'obj02.mp4': {
-    	'closing': (kernel3, 6), 'opening': (kernel3, 5)
+    	'closing': (cv.getStructuringElement(cv.MORPH_ELLIPSE, (2,2)), 5),
+    	'opening': (cv.getStructuringElement(cv.MORPH_RECT, (3,3)), 5),
+     	'correction': (np.array([105,70,0]), np.array([140,255,255]))
     },
 	'obj03.mp4': {
-    	'closing': (kernel1, 8), 'opening': (kernel2, 10)
+    	'closing': (cv.getStructuringElement(cv.MORPH_RECT, (3,3)), 25),
+     	'opening': (cv.getStructuringElement(cv.MORPH_ELLIPSE, (2,2)), 10),
+    	'correction': (np.array([105,55,5]), np.array([120,255,255]))
     },
 	'obj04.mp4': {
-    	'closing': (kernel1, 6), 'opening': (kernel2, 10)
+    	'closing': (cv.getStructuringElement(cv.MORPH_ELLIPSE, (2,2)), 10),
+     	'opening': (cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 5),
+      	'correction': (np.array([105,55,5]), np.array([120,255,255]))
     }
 }
 
@@ -51,10 +56,10 @@ def apply_foreground_background(mask, img):
     
 
 
-def apply_segmentation(frame):
+def apply_segmentation(obj, frame):
 	rgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
 	enhanced = cv.cvtColor(change_contrast(rgb), cv.COLOR_RGB2HSV)
-	color_mask = cv.bitwise_not(cv.inRange(enhanced, np.array([105,70,0]), np.array([165,255,255])))
+	color_mask = cv.bitwise_not(cv.inRange(enhanced, hyperparameters[obj]['correction'][0], hyperparameters[obj]['correction'][1]))
  
 	rectangular_mask = np.full(rgb.shape[:2], 0, np.uint8)
 	rectangular_mask[:,1210:rgb.shape[1]] = 255
@@ -85,14 +90,14 @@ if __name__ == "__main__":
 		tot_fps = int(input_video.get(cv.CAP_PROP_FRAME_COUNT))
 
 		# Create output video writer
-		output_video = cv.VideoWriter(f"./output/{obj.split('.')[0]}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), fps, (frame_width, frame_height))
+		output_video = cv.VideoWriter(f"../output_part1/{obj.split('.')[0]}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), fps, (frame_width, frame_height))
   
 		while True:
 			ret, frame = input_video.read()
 
 			if not ret:	break
 		
-			segmented_frame = apply_segmentation(frame)
+			segmented_frame = apply_segmentation(obj, frame)
 
 
 			output_video.write(segmented_frame)
