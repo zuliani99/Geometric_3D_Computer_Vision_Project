@@ -5,23 +5,23 @@ import numpy as np
 
 hyperparameters = {
 	'obj01.mp4': {
-     	'closing':(cv.getStructuringElement(cv.MORPH_RECT, (3,3)), 25),
-      	'opening': (cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 5),
+     	'closing':(cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 30),
+      	'opening': (cv.getStructuringElement(cv.MORPH_RECT, (2,2)), 3),
        	'correction': (np.array([105,65,5]), np.array([140,255,255]))
     },
 	'obj02.mp4': {
-    	'closing': (cv.getStructuringElement(cv.MORPH_ELLIPSE, (2,2)), 5),
-    	'opening': (cv.getStructuringElement(cv.MORPH_RECT, (3,3)), 5),
-     	'correction': (np.array([105,70,0]), np.array([140,255,255]))
+    	'closing': (cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 5),
+    	'opening': (cv.getStructuringElement(cv.MORPH_ELLIPSE, (2,2)), 5),
+     	'correction': (np.array([105,65,5]), np.array([140,255,255]))
     },
 	'obj03.mp4': {
-    	'closing': (cv.getStructuringElement(cv.MORPH_RECT, (3,3)), 25),
+    	'closing': (cv.getStructuringElement(cv.MORPH_RECT, (3,3)), 30),
      	'opening': (cv.getStructuringElement(cv.MORPH_ELLIPSE, (2,2)), 10),
     	'correction': (np.array([105,55,5]), np.array([120,255,255]))
     },
 	'obj04.mp4': {
     	'closing': (cv.getStructuringElement(cv.MORPH_ELLIPSE, (2,2)), 10),
-     	'opening': (cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 5),
+     	'opening': (cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 10),
       	'correction': (np.array([105,55,5]), np.array([120,255,255]))
     }
 }
