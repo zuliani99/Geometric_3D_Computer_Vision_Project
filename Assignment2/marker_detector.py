@@ -11,21 +11,20 @@ A = (70,0)
 angle = math.radians(-15)
 marker_reference_doords = {}
 
-def rotate(origin, point, angle):
-    """
-    Rotate a point counterclockwise by a given angle around a given origin.
 
-    The angle should be given in radians.
-    """
+# Rotate a point counterclockwise by a given angle around a given origin.
+def rotate(origin, point, angle):
+    
     ox, oy = origin
     px, py = point
 
     qx = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
     qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
-    return qx, qy
+    return qx, qy, 0
+
 
 def get_marker_reference_coords():
-    for id in range(23):
+    for id in range(24): # We have 24 markers
         marker_reference_doords[id] = rotate(origin, A, id * angle)
 
 
@@ -43,9 +42,9 @@ def draw_red_polygons(image, actual_fps):
 	
 	# Detecting shapes in image by selecting region with same colors or intensity.
 
+	# Consider only the board exluding all the object area that could be included erroneously
 	mask_thresh[:, 1050:1600] = thresh[:, 1050:1600]
  
-	# thresh[:, 1050:1600] -> consider only the board exluding all the object area that could be included erroneously
 	contours, _ = cv.findContours(mask_thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
  	
 	# Searching through every region selected to find the required polygon.
@@ -75,15 +74,16 @@ def draw_red_polygons(image, actual_fps):
 						if d > 1000: # capire perche' funziona
 							cv.line(image, (far[0], far[1] - 10), (far[0], far[1] + 10), (0,255,0), 1)
 							cv.line(image, (far[0] - 10, far[1]), (far[0] + 10, far[1]), (0,255,0), 1)
-    
+				
 	return image
 
 
 if __name__ == "__main__":
     
 	get_marker_reference_coords()
-	
+ 	
 	for obj in objs:
+		
 		print(f'Marker Detector for {obj}')
 		input_video = cv.VideoCapture(f"../data/{obj}")
 
@@ -106,15 +106,16 @@ if __name__ == "__main__":
 
 			if not ret:	break
    
+      
 			polygon_frame = draw_red_polygons(frame, actual_fps)
+
 
 			frame_with_fps = copy.deepcopy(polygon_frame)
    
 			end = time.time()
-   
 			fps = 1 / (end-start)
+   
 			cv.putText(frame_with_fps, f"{fps:.2f} FPS", (30, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
 			cv.imshow(f'Marker Detector of {obj}', frame_with_fps)
    
 			# Save frame without the FPS count in it
