@@ -1,10 +1,12 @@
 
+from typing import Tuple
 import cv2 as cv
 import numpy as np
-from typing import Dict, Tuple
+import time
+import copy
 
 
-# Hyperparameters definitions
+# Objects Morphological Operations Hyperparameters
 hyperparameters = {
 	'obj01.mp4': {
 		'clipLimit': 8,
@@ -34,21 +36,24 @@ hyperparameters = {
     }
 }
 
-def change_contrast(img: np.ndarray, clipLimit: int):
+
+
+def change_contrast(img: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], clipLimit: int) \
+    	-> np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
 	'''
 	PURPOSE: change the contrast of the image 
 	ARGUMENTS:
-		- img (np.ndarray): image where apply the contrast changing
+		- img (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image where apply the contrast changing
 		- clipLimit
 	RETURN:
-		- (np.ndarray) updated image
+		- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) updated image
 	'''
     
 	lab = cv.cvtColor(img, cv.COLOR_RGB2LAB)
 	l_channel, a, b = cv.split(lab)
 
 	# Applying CLAHE to L-channel
-	l_clahe = cv.createCLAHE(clipLimit=clipLimit, tileGridSize=(20,20))
+	l_clahe = cv.createCLAHE(clipLimit = clipLimit, tileGridSize = (20,20))
 	l_channel = l_clahe.apply(l_channel)
 
 	# Merge the CLAHE enhanced L-channel with the a and b channel
@@ -58,14 +63,16 @@ def change_contrast(img: np.ndarray, clipLimit: int):
 	return cv.cvtColor(limg, cv.COLOR_LAB2RGB)
 
 
-def apply_foreground_background(mask: np.ndarray, img: np.ndarray) -> np.ndarray:
+
+def apply_foreground_background(mask: np.ndarray[np.ndarray[np.uint8]], img: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
+    	-> np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
     '''
 	PURPOSE: apply the foreground and background segmentation
 	ARGUMENTS:
-		- mask (np.ndarray)
-		- img (np.ndarray): image where apply the segmentation 
+		- mask (np.ndarray[np.ndarray[np.uint8]])
+		- img (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]]): image where apply the segmentation 
 	RETURN:
-		- segmented (np.ndarray): black and white segmented image
+		- segmented (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]]): black and white segmented image
 	'''
     
     segmented = img
@@ -80,16 +87,18 @@ def apply_foreground_background(mask: np.ndarray, img: np.ndarray) -> np.ndarray
     
 
 
-def apply_segmentation(obj: str, frame: np.ndarray):
+def apply_segmentation(obj: str, frame: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
+    	-> Tuple[np.ndarray[np.ndarray[np.uint8]], np.ndarray[np.ndarray[np.ndarray[np.uint8]]]]:
 	'''
 	PURPOSE: apply the segmentation with all the color conversions and morphological operations
 	ARGUMENTS:
 		- obj (str): object name string
-		- frame (np.ndarray): image video frame
+		- frame (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image video frame
 	RETURN:
-		- morph_op_2 (np.ndarray): final mask
-		- apply_foreground_background return
+		- morph_op_2 (np.ndarray[np.ndarray[np.uint8]]): final mask
+		- apply_foreground_background return (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]])
 	'''
+ 
     # Convert the imahe into RGB format
 	rgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
  
@@ -128,15 +137,20 @@ def apply_segmentation(obj: str, frame: np.ndarray):
  
 	# Second Morphological Operation
 	morph_op_2 = cv.morphologyEx(morph_op_1, morph2, kernel2, iterations = iter2)
-
+ 
 	return morph_op_2, apply_foreground_background(morph_op_2, rgb)
 
 
 
-if __name__ == "__main__":
-	
+def main() -> None:
+	'''
+	PURPOSE: main function
+	ARGUMENTS: None
+	RETURN: None
+	'''
+ 
 	for obj in list(hyperparameters.keys()):
-		print(f'Segmentation of {obj} video')		
+		print(f'Segmentation of {obj} video...')		
   
 		input_video = cv.VideoCapture(f"../data/{obj}")
 
@@ -148,8 +162,9 @@ if __name__ == "__main__":
 
 		# Create output video writer
 		output_video = cv.VideoWriter(f"../output_part1/{obj.split('.')[0]}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), fps, (frame_width, frame_height))
-  
+
 		while True:
+			start = time.time() # Start the timer to compute the actual FPS 
       
 			# Extract a frame
 			ret, frame = input_video.read()
@@ -158,21 +173,36 @@ if __name__ == "__main__":
 
 			# Apply the segmentation
 			resulting_mask, segmented_frame = apply_segmentation(obj, frame)
+   
+			end = time.time()
+			fps = 1 / (end-start) # Compute the FPS
+   
+			segmented_frame_with_fps = copy.deepcopy(segmented_frame) 
+   
+			# Output the frame with the FPS
+			cv.putText(segmented_frame_with_fps, f"{fps:.2f} FPS", (30, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
 			# Draw the contours of the mask in the original frame
 			contours_obj, _ = cv.findContours(resulting_mask, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 			cv.drawContours(frame, contours_obj, -1, (0,255,0), 3)
    
-			output_video.write(segmented_frame)
-
 			# Display the segmented frame and the contourns
-			cv.imshow(f"Segmented Video of {obj}", segmented_frame)
+			cv.imshow(f"Segmented Video of {obj}", segmented_frame_with_fps)
 			cv.imshow(f"Countourns Segmentation of {obj}", frame)
    
 			if cv.waitKey(1) == ord('q'):
 				break
+
+			# Save the frame without the FPS count
+			output_video.write(segmented_frame)
 			
 			
+		print(' DONE')
 		input_video.release()
 		output_video.release()
 		cv.destroyAllWindows()
+
+
+
+if __name__ == "__main__":
+	main()
