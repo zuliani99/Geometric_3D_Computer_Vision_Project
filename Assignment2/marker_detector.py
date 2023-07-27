@@ -159,8 +159,14 @@ def draw_stuff(image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], A: np.ndarra
 	# Drawing a line from the A point up to the middle point between the two extreme point of a polygon
 	cv.line(image, A, np.int32(middle_point), (0, 255, 255), 1, cv.LINE_AA) 
  
-	for coords in circles_ctr_coords: # Drawing the centre of each cirle
-		cv.circle(image, [np.int32(coords[1]), np.int32(coords[0])], 2, (255,0,0), 2, cv.LINE_AA)
+	# Drawing a cross and a rectangle in the centre of each circle
+	for idx, coords in enumerate(reversed(circles_ctr_coords), start=1): 
+		start = np.int32(coords[1])
+		end = np.int32(coords[0])
+  
+		cv.line(image, (start, end - (5 * idx)), (start, end + (5 * idx)), (0,255,0), 1, cv.LINE_AA)
+		cv.line(image, (start - (5 * idx), end), (start + (5 * idx), end), (0,255,0), 1, cv.LINE_AA)
+		cv.rectangle(image, (start - 5, end - 5), (start + 5, end + 5), (255,0,0), 1, cv.LINE_AA)
 	
 	# Adding the text with the polygon index
 	cv.putText(image, str(index), A, cv.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 8, cv.LINE_AA)
@@ -283,6 +289,8 @@ def find_markers(image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], frame_cnt:
 
 						# Append the information
 						dict_stats_to_return.append({'frame': frame_cnt, 'mark_id': index, 'Px': A_refined[0], 'Py': A_refined[1], 'X': X, 'Y': Y, 'Z': Z})
+
+						break
 
 	return image, dict_stats_to_return
 

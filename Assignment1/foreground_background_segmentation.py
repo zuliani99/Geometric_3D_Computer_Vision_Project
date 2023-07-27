@@ -197,7 +197,7 @@ def main() -> None:
 			output_video.write(segmented_frame)
 			
 			
-		print(' DONE')
+		print(' DONE\n')
 		input_video.release()
 		output_video.release()
 		cv.destroyAllWindows()
