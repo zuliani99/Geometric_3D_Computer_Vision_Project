@@ -82,6 +82,7 @@ def find_middle_point(Ep1: np.ndarray[np.int32], Ep2: np.ndarray[np.int32]) -> n
 	RETURN:
 		- (np.ndarray[np.float32]): X and Y coordiantes of the middle point
 	'''
+
 	return np.array([(Ep1[0] + Ep2[0]) / 2, (Ep1[1] + Ep2[1]) / 2])
 
 
@@ -101,8 +102,7 @@ def find_distance_between_points(p1: np.ndarray[np.int32], p2: np.ndarray[np.int
 
 
 def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid: np.float64,
-                               	middle_point: np.ndarray[np.float64], A: np.ndarray[np.int32]) \
-                                -> List[Tuple[np.float64, np.float64]]:
+                               	middle_point: np.ndarray[np.float64], A: np.ndarray[np.int32]) -> List[Tuple[np.float64, np.float64]]:
 	'''
 	PURPOSE: find the coordinates of the 5 circles centre
 	ARGUMENTS: 
@@ -113,23 +113,23 @@ def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid:
 	RETURN:
 		- circles_ctr_coords (List[Tuple[np.float64, np.float64]]): list of coordinates of each circle centre
 	'''
-    
-	circles_ctr_coords = []
+	
+	# Rememer that the y increase from the top to the bottom of the image
  
-	dx = middle_point[0] - A[0]  # Difference the between X coordinates of the middle point between the two extreme points and the A point
-	dy = middle_point[1] - A[1]  # Difference the between Y coordinates of the middle point between the two extreme points and the A point
+	circles_ctr_coords = []
 
+	dx = A[0] - middle_point[0] # Difference the between X coordinates of point A and and the middle point between the two extreme points
+	dy = A[1] - middle_point[1] # Difference the between Y coordinates of point A and and the middle point between the two extreme points
+ 
 	for dist in dist_A_Cir_Ctr:
-		
 		# Find the rateo between the distace from A and the circle centre and the distance between A
   		# and the middle point between the two extreme points 
 		rateo = dist / dist_A_Ext_Mid
-		
-		new_point_x = A[0] + (rateo * dx) # Compute the X coordinates of a centre circle point
-		new_point_y = A[1] + (rateo * dy) # Compute the Y coordinates of a centre circle point
-  
+ 
+		new_point_x = middle_point[0] + (rateo * dx) # Compute the X coordinates of a centre circle point
+		new_point_y = middle_point[1] + (rateo * dy) # Compute the Y coordinates of a centre circle point
+
 		circles_ctr_coords.append((new_point_y, new_point_x)) # Add coordinates to the list
-	 
 	return circles_ctr_coords
 
 
@@ -196,7 +196,7 @@ def compute_index_and_cc_coords(A: np.ndarray[np.int32], middle_point: np.ndarra
 	bit_index = [1 if thresh[np.int32(coords[0]), np.int32(coords[1])] == 0 else 0 for coords in circles_ctr_coords] 
 
 	# Obtain the index
-	index = int("".join(str(x) for x in reversed(bit_index)), 2) 
+	index = int("".join(str(x) for x in bit_index), 2) 
  
 	return index, circles_ctr_coords
 
@@ -222,7 +222,8 @@ def find_markers(image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], frame_cnt:
 	mask_thresh = np.zeros((1080, 1920), dtype=np.uint8)
 	mask_thresh[:, 1050:1600] = thresh[:, 1050:1600]
 
-	contours, _ = cv.findContours(mask_thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE) # Finding the contourns
+	# Finding the contourns
+	contours, _ = cv.findContours(mask_thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE) # [[[X Y]] [[X Y]] ... [[X Y]]]
  
 	dict_stats_to_return = []
 
@@ -232,12 +233,12 @@ def find_markers(image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], frame_cnt:
 		# Shortlisting the regions based on there area.
 		if cv.contourArea(cnt) > 1720:
 			  
-			approx_cnt = cv.approxPolyDP(cnt, 0.02 * cv.arcLength(cnt, True), True)
+			approx_cnt = cv.approxPolyDP(cnt, 0.02 * cv.arcLength(cnt, True), True) # [[[X Y]] [[X Y]] ... [[X Y]]]
 			
 			# Checking if the number of sides of the selected region is 5.
 			if (len(approx_cnt) == 5): 
 				
-				# Obtain the external point distance between the approximated board centre and each approximated polygon vertex
+				# Obtain the external point distance between the approximated board centre (1350,570) and each approximated polygon vertex
 				external_points_dict = dict(enumerate(
 					list(map(lambda x: find_distance_between_points(x[0], np.array([1350,570])), approx_cnt))
 				))
@@ -250,17 +251,22 @@ def find_markers(image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], frame_cnt:
 					approx_cnt[id_external_points[0][0]][0],
 		   			approx_cnt[id_external_points[1][0]][0]
 			  	)
-	
-				hull = cv.convexHull(cnt, returnPoints=False) # Find the convex hull;
+				
+				# Compute the convex hull of the contour
+				hull = cv.convexHull(cnt, returnPoints=False)
+				# The Convex Hull of a shape or a group of points is a tight fitting convex boundary around the points or the shape
 
-				# Find the convexity defects in order to find the concave vertex
+				# Calculate the difference between the contour and its convex hull
 				defects = cv.convexityDefects(cnt, hull)
 
 				# Check for concave corners
+				# The shape of defects is in the following form: [x,1,4] with x = vertices in the contourn
 				for i in range(defects.shape[0]):
-					_, _, f, d = defects[i, 0]
+					
+					# Each elements has: start_index, end_index, farthest_pt_index, fixpt_depth; but we are interested only in the last two
+					_, _, f, d = defects[i, 0] 
 
-					# In case the distance is grater than 1000 we are in a concave corner# capire perche' funziona		 
+					# In case the distance is grater than 1000 we are in a concave corner	 
 					if d > 1000: 
 						A = cnt[f][0]
 	  
