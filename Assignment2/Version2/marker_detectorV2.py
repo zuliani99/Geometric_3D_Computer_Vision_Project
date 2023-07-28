@@ -24,7 +24,7 @@ def main() -> None:
 	for obj in objs:
 		
 		print(f'Marker Detector for {obj}...')
-		input_video = cv.VideoCapture(f"../data/{obj}")
+		input_video = cv.VideoCapture(f"../../data/{obj}")
 
 		# Get video properties
 		frame_width = int(input_video.get(cv.CAP_PROP_FRAME_WIDTH))
@@ -39,7 +39,7 @@ def main() -> None:
 		dict_stats = [] # Initialize the list of dictionary that we will save as .csv file
 
 		# Create output video writer
-		output_video = cv.VideoWriter(f"../output_part2/{obj_id}/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), fps, (frame_width, frame_height))
+		output_video = cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), fps, (frame_width, frame_height))
   
 		# Until the video is open
 		while input_video.isOpened():
