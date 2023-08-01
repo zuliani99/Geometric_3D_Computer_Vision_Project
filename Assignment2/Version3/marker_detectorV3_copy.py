@@ -13,8 +13,14 @@ criteria = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 30, 0.01)
 winsize = (5,5)
 maxlevel = 4
 
-circle_mask_size = 10
+circle_mask_size = 11 #10
 
+def draw_mask_frame(frame, mask, points):
+	for x, y in points:
+		pos = (int(x), int(y))		
+		cv.circle(frame, pos, 3, (0,0,255), -1)
+		cv.circle(mask, pos, circle_mask_size, 255, -1)
+	return frame, mask
 
 
 def main():
@@ -43,11 +49,7 @@ def main():
 		corners =  find_interesting_points(frameg, mask)
 		tracked_features = np.vstack((tracked_features, corners))
   
-	
-		for x, y in tracked_features:
-			pos = (int(x), int(y))		
-			cv.circle(frame, pos, 3, (0,0,255), -1)
-			cv.circle(mask, pos, circle_mask_size, 255, -1)
+		frame, mask = draw_mask_frame(frame, mask, tracked_features)
    
 		output_video.write(frame)
    
@@ -72,17 +74,6 @@ def main():
 				p1, st, _ = cv.calcOpticalFlowPyrLK(prev_frameg, frameg, tracked_features, None, winSize=winsize, maxLevel=maxlevel, criteria=criteria)
 				assert(p1.shape[0] == tracked_features.shape[0])
 				p0r, st0, _ = cv.calcOpticalFlowPyrLK(frameg, prev_frameg, p1, None, winSize=winsize, maxLevel=maxlevel, criteria=criteria)
-				#good = abs(tracked_features - p0r).reshape(-1, 2).max(-1) < 0.5
-				#tracked_features = p1[good, :]
-				
-    
-				#print(p1[np.squeeze(st == 1)])
-				#tracked_features = p1[np.squeeze(st == 1)]
-
-    
-				#print(len(tracked_features))
-
-
 
 				fb_good = (np.fabs(p0r-tracked_features) < 0.1).all(axis=1)
 				fb_good = np.logical_and(np.logical_and(fb_good, st.flatten()), st0.flatten())
@@ -90,15 +81,15 @@ def main():
 
 
 				# Update tracks
-				for x, y in tracked_features:
-					pos = (int(x), int(y)) # set the pair of X and Y coordiantes
-					cv.circle(frame, pos, 3, (0,0,255), -1)
-					cv.circle(mask, pos, circle_mask_size, 255, -1)
+				frame, mask = draw_mask_frame(frame, mask, tracked_features)
+
 			
 
 			
-			corners =  find_interesting_points(frameg, mask)
-			if(corners.shape[0] > 0): tracked_features = np.vstack((tracked_features, corners)) # stack arrays in sequence vertically, for the coordinate of the cumulative features
+			corners = find_interesting_points(frameg, mask)
+			if(corners.shape[0] > 0):
+				frame, mask = draw_mask_frame(frame, mask, corners)
+				tracked_features = np.vstack((tracked_features, corners)) # stack arrays in sequence vertically, for the coordinate of the cumulative features
 
 			prev_frameg = frameg
    
