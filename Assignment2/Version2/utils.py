@@ -53,7 +53,7 @@ def save_stats(obj_id: str, dict_stats: List[Dict[int, Tuple[int, int, int]]]) -
 	fields = ['frame', 'mark_id', 'Px', 'Py', 'X', 'Y', 'Z'] 
 	
 	# Name of csv file 
-	filename = f'../output_part2/{obj_id}/{obj_id}_marker.csv'
+	filename = f'../../output_part2/{obj_id}/{obj_id}_marker.csv'
 		
 	# Writing to csv file 
 	with open(filename, 'w') as csvfile: 

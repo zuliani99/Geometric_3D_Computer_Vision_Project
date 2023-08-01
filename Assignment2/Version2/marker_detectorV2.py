@@ -29,7 +29,6 @@ def main() -> None:
 		# Get video properties
 		frame_width = int(input_video.get(cv.CAP_PROP_FRAME_WIDTH))
 		frame_height = int(input_video.get(cv.CAP_PROP_FRAME_HEIGHT))
-		fps = input_video.get(cv.CAP_PROP_FPS)
 
 		actual_fps = 0
 		obj_id = obj.split('.')[0]
@@ -39,10 +38,10 @@ def main() -> None:
 		dict_stats = [] # Initialize the list of dictionary that we will save as .csv file
 
 		# Create output video writer
-		output_video = cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), fps, (frame_width, frame_height))
+		output_video = cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
   
 		# Until the video is open
-		while input_video.isOpened():
+		while True:
 			start = time.time() # Start the timer to compute the actual FPS 
 			
 			# Extract a frame
