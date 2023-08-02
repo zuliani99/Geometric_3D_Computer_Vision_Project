@@ -50,5 +50,8 @@ def find_interesting_points(imgray, mask):
 					ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(confermed_cnt), winSize_sub, zeroZone_sub, criteria_sub)
 					#ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(approx_cnt), winSize_sub, zeroZone_sub, criteria_sub)
 					points_of_interests = np.vstack((points_of_interests, np.squeeze(ref_approx_cnt)))
-		
+					'''if(confermed_cnt.shape[0] == 5): 
+						print('adding new polygon', confermed_cnt)
+					else:
+						print('modifing points', confermed_cnt)'''
 	return points_of_interests

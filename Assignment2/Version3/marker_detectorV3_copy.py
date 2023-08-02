@@ -15,13 +15,6 @@ maxlevel = 4
 
 circle_mask_size = 11 #10
 
-def draw_mask_frame(frame, mask, points):
-	for x, y in points:
-		pos = (int(x), int(y))		
-		cv.circle(frame, pos, 3, (0,0,255), -1)
-		cv.circle(mask, pos, circle_mask_size, 255, -1)
-	return frame, mask
-
 
 def main():
 
@@ -49,7 +42,10 @@ def main():
 		corners =  find_interesting_points(frameg, mask)
 		tracked_features = np.vstack((tracked_features, corners))
   
-		frame, mask = draw_mask_frame(frame, mask, tracked_features)
+		for x, y in tracked_features:
+			pos = (int(x), int(y))		
+			cv.circle(frame, pos, 3, (0,0,255), -1)
+			cv.circle(mask, pos, circle_mask_size, 255, -1)
    
 		output_video.write(frame)
    
@@ -79,19 +75,18 @@ def main():
 				fb_good = np.logical_and(np.logical_and(fb_good, st.flatten()), st0.flatten())
 				tracked_features = p1[fb_good, :]
 
+				for x, y in tracked_features: cv.circle(mask, (int(x), int(y)), circle_mask_size, 255, -1)
 
-				# Update tracks
-				frame, mask = draw_mask_frame(frame, mask, tracked_features)
-
-			
-
+			#print('tracked_features', tracked_features.shape)
 			
 			corners = find_interesting_points(frameg, mask)
+   
 			if(corners.shape[0] > 0):
-				frame, mask = draw_mask_frame(frame, mask, corners)
-				tracked_features = np.vstack((tracked_features, corners)) # stack arrays in sequence vertically, for the coordinate of the cumulative features
-
+				tracked_features = np.vstack((tracked_features, corners)) 
+   
 			prev_frameg = frameg
+   
+			for x, y in tracked_features: cv.circle(frame, (int(x), int(y)), 3, (0,0,255), -1)
    
    
 			cv.imshow('frame',frame)
