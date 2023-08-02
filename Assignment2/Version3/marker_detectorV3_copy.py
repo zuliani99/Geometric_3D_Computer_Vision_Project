@@ -93,8 +93,12 @@ def main():
 			#cv.imshow('mask',mask)
 			
 			output_video.write(frame)
+
+			key = cv.waitKey(1)
+			if key == ord('p'):
+				cv.waitKey(-1) #wait until any key is pressed
    
-			if cv.waitKey(1) == ord('q'):
+			if key == ord('q'):
 				break
 
 			actual_fps += 1
