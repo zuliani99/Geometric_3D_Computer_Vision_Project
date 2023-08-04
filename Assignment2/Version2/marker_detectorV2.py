@@ -70,8 +70,12 @@ def main() -> None:
 			# Extends our list with the obtained dictionary
 			dict_stats.extend(dict_stats_to_extend)
 
-			if cv.waitKey(1) == ord('q'):
-				break
+			key = cv.waitKey(1)
+			if key == ord('p'):
+				cv.waitKey(-1) #wait until any key is pressed
+    
+			if key == ord('q'):
+				return
 
 			actual_fps += 1
 

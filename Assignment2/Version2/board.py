@@ -58,10 +58,9 @@ class Board:
 				for idx, coords in enumerate(reversed(poly.circles_ctr_coords), start=1): 
 					start = np.int32(coords[1])
 					end = np.int32(coords[0])
-			
-					cv.line(image, (start, end - (5 * idx)), (start, end + (5 * idx)), (0,255,0), 1, cv.LINE_AA)
-					cv.line(image, (start - (5 * idx), end), (start + (5 * idx), end), (0,255,0), 1, cv.LINE_AA)
-					cv.rectangle(image, (start - 5, end - 5), (start + 5, end + 5), (255,0,0), 1, cv.LINE_AA)
+					cv.drawMarker(image, (start, end), (0,255,0), cv.MARKER_CROSS, 10 * idx, 1, cv.LINE_AA)
+					cv.drawMarker(image, (start, end), (255,0,0), cv.MARKER_SQUARE, 10, 1, cv.LINE_AA)
+
 		return image		
   
   
@@ -141,7 +140,7 @@ class Board:
 		for cnt in contours:
 		
 			# Shortlisting the regions based on there area.
-			if cv.contourArea(cnt) > 1720:
+			if cv.contourArea(cnt) > 1680:  # previously was 1720
 				
 				approx_cnt = cv.approxPolyDP(cnt, 0.02 * cv.arcLength(cnt, True), True) # [[[X Y]] [[X Y]] ... [[X Y]]]
 				
