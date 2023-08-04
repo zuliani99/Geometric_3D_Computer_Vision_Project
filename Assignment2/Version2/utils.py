@@ -159,3 +159,20 @@ def compute_index_and_cc_coords(A: np.ndarray[np.int32], middle_point: np.ndarra
 	index = int("".join(str(x) for x in bit_index), 2) 
  
 	return index, circles_ctr_coords
+
+
+
+def sort_vertices_clockwise(vertices, x_centroid=None, y_centroid=None):
+    new_centroid = np.mean(vertices, axis=0)
+    if x_centroid is None and y_centroid is None:
+        centroid = new_centroid
+    elif x_centroid is None:
+        centroid = [new_centroid[0], y_centroid]
+    elif y_centroid is None:
+        centroid = [x_centroid, new_centroid[1]]
+    else:
+        centroid = [x_centroid, y_centroid]
+        
+    angles = np.arctan2(vertices[:, 1] - centroid[1], vertices[:, 0] - centroid[0])
+    sorted_indices = np.argsort(angles)
+    return vertices[sorted_indices]
