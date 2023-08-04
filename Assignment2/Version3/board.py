@@ -37,20 +37,21 @@ def find_interesting_points(imgray, mask):
 	for cnt in contours:
 		
 		# Shortlisting the regions based on there area.
-		if cv.contourArea(cnt) > 1625: #1685, 1650 ok 1625
+		if cv.contourArea(cnt) > 1720:
 				
 			approx_cnt = cv.approxPolyDP(cnt, 0.02 * cv.arcLength(cnt, True), True) # [[[X Y]] [[X Y]] ... [[X Y]]]
 				
 			# Checking if the number of sides of the selected region is 5.
 			if (len(approx_cnt)) == 5:
-				
-				if(mask.shape[0] > 0):
-					confermed_cnt = check_mask(approx_cnt, mask)
-						
-					if(confermed_cnt.shape[0] > 0):
-						ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(confermed_cnt), winSize_sub, zeroZone_sub, criteria_sub)
-						points_of_interests = np.vstack((points_of_interests, np.squeeze(ref_approx_cnt)))
-				else:
-					ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(approx_cnt), winSize_sub, zeroZone_sub, criteria_sub)
+     
+				confermed_cnt = check_mask(approx_cnt, mask)
+
+				if(confermed_cnt.shape[0] > 0):
+					ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(confermed_cnt), winSize_sub, zeroZone_sub, criteria_sub)
+					#ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(approx_cnt), winSize_sub, zeroZone_sub, criteria_sub)
 					points_of_interests = np.vstack((points_of_interests, np.squeeze(ref_approx_cnt)))
+					'''if(confermed_cnt.shape[0] == 5): 
+						print('adding new polygon', confermed_cnt)
+					else:
+						print('modifing points', confermed_cnt)'''
 	return points_of_interests
