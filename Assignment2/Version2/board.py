@@ -24,7 +24,7 @@ class Board:
 	def draw_red_polygon(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
     		->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
 		'''
-		PURPOSE: draw the red polygon, the cros in the point A and the line crossing the polygon by length
+		PURPOSE: draw the red polygon, the cross in point A and the line crossing the polygon by length
 		ARGUMENTS: 
 			- image (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image to edit
 		RETURN:
@@ -35,9 +35,8 @@ class Board:
 			if poly.cover == False:
 				cv.drawContours(image, [poly.vertex_coords], 0, (0, 0, 255), 2, cv.LINE_AA)
 
-				cv.line(image, (poly.point_A[0], poly.point_A[1] - 10), (poly.point_A[0], poly.point_A[1] + 10), (0,255,0), 1, cv.LINE_AA)
-				cv.line(image, (poly.point_A[0] - 10, poly.point_A[1]), (poly.point_A[0] + 10, poly.point_A[1]), (0,255,0), 1, cv.LINE_AA)
-	
+				cv.drawMarker(image, poly.point_A, (0,255,0), cv.MARKER_CROSS, 20, 1, cv.LINE_AA)
+
 				cv.line(image, poly.point_A, np.int32(poly.middle_point), (0, 255, 255), 1, cv.LINE_AA) 
 		return image
             
