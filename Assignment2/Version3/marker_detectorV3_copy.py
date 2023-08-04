@@ -9,110 +9,156 @@ from board import find_interesting_points
 objs = ['obj01.mp4', 'obj02.mp4', 'obj03.mp4', 'obj04.mp4']
 
 # se the Lucas Kanade parameters
-criteria = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 30, 0.01)
-winsize = (5,5)
-maxlevel = 4
+criteria = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 0.01)
+winsize = (3,3)
+maxlevel = 3
 
-circle_mask_size = 11 #10
+circle_mask_size = 9
+
+
+def sort_vertices_clockwise(vertices, centroid=None):
+    if centroid is None: centroid = np.mean(vertices, axis=0)
+    angles = np.arctan2(vertices[:, 1] - centroid[1], vertices[:, 0] - centroid[0])
+    sorted_indices = np.argsort(angles)
+    return centroid, vertices[sorted_indices]
 
 
 def main():
 
-	# Iterate for each object
-	for obj in objs:
-		
-		print(f'Marker Detector for {obj}...')
-		input_video = cv.VideoCapture(f"../../data/{obj}")
+    # Iterate for each object
+    for obj in objs:
+        
+        print(f'Marker Detector for {obj}...')
+        input_video = cv.VideoCapture(f"../../data/{obj}")
 
-		frame_width = int(input_video.get(cv.CAP_PROP_FRAME_WIDTH))
-		frame_height = int(input_video.get(cv.CAP_PROP_FRAME_HEIGHT))
+        frame_width = int(input_video.get(cv.CAP_PROP_FRAME_WIDTH))
+        frame_height = int(input_video.get(cv.CAP_PROP_FRAME_HEIGHT))
 
-		actual_fps = 0
-		obj_id = obj.split('.')[0]
+        actual_fps = 0
+        obj_id = obj.split('.')[0]
   
-		output_video = cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
-
-		prev_frameg = None # Previosu gray frame
-		tracked_features = np.zeros( (0,2), dtype=np.float32 ) 
+        output_video = cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
   
 
-		ret, frame = input_video.read()
-		frameg = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-		mask = np.zeros_like(frameg)
-		corners =  find_interesting_points(frameg, mask)
-		tracked_features = np.vstack((tracked_features, corners))
+        ret, frame = input_video.read()
+        frameg = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        mask = np.zeros_like(frameg)
+        tracked_features = find_interesting_points(frameg, mask)
   
-		for x, y in tracked_features:
-			pos = (int(x), int(y))		
-			cv.circle(frame, pos, 3, (0,0,255), -1)
-			cv.circle(mask, pos, circle_mask_size, 255, -1)
+        for x, y in tracked_features:
+            cv.circle(frame, (int(x), int(y)), 3, (0,0,255), -1)
+            cv.circle(mask, (int(x), int(y)), circle_mask_size, 255, -1)
    
-		output_video.write(frame)
+        output_video.write(frame)
    
-		prev_frameg = frameg
+        prev_frameg = frameg
+
+        while True:
+            
+            ret, frame = input_video.read()
+
+            if not ret:	break
+
+         
+            frameg = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+            mask = np.zeros_like(frameg)
+            
+          
+            p1, st, _ = cv.calcOpticalFlowPyrLK(prev_frameg, frameg, tracked_features, None, winSize=winsize, maxLevel=maxlevel, criteria=criteria)
+            assert(p1.shape[0] == tracked_features.shape[0])
+            p0r, st0, _ = cv.calcOpticalFlowPyrLK(frameg, prev_frameg, p1, None, winSize=winsize, maxLevel=maxlevel, criteria=criteria)
+
+            fb_good = (np.fabs(p0r-tracked_features) < 0.1).all(axis=1)
+            fb_good = np.logical_and(np.logical_and(fb_good, st.flatten()), st0.flatten())
+            
+            tracked_features = p1[fb_good, :]
+            
+            
+            
+            
+            
+
+            for x, y in tracked_features: 
+                cv.circle(frame, (int(x), int(y)), 3, (0,0,255), -1)
+                cv.circle(mask, (int(x), int(y)), circle_mask_size, 255, -1)
+            
+   
+            new_corner = find_interesting_points(frameg, mask)
+            tracked_features = np.vstack((tracked_features, new_corner)) 
+
+            for x, y in new_corner: 
+                cv.circle(frame, (int(x), int(y)), 3, (0,255,255), -1)
+                cv.circle(mask, (int(x), int(y)), circle_mask_size, 255, -1)
+    
+
+            centroid, clockwise = sort_vertices_clockwise(tracked_features, [1290,540])
+   
+            
+   
+   
+            cv.drawMarker(frame, np.int32(centroid), color=(255,255,255), markerType=cv.MARKER_CROSS, thickness=2)
+   
+            if tracked_features.shape[0] < 90: 
+                print('ALT!!!!!!!!!!!!')
+                cv.imshow('frame',frame)
+                cv.waitKey(-1)
 
 
-		# Until the video is open
-		while True:
-			
-			# Extract a frame
-			ret, frame = input_video.read()
-
-			if not ret:	break
-
+            if(clockwise.shape[0] < 95): clockwise = np.reshape(clockwise[:90,:], (18,5,2))
+            else: clockwise = np.reshape(clockwise[:95,:], (19,5,2))
+            
    
-			frameg = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-			mask = np.zeros_like(frameg)
-			
-   
-			if tracked_features.shape[0] > 0: # in case I have something within my array of features to track
-       
-				p1, st, _ = cv.calcOpticalFlowPyrLK(prev_frameg, frameg, tracked_features, None, winSize=winsize, maxLevel=maxlevel, criteria=criteria)
-				assert(p1.shape[0] == tracked_features.shape[0])
-				p0r, st0, _ = cv.calcOpticalFlowPyrLK(frameg, prev_frameg, p1, None, winSize=winsize, maxLevel=maxlevel, criteria=criteria)
+            print('area', clockwise.shape[0], cv.contourArea(clockwise[-1,:,:]))
 
-				fb_good = (np.fabs(p0r-tracked_features) < 0.1).all(axis=1)
-				fb_good = np.logical_and(np.logical_and(fb_good, st.flatten()), st0.flatten())
-				tracked_features = p1[fb_good, :]
+            if(cv.contourArea(clockwise[-1,:,:]) < 800):
+                print('area', cv.contourArea(clockwise[-1,:,:]))
+                to_remove = np.all(tracked_features[:, None] == clockwise[-1,:,:], axis=2).any(axis=1)
+                tracked_features = np.delete(tracked_features, to_remove, axis=0)
+                clockwise = clockwise[:clockwise.shape[0]-1,:,:]
+    
+    
+            for poly in clockwise:
+                _, print_order = sort_vertices_clockwise(poly)
+                cv.drawContours(frame, np.int32([print_order]), 0, (255,255,0), 1, cv.LINE_AA)
 
-				for x, y in tracked_features: cv.circle(mask, (int(x), int(y)), circle_mask_size, 255, -1)
 
-			#print('tracked_features', tracked_features.shape)
-			
-			corners = find_interesting_points(frameg, mask)
-   
-			if(corners.shape[0] > 0):
-				tracked_features = np.vstack((tracked_features, corners)) 
-   
-			prev_frameg = frameg
-   
-			for x, y in tracked_features: cv.circle(frame, (int(x), int(y)), 3, (0,0,255), -1)
+
+
+
+
+
+            prev_frameg = frameg
+
+            cv.imshow('frame',frame)
+            #cv.imshow('mask',mask)
    
    
-			cv.imshow('frame',frame)
-			#cv.imshow('mask',mask)
-			
-			output_video.write(frame)
-
-			key = cv.waitKey(1)
-			if key == ord('p'):
-				cv.waitKey(-1) #wait until any key is pressed
+            print('tracked_features', tracked_features.shape[0], int(tracked_features.shape[0]/5))
    
-			if key == ord('q'):
-				break
+            cv.waitKey(-1)
+      
+            
+            output_video.write(frame)
 
-			actual_fps += 1
+            key = cv.waitKey(1)
+            #if key == ord('p'):
+                #cv.waitKey(-1) #wait until any key is pressed
+   
+            if key == ord('q'):
+                return
 
-		print(' DONE\n')
+            actual_fps += 1
+
+        print(' DONE\n')
   
 
-		# Release the input and output streams
-		input_video.release()
-		output_video.release()
-		cv.destroyAllWindows()
+        # Release the input and output streams
+        input_video.release()
+        output_video.release()
+        cv.destroyAllWindows()
 
 
 
 
 if __name__ == "__main__":
-	main()
+    main()
