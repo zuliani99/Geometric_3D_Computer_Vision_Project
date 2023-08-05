@@ -1,0 +1,73 @@
+	'''centroid, tracked_features = sort_vertices_clockwise(tracked_features, x_centroid=1300, y_centroid=550)
+		
+			if(tracked_features.shape[0] < 95): tracked_features = tracked_features[:90,:]
+			else: tracked_features = tracked_features[:95,:]
+   
+   
+			cv.drawMarker(frame, np.int32(centroid), color=(255,255,255), markerType=cv.MARKER_CROSS, thickness=2)
+			
+			if(tracked_features.shape[0] < 90):
+				print('going to crash')
+				cv.imshow('frame',frame)
+				cv.imshow('mask',mask)
+				print('tracked_features', tracked_features.shape[0], int(tracked_features.shape[0]/5))
+				cv.waitKey(-1)
+
+			reshaped_cloclwise = np.reshape(tracked_features, (int(tracked_features.shape[0]/5), 5, 2))
+   
+   
+			_, last_poly_sorted = sort_vertices_clockwise(reshaped_cloclwise[-1,:,:])
+   
+			print(cv.contourArea(np.int32(last_poly_sorted)))
+  
+			if(cv.contourArea(np.int32(last_poly_sorted)) <= 1650):
+				to_remove = np.all(tracked_features[:, None] == reshaped_cloclwise[-1,:,:], axis=2).any(axis=1)
+				tracked_features = np.delete(tracked_features, to_remove, axis=0)
+				reshaped_cloclwise = reshaped_cloclwise[:reshaped_cloclwise.shape[0]-1, :, :]
+    
+   
+			for idx, poly in enumerate(reshaped_cloclwise):
+				# random BGR
+				color = random_bgr_color()
+				for x, y in poly:
+					cv.line(frame, (int(x), int(y)), np.int32(centroid), color, 1, cv.LINE_AA)
+				_, print_order = sort_vertices_clockwise(poly)
+				cv.drawContours(frame, np.int32([print_order]), 0, (0,0,255), 2, cv.LINE_AA)
+				cv.putText(frame, f'{str(idx)}  {cv.contourArea(np.int32(print_order))}', np.int32(print_order[0]), cv.FONT_HERSHEY_COMPLEX_SMALL, 1, (0,0,0), 1, cv.LINE_AA)
+'''
+
+			#if(cv.contourArea(np.int32(last_poly_sorted)) <= 1650):
+				#reshaped_cloclwise = reshaped_cloclwise[:reshaped_cloclwise.shape[0]-1, :, :]
+			
+ 
+			'''centroid, clockwise = sort_vertices_clockwise(tracked_features, [1290,540])
+   
+			cv.drawMarker(frame, np.int32(centroid), color=(255,255,255), markerType=cv.MARKER_CROSS, thickness=2)
+   
+			if tracked_features.shape[0] < 90: 
+				print('ALT!!!!!!!!!!!!')
+				cv.imshow('frame',frame)
+				cv.waitKey(-1)
+
+
+			if(clockwise.shape[0] < 95): clockwise = np.reshape(clockwise[:90,:], (18,5,2))
+			else: clockwise = np.reshape(clockwise[:95,:], (19,5,2))
+			
+   
+			print('area', clockwise.shape[0], cv.contourArea(clockwise[-1,:,:]))
+
+			if(cv.contourArea(clockwise[-1,:,:]) < 800):
+				print('area', cv.contourArea(clockwise[-1,:,:]))
+				to_remove = np.all(tracked_features[:, None] == clockwise[-1,:,:], axis=2).any(axis=1)
+				tracked_features = np.delete(tracked_features, to_remove, axis=0)
+				clockwise = clockwise[:clockwise.shape[0]-1,:,:]
+	
+	
+			for poly in clockwise:
+				_, print_order = sort_vertices_clockwise(poly)
+				cv.drawContours(frame, np.int32([print_order]), 0, (255,255,0), 1, cv.LINE_AA)
+				
+			
+			for x, y in tracked_features: 
+				cv.circle(frame, (int(x), int(y)), 3, (0,0,255), -1)
+				cv.circle(mask, (int(x), int(y)), circle_mask_size, 255, -1)'''
