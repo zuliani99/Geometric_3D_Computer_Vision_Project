@@ -1,7 +1,3 @@
-#from utils import find_distance_between_points, find_middle_point, compute_index_and_cc_coords
-from polygon import Polygon
-
-from typing import Dict, List, Tuple, Union
 import cv2 as cv
 import numpy as np
 
@@ -10,6 +6,23 @@ import numpy as np
 winSize_sub = (5, 5)
 zeroZone_sub = (-1, -1)
 criteria_sub = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 100, 0.001)
+
+
+def sort_vertices_clockwise(vertices, x_centroid=None, y_centroid=None):
+    new_centroid = np.mean(vertices, axis=0)
+    if x_centroid is None and y_centroid is None:
+        centroid = new_centroid
+    elif x_centroid is None:
+        centroid = [new_centroid[0], y_centroid]
+    elif y_centroid is None:
+        centroid = [x_centroid, new_centroid[1]]
+    else:
+        centroid = [x_centroid, y_centroid]
+        
+    angles = np.arctan2(vertices[:, 1] - centroid[1], vertices[:, 0] - centroid[0])
+    sorted_indices = np.argsort(angles)
+    return centroid, vertices[sorted_indices]
+
 
 
 def check_mask(approx_cnt, mask):
@@ -26,7 +39,7 @@ def find_interesting_points(imgray, mask):
 	
 	# Consider only the board exluding all the object area that could be included erroneously
 	mask_thresh = np.zeros((1080, 1920), dtype=np.uint8)
-	mask_thresh[:, 1050:1600] = thresh[:, 1050:1600]
+	mask_thresh[:, 1130:1600] = thresh[:, 1130:1600]
 
 	# Finding the contourns
 	contours, _ = cv.findContours(mask_thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE) # [[[X Y]] [[X Y]] ... [[X Y]]]
@@ -35,23 +48,23 @@ def find_interesting_points(imgray, mask):
   
 	# Searching through every region selected to find the required polygon.
 	for cnt in contours:
-		
 		# Shortlisting the regions based on there area.
-		if cv.contourArea(cnt) > 1720:
+		#sorted_vertex = cnt
+		_, sorted_vertex = sort_vertices_clockwise(np.squeeze(cnt, axis=1))
+		if cv.contourArea(sorted_vertex) > 1625.0: #1685, 1650 ok 1625
+														
+			approx_cnt = cv.approxPolyDP(cnt, 0.015 * cv.arcLength(cnt, True), True) # [[[X Y]] [[X Y]] ... [[X Y]]]
 				
-			approx_cnt = cv.approxPolyDP(cnt, 0.02 * cv.arcLength(cnt, True), True) # [[[X Y]] [[X Y]] ... [[X Y]]]
-				
-			# Checking if the number of sides of the selected region is 5.
 			if (len(approx_cnt)) == 5:
-     
-				confermed_cnt = check_mask(approx_cnt, mask)
-
-				if(confermed_cnt.shape[0] > 0):
-					ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(confermed_cnt), winSize_sub, zeroZone_sub, criteria_sub)
-					#ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(approx_cnt), winSize_sub, zeroZone_sub, criteria_sub)
+				
+				if(mask.shape[0] > 0):
+					confermed_cnt = check_mask(approx_cnt, mask)
+						
+					if(confermed_cnt.shape[0] > 0):
+						ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(confermed_cnt), winSize_sub, zeroZone_sub, criteria_sub)
+						points_of_interests = np.vstack((points_of_interests, np.squeeze(ref_approx_cnt)))
+				else:
+					ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(approx_cnt), winSize_sub, zeroZone_sub, criteria_sub)
 					points_of_interests = np.vstack((points_of_interests, np.squeeze(ref_approx_cnt)))
-					'''if(confermed_cnt.shape[0] == 5): 
-						print('adding new polygon', confermed_cnt)
-					else:
-						print('modifing points', confermed_cnt)'''
+
 	return points_of_interests
