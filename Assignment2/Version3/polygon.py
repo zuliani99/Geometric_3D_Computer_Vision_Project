@@ -1,3 +1,5 @@
+from utils import random_bgr_color
+
 # Polygon calss that store useful information
 
 class Polygon:
@@ -7,6 +9,8 @@ class Polygon:
 		self.vertex_coords = None
 		self.point_A = None
 		self.middle_point = None
+		self.color = random_bgr_color()
+
 	
 	def update_info(self, cover, circles_ctr_coords, vertex_coords, point_A, middle_point):
 		self.cover = cover
