@@ -176,3 +176,9 @@ def sort_vertices_clockwise(vertices, x_centroid=None, y_centroid=None):
     angles = np.arctan2(vertices[:, 1] - centroid[1], vertices[:, 0] - centroid[0])
     sorted_indices = np.argsort(angles)
     return vertices[sorted_indices]
+
+
+def resize_for_laptop(using_laptop, frame):
+	if using_laptop:
+		frame = cv.resize(frame, (1080, 600))
+	return frame

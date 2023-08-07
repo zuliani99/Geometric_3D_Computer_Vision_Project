@@ -7,10 +7,15 @@ from board import Board
 from utils import save_stats, set_marker_reference_coords, resize_for_laptop
 
 
-# List of object file name that we have to process
-objs = ['obj01.mp4']#, 'obj02.mp4', 'obj03.mp4', 'obj04.mp4']
-
 using_laptop = True
+
+# Dictionary of object file name that we have to process with associated parameters
+parameters = {
+	#'obj01.mp4': {'circle_mask_size': 15, 'window_size': (10, 10)},
+	#'obj02.mp4': {'circle_mask_size': 14, 'window_size': (8, 8)},
+	'obj03.mp4': {'circle_mask_size': 25, 'window_size': (15, 15)},
+	#'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10)},
+}
 
 
 def main():
@@ -19,8 +24,8 @@ def main():
 	marker_reference = set_marker_reference_coords()
 
 	# Iterate for each object
-	for obj in objs:
-		
+	for obj, hyper_param in parameters.items():
+     
 		print(f'Marker Detector for {obj}...')
 		input_video = cv.VideoCapture(f"../../data/{obj}")
 
@@ -29,8 +34,8 @@ def main():
 
 		actual_fps = 0
 		obj_id = obj.split('.')[0]
-  
-		board = Board(n_polygons=24, circle_mask_size=13)
+
+		board = Board(n_polygons=24, circle_mask_size=hyper_param['circle_mask_size'])
   
 		dict_stats = [] # Initialize the list of dictionary that we will save as .csv file
   
@@ -53,7 +58,7 @@ def main():
    
 			
 			if(actual_fps % 15 == 0): board.find_interesting_points(thresh, frameg, mask)
-			else: board.apply_LF_OF(thresh, prev_frameg, frameg, mask)
+			else: board.apply_LF_OF(thresh, prev_frameg, frameg, mask, hyper_param['window_size'])
     
 
 			reshaped_clockwise = board.get_clockwise_vertices()

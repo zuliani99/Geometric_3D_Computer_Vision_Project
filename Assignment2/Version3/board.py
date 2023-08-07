@@ -15,7 +15,7 @@ criteria_sub = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 100, 0.001)
 
 # se the Lucas Kanade parameters
 criteria_lk = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 50, 0.01)
-winsize_lk = (10,10)
+#winsize_lk = (15,15)
 maxlevel_lk = 3
 
 
@@ -112,7 +112,7 @@ class Board:
 
 
 	def find_interesting_points(self, thresh, imgray, mask):
-		#print(not np.any(mask))
+
 		if(not np.any(mask)): self.tracked_features = np.zeros((0,2), dtype=np.float32)
 		
 		mask_thresh = np.zeros((1080, 1920), dtype=np.uint8)
@@ -151,15 +151,17 @@ class Board:
   
 		# I have to sort clockwise the alst polygon in order to compute correctly the contourArea
 		last_poly_sorted = sort_vertices_clockwise(reshaped_clockwise[-1,:,:])
+		#print('last poly is ', last_poly_sorted)
     
 		if(cv.contourArea(np.int32(last_poly_sorted)) <= 1625.0):
+			#print('removing it')
 			reshaped_clockwise = reshaped_clockwise[:reshaped_clockwise.shape[0]-1, :, :]
 		
 		return np.array([sort_vertices_clockwise(poly) for poly in reshaped_clockwise])
 
 
 
-	def apply_LF_OF(self, thresh, prev_frameg, frameg, mask):
+	def apply_LF_OF(self, thresh, prev_frameg, frameg, mask, winsize_lk):
      
 		# Forward Optical Flow
 		p1, st, _ = cv.calcOpticalFlowPyrLK(prev_frameg, frameg, self.tracked_features, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)#, flags=cv.OPTFLOW_LK_GET_MIN_EIGENVALS, minEigThreshold=0.01)
@@ -169,7 +171,7 @@ class Board:
 		# Backword Optical Flow
 		p0r, st0, _ = cv.calcOpticalFlowPyrLK(frameg, prev_frameg, p1, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)#, flags=cv.OPTFLOW_LK_GET_MIN_EIGENVALS, minEigThreshold=0.01)
 		
-		fb_good = (np.fabs(p0r - self.tracked_features) < 0.1).all(axis=1)
+		fb_good = (np.fabs(p0r - self.tracked_features) < 0.8).all(axis=1)
 		fb_good = np.logical_and(np.logical_and(fb_good, st.flatten()), st0.flatten())
 
 		# Selecting good features
@@ -246,7 +248,7 @@ class Board:
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
 				#print(index)
 				if(index > 24): # this is an error
-					print('index grater than 24: ERROR')
+					print('index grater than 24: ERROR', index)
 					index = -1
 					#self.polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
 					#print('\n')
@@ -261,6 +263,7 @@ class Board:
 					X, Y, Z = marker_reference[index] 
 			else:
 				print('convex polygon')
+				print(poly)
 				index = -1
 				X, Y, Z = 0, 0, 0
 				A = [-1, -1]

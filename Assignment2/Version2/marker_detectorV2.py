@@ -2,12 +2,14 @@ import cv2 as cv
 import time
 import copy
 
-from utils import save_stats, set_marker_reference_coords
+from utils import save_stats, set_marker_reference_coords, resize_for_laptop
 from board import Board
 
 
 # List of object file name that we have to process
 objs = ['obj01.mp4', 'obj02.mp4', 'obj03.mp4', 'obj04.mp4']
+
+using_laptop = False
 
 
 def main() -> None:
@@ -54,15 +56,15 @@ def main() -> None:
 
 			# Draw stuff on the image
 			edited_frame = board.draw_stuff(frame)
-
-			frame_with_fps = copy.deepcopy(edited_frame) 
    
 			end = time.time()
 			fps = 1 / (end-start) # Compute the FPS
+   
+			frame_with_fps_resized = resize_for_laptop(using_laptop, copy.deepcopy(edited_frame))
 
 			# Output the frame with the FPS
-			cv.putText(frame_with_fps, f"{fps:.2f} FPS", (30, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-			cv.imshow(f'Marker Detector of {obj}', frame_with_fps)
+			cv.putText(frame_with_fps_resized, f"{fps:.2f} FPS", (30, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+			cv.imshow(f'Marker Detector of {obj}', frame_with_fps_resized)
    
 			# Save the frame without the FPS count
 			output_video.write(edited_frame)
