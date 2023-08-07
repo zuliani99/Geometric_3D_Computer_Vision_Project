@@ -14,9 +14,9 @@ criteria_sub = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 100, 0.001)
 
 
 # se the Lucas Kanade parameters
-criteria_lk = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 50, 0.01)
+criteria_lk = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 100, 0.01)
 #winsize_lk = (15,15)
-maxlevel_lk = 3
+maxlevel_lk = 4
 
 
 class Board:
@@ -107,22 +107,27 @@ class Board:
 		'''	
   
 		return self.draw_index(self.draw_green_cross_and_blu_rectangle(self.draw_red_polygon(image)))
+		#return self.draw_red_polygon(image)
 
   
 
 
 	def find_interesting_points(self, thresh, imgray, mask):
 
-		if(not np.any(mask)): self.tracked_features = np.zeros((0,2), dtype=np.float32)
+		if(not np.any(mask)): 
+			print('recomputing')
+			self.tracked_features = np.zeros((0,2), dtype=np.float32)
+		
 		
 		mask_thresh = np.zeros((1080, 1920), dtype=np.uint8)
 		mask_thresh[:, 1130:1600] = thresh[:, 1130:1600]
-
+  
 		contours, _ = cv.findContours(mask_thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE) # [[[X Y]] [[X Y]] ... [[X Y]]]
 	
 		for cnt in contours:
 
 			sorted_vertex = sort_vertices_clockwise(np.squeeze(cnt, axis=1))
+   
 			if cv.contourArea(sorted_vertex) > 1625.0:
 
 				approx_cnt = cv.approxPolyDP(cnt, 0.015 * cv.arcLength(cnt, True), True) # [[[X Y]] [[X Y]] ... [[X Y]]]
@@ -142,7 +147,9 @@ class Board:
   
   
   
-	def get_clockwise_vertices(self):
+	def get_clockwise_vertices_initial(self):
+     
+		print(self.tracked_features.shape)
 		self.tracked_features = sort_vertices_clockwise(self.tracked_features, self.centroid)
 		
 		self.tracked_features = self.tracked_features[:int(self.tracked_features.shape[0]/5)*5,:]
@@ -158,6 +165,64 @@ class Board:
 			reshaped_clockwise = reshaped_clockwise[:reshaped_clockwise.shape[0]-1, :, :]
 		
 		return np.array([sort_vertices_clockwise(poly) for poly in reshaped_clockwise])
+
+
+
+
+
+
+
+	def polygons_check_and_clockwise(self):
+		self.tracked_features = sort_vertices_clockwise(self.tracked_features, self.centroid) #[90,2]
+  
+		actual_traked_polygons = np.zeros((0,5,2), dtype=np.float32)
+
+		ft_stack = np.zeros((0,2), dtype=np.float32)
+
+		#for tf in self.tracked_features:
+		for idx in range(0, self.tracked_features.shape[0], 5): # iterate 5 vertices each times
+			#print('ok', self.tracked_features[idx:idx+5])
+			order_ft = sort_vertices_clockwise(self.tracked_features[idx:idx+5], self.centroid)
+			print(idx, order_ft)
+
+			# ---------------- Hooping that in case LK not detect a single corner and not more than one ----------------
+   
+			if cv.isContourConvex(sort_vertices_clockwise(self.tracked_features[idx:idx+5])) or ft_stack.shape[0] != 0:
+				print('polygon not correctly detected')
+				if ft_stack.shape[0] != 0 and order_ft.shape[0] > 3:
+					print('fixing it')
+					new_polygon = np.vstack((ft_stack[0,:], order_ft[:4,:])) # first 4 vertices from the polygon plus the first vertices of the ft_stack
+					ft_stack = np.delete(ft_stack, 0, axis=0) # removing the added element
+					actual_traked_polygons = np.vstack((actual_traked_polygons, np.expand_dims(new_polygon, axis=0)))
+				ft_stack = np.vstack((ft_stack, order_ft[-1]))
+			elif (order_ft.shape[0] == 5):
+				actual_traked_polygons = np.vstack((actual_traked_polygons, np.expand_dims(order_ft, axis=0)))
+			print(ft_stack.shape)
+    
+		print(actual_traked_polygons.shape)
+
+		#self.tracked_features = actual_traked_polygons[:int(actual_traked_polygons.shape[0]/5)*5,:]
+
+		#reshaped_clockwise = np.reshape(self.tracked_features, (int(self.tracked_features.shape[0]/5), 5, 2))
+
+		# I have to sort clockwise the alst polygon in order to compute correctly the contourArea
+		#last_poly_sorted = sort_vertices_clockwise(reshaped_clockwise[-1,:,:])
+		#print('last poly is ', last_poly_sorted)
+
+ 
+		#actual_traked_polygons.shape[0] == 19 and q
+		if(cv.contourArea(np.int32(sort_vertices_clockwise(actual_traked_polygons[-1,:,:]))) <= 1625.0):
+			#print('removing it')
+			actual_traked_polygons = actual_traked_polygons[:actual_traked_polygons.shape[0]-1, :, :]
+
+		#return actual_traked_polygons 
+		return np.array([sort_vertices_clockwise(poly) for poly in actual_traked_polygons])
+
+	
+
+
+
+
 
 
 
@@ -248,7 +313,7 @@ class Board:
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
 				#print(index)
 				if(index > 24): # this is an error
-					print('index grater than 24: ERROR', index)
+					print('index grater than 24: ERROR', index, cv.isContourConvex(poly))
 					index = -1
 					#self.polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
 					#print('\n')
@@ -262,7 +327,7 @@ class Board:
 					# Get the X, Y and Z marker reference 2D coordinates for the polygon with given index
 					X, Y, Z = marker_reference[index] 
 			else:
-				print('convex polygon')
+				print('convex polygon', cv.isContourConvex(poly))
 				print(poly)
 				index = -1
 				X, Y, Z = 0, 0, 0

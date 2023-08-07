@@ -3,18 +3,21 @@ import numpy as np
 import time
 import copy
 
+# circle 15 window 10
+
 from board import Board
 from utils import save_stats, set_marker_reference_coords, resize_for_laptop
 
 
-using_laptop = True
+using_laptop = False
 
 # Dictionary of object file name that we have to process with associated parameters
 parameters = {
-	#'obj01.mp4': {'circle_mask_size': 15, 'window_size': (10, 10)},
-	#'obj02.mp4': {'circle_mask_size': 14, 'window_size': (8, 8)},
-	'obj03.mp4': {'circle_mask_size': 25, 'window_size': (15, 15)},
-	#'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10)},
+	'obj01.mp4': {'circle_mask_size': 15, 'window_size': (10, 10)},
+	
+	'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9)},
+	'obj03.mp4': {'circle_mask_size': 13, 'window_size': (9, 9)},
+	'obj04.mp4': {'circle_mask_size': 13, 'window_size': (10, 10)}, # 13, 9
 }
 
 
@@ -57,18 +60,25 @@ def main():
 			mask = np.zeros_like(frameg)
    
 			
-			if(actual_fps % 15 == 0): board.find_interesting_points(thresh, frameg, mask)
+			if(actual_fps % 10 == 0): board.find_interesting_points(thresh, frameg, mask)
 			else: board.apply_LF_OF(thresh, prev_frameg, frameg, mask, hyper_param['window_size'])
     
+			
+			#reshaped_clockwise = board.get_clockwise_vertices_initial()
+			reshaped_clockwise = board.polygons_check_and_clockwise()
+   
+			'''for poly in reshaped_clockwise:
+				cv.drawContours(frame, [np.int32(poly)], 0, (0, 0, 255), 1, cv.LINE_AA)''' # controllo se nei frame sbaglaiti c'e' solo un punto
 
-			reshaped_clockwise = board.get_clockwise_vertices()
+   
+
 			dict_stats_to_extend = board.compute_markers(thresh, reshaped_clockwise, actual_fps, marker_reference)
 			edited_frame = board.draw_stuff(frame)
 
 			end = time.time()
 			fps = 1 / (end-start)
    
-			frame_with_fps_resized, mask_resized = resize_for_laptop(using_laptop, copy.deepcopy(edited_frame), mask)
+			frame_with_fps_resized, mask_resized = resize_for_laptop(using_laptop, copy.deepcopy(frame), mask)
   
 			cv.putText(frame_with_fps_resized, f"{fps:.2f} FPS", (30, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 			cv.imshow(f'Marker Detector of {obj}', frame_with_fps_resized)
