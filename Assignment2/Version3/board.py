@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 
-from utils import compute_index_and_cc_coords, find_distance_between_points, find_middle_point, sort_vertices_clockwise, check_mask
+from utils import compute_index_and_cc_coords, find_distance_between_points, find_middle_point, sort_vertices_clockwise, check_mask#, are_lines_parallel
 from polygon import Polygon
 
 from typing import List, Tuple, Union
@@ -14,9 +14,8 @@ criteria_sub = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 100, 0.001)
 
 
 # se the Lucas Kanade parameters
-criteria_lk = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 100, 0.01)
-#winsize_lk = (15,15)
-maxlevel_lk = 4
+criteria_lk = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 50, 0.01)
+maxlevel_lk = 2
 
 
 class Board:
@@ -38,7 +37,6 @@ class Board:
 		RETURN:
 			- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resuting image
 		'''	
-		cv.drawMarker(image, self.centroid, color=(255,255,255), markerType=cv.MARKER_CROSS, thickness=2)
 		for poly in self.polygon_list:
 			if poly.cover == False:
 				cv.drawContours(image, [np.int32(poly.vertex_coords)], 0, (0, 0, 255), 1, cv.LINE_AA)
@@ -51,7 +49,8 @@ class Board:
 					cv.circle(image, (int(x), int(y)), 4, poly.color, -1)
 					cv.line(image, (int(x), int(y)), self.centroid, poly.color, 1, cv.LINE_AA)
      
-  
+		cv.drawMarker(image, self.centroid, color=(255,255,255), markerType=cv.MARKER_CROSS, thickness=2)
+
 		return image
             
        
@@ -115,7 +114,7 @@ class Board:
 	def find_interesting_points(self, thresh, imgray, mask):
 
 		if(not np.any(mask)): 
-			print('recomputing')
+			#print('recomputing')
 			self.tracked_features = np.zeros((0,2), dtype=np.float32)
 		
 		
@@ -126,9 +125,9 @@ class Board:
 	
 		for cnt in contours:
 
-			sorted_vertex = sort_vertices_clockwise(np.squeeze(cnt, axis=1))
+			#sorted_vertex = sort_vertices_clockwise(np.squeeze(cnt, axis=1))
    
-			if cv.contourArea(sorted_vertex) > 1625.0:
+			if cv.contourArea(cnt) > 1650.0:
 
 				approx_cnt = cv.approxPolyDP(cnt, 0.015 * cv.arcLength(cnt, True), True) # [[[X Y]] [[X Y]] ... [[X Y]]]
 					
@@ -149,7 +148,7 @@ class Board:
   
 	def get_clockwise_vertices_initial(self):
      
-		print(self.tracked_features.shape)
+		#print(self.tracked_features.shape)
 		self.tracked_features = sort_vertices_clockwise(self.tracked_features, self.centroid)
 		
 		self.tracked_features = self.tracked_features[:int(self.tracked_features.shape[0]/5)*5,:]
@@ -157,10 +156,7 @@ class Board:
 		reshaped_clockwise = np.reshape(self.tracked_features, (int(self.tracked_features.shape[0]/5), 5, 2))
   
 		# I have to sort clockwise the alst polygon in order to compute correctly the contourArea
-		last_poly_sorted = sort_vertices_clockwise(reshaped_clockwise[-1,:,:])
-		#print('last poly is ', last_poly_sorted)
-    
-		if(cv.contourArea(np.int32(last_poly_sorted)) <= 1625.0):
+		if(cv.contourArea(sort_vertices_clockwise(reshaped_clockwise[-1,:,:])) <= 1600.0):
 			#print('removing it')
 			reshaped_clockwise = reshaped_clockwise[:reshaped_clockwise.shape[0]-1, :, :]
 		
@@ -171,9 +167,9 @@ class Board:
 
 
 
-
+	# fix this
 	def polygons_check_and_clockwise(self):
-		self.tracked_features = sort_vertices_clockwise(self.tracked_features, self.centroid) #[90,2]
+		self.tracked_features = sort_vertices_clockwise(self.tracked_features, self.centroid)
   
 		actual_traked_polygons = np.zeros((0,5,2), dtype=np.float32)
 
@@ -182,45 +178,37 @@ class Board:
 		#for tf in self.tracked_features:
 		for idx in range(0, self.tracked_features.shape[0], 5): # iterate 5 vertices each times
 			#print('ok', self.tracked_features[idx:idx+5])
-			order_ft = sort_vertices_clockwise(self.tracked_features[idx:idx+5], self.centroid)
-			print(idx, order_ft)
+			order_ft = self.tracked_features[idx:idx+5] 
 
 			# ---------------- Hooping that in case LK not detect a single corner and not more than one ----------------
-   
-			if cv.isContourConvex(sort_vertices_clockwise(self.tracked_features[idx:idx+5])) or ft_stack.shape[0] != 0:
-				print('polygon not correctly detected')
+			#print(are_lines_parallel(np.array([order_ft[1,:], order_ft[0,:]]), np.array([order_ft[4,:], order_ft[3,:]])))
+			if (cv.isContourConvex(sort_vertices_clockwise(order_ft)) or ft_stack.shape[0] != 0):
+       				#or not are_lines_parallel(np.array([order_ft[1,:], order_ft[0,:]]), np.array([order_ft[4,:], order_ft[3,:]]))):
+				#print(idx, order_ft)
+       
+				#print('polygon not correctly detected')
 				if ft_stack.shape[0] != 0 and order_ft.shape[0] > 3:
-					print('fixing it')
+					#print('fixing it')
 					new_polygon = np.vstack((ft_stack[0,:], order_ft[:4,:])) # first 4 vertices from the polygon plus the first vertices of the ft_stack
 					ft_stack = np.delete(ft_stack, 0, axis=0) # removing the added element
 					actual_traked_polygons = np.vstack((actual_traked_polygons, np.expand_dims(new_polygon, axis=0)))
 				ft_stack = np.vstack((ft_stack, order_ft[-1]))
 			elif (order_ft.shape[0] == 5):
 				actual_traked_polygons = np.vstack((actual_traked_polygons, np.expand_dims(order_ft, axis=0)))
-			print(ft_stack.shape)
+			#print(ft_stack.shape)
     
-		print(actual_traked_polygons.shape)
-
-		#self.tracked_features = actual_traked_polygons[:int(actual_traked_polygons.shape[0]/5)*5,:]
-
-		#reshaped_clockwise = np.reshape(self.tracked_features, (int(self.tracked_features.shape[0]/5), 5, 2))
-
-		# I have to sort clockwise the alst polygon in order to compute correctly the contourArea
-		#last_poly_sorted = sort_vertices_clockwise(reshaped_clockwise[-1,:,:])
-		#print('last poly is ', last_poly_sorted)
-
+		#print(actual_traked_polygons.shape)
  
 		#actual_traked_polygons.shape[0] == 19 and q
-		if(cv.contourArea(np.int32(sort_vertices_clockwise(actual_traked_polygons[-1,:,:]))) <= 1625.0):
+		if(cv.contourArea(sort_vertices_clockwise(actual_traked_polygons[-1,:,:])) <= 1600.0):
+		#if(cv.contourArea(actual_traked_polygons[-1,:,:]) <= 320.0):
 			#print('removing it')
 			actual_traked_polygons = actual_traked_polygons[:actual_traked_polygons.shape[0]-1, :, :]
 
 		#return actual_traked_polygons 
+		self.tracked_features = np.reshape(actual_traked_polygons, (actual_traked_polygons.shape[0]*5, 2))
+
 		return np.array([sort_vertices_clockwise(poly) for poly in actual_traked_polygons])
-
-	
-
-
 
 
 
@@ -306,14 +294,14 @@ class Board:
 				#cv.waitKey(-1)
 
 				if(len(A.shape) > 1): 
-					print('len(A.shape) > 1')
+					#print('len(A.shape) > 1')
 					A = A[0]
 			
 				# Compute the polygon index and all circles centre coordinates
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
 				#print(index)
 				if(index > 24): # this is an error
-					print('index grater than 24: ERROR', index, cv.isContourConvex(poly))
+					#print('index grater than 24: ERROR', index, cv.isContourConvex(poly))
 					index = -1
 					#self.polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
 					#print('\n')
@@ -327,8 +315,8 @@ class Board:
 					# Get the X, Y and Z marker reference 2D coordinates for the polygon with given index
 					X, Y, Z = marker_reference[index] 
 			else:
-				print('convex polygon', cv.isContourConvex(poly))
-				print(poly)
+				#print('convex polygon', cv.isContourConvex(poly))
+				#print(poly)
 				index = -1
 				X, Y, Z = 0, 0, 0
 				A = [-1, -1]

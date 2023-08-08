@@ -158,8 +158,6 @@ def compute_index_and_cc_coords(A: np.ndarray[np.int32], middle_point: np.ndarra
 
 
 
-
-
 def sort_vertices_clockwise(vertices, centroid=None):
 	if centroid is None:
 		centroid = np.mean(vertices, axis=0)     
@@ -170,18 +168,18 @@ def sort_vertices_clockwise(vertices, centroid=None):
 
 
 
-def random_bgr_color():
+def random_bgr_color() -> Tuple[int, int, int]:
 	blue = random.randint(0, 255)
 	green = random.randint(0, 255)
 	red = random.randint(0, 255)
 	return (blue, green, red)
 
 
-def resize_for_laptop(using_laptop, frame, mask):
+def resize_for_laptop(using_laptop: bool, frame: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
+	-> np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
 	if using_laptop:
 		frame = cv.resize(frame, (1080, 600))
-		mask = cv.resize(mask, (1080, 600))
-	return frame, mask
+	return frame
 
 
 
@@ -192,3 +190,25 @@ def check_mask(approx_cnt, mask):
 		if mask[y, x] == 0: 
 			to_return = np.vstack((to_return, np.array([x, y])))
 	return to_return
+
+
+'''def are_lines_parallel(points1, points2):
+	# Calculate the slopes of the lines using NumPy broadcasting
+	#slopes1 = (points1[1, 1] - points1[0, 1]) / (points1[1, 0] - points1[0, 0])
+	#slopes2 = (points2[1, 1] - points2[0, 1]) / (points2[1, 0] - points2[0, 0])
+
+	angle1 = np.arctan2(points1[1, 1] - points1[0, 1], points1[1, 0] - points1[0, 0]) * 180.0  / np.pi
+	angle2 = np.arctan2(points2[1, 1] - points2[0, 1], points2[1, 0] - points2[0, 0]) * 180.0  / np.pi
+
+	# Check if the slopes are approximately equal
+	print(np.abs(angle1 - angle2) )
+	return np.all(np.abs(angle1 - angle2) > 0.3)
+	#return np.isclose(angle1, angle2, atol=0.5)q
+
+
+def are_lines_near_parallel_to_y_axis(points1, points2, x_threshold=0.4):
+    # Check if the x-coordinates are approximately equal for the corresponding y-coordinates
+    y1, y2 = points1[:, 1], points2[:, 1]
+    x1, x2 = points1[:, 0], points2[:, 0]
+
+    return np.all(np.abs(x1 - x2) < x_threshold * np.abs(y1 - y2))'''
