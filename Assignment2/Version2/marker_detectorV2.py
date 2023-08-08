@@ -51,7 +51,7 @@ def main() -> None:
 
 			if not ret:	break
 
-			# Obtain the edited frame and the dictionary of statistics
+			# Obtain the dictionary of statistics
 			dict_stats_to_extend = board.find_markers(frame, actual_fps, marker_reference)
 
 			# Draw stuff on the image
@@ -74,7 +74,7 @@ def main() -> None:
 
 			key = cv.waitKey(1)
 			if key == ord('p'):
-				cv.waitKey(-1) #wait until any key is pressed
+				cv.waitKey(-1) # Wait until any key is pressed
     
 			if key == ord('q'):
 				return

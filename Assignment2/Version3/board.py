@@ -4,7 +4,7 @@ import numpy as np
 from utils import compute_index_and_cc_coords, find_distance_between_points, find_middle_point, sort_vertices_clockwise, check_mask#, are_lines_parallel
 from polygon import Polygon
 
-from typing import List, Tuple, Union
+from typing import List, Tuple, Dict
 
 
 # Set the needed parameters to find the refined corners
@@ -27,7 +27,7 @@ class Board:
 		self.centroid = np.array([1300, 550])
   
   
-  
+  	
 	def draw_red_polygon(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
     		->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
 		'''
@@ -94,9 +94,8 @@ class Board:
 		return image
   
   
-  
-	def draw_stuff(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-    		->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+
+	def draw_stuff(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) ->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
 		'''
 		PURPOSE: apply all the drawing function
 		ARGUMENTS: 
@@ -111,32 +110,43 @@ class Board:
   
 
 
-	def find_interesting_points(self, thresh, imgray, mask):
+	def find_interesting_points(self, thresh: np.ndarray[np.uint8], imgray: np.ndarray[np.uint8], mask: np.ndarray[np.uint8]) -> None:
+		'''
+		PURPOSE: find bood features to track during the frame sequence
+		ARGUMENTS: 
+			- thresh (np.ndarray[np.uint8]): threshold resut
+			- imgray np.ndarray[np.uint8]): gray image
+			- mask np.ndarray[np.uint8]) mask to edit
+		RETURN: None
+		'''	
 
-		if(not np.any(mask)): 
-			#print('recomputing')
-			self.tracked_features = np.zeros((0,2), dtype=np.float32)
+		# In case I pass a filled arrayb by zeros, this means that we have to recompute the features
+		if(not np.any(mask)): self.tracked_features = np.zeros((0,2), dtype=np.float32)
 		
-		
+		# Consider only the board exluding all the object area that could be included erroneously
 		mask_thresh = np.zeros((1080, 1920), dtype=np.uint8)
 		mask_thresh[:, 1130:1600] = thresh[:, 1130:1600]
-  
+
+		# Finding the contourns
 		contours, _ = cv.findContours(mask_thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE) # [[[X Y]] [[X Y]] ... [[X Y]]]
 	
+		# Searching through every region selected to find the required polygon.
 		for cnt in contours:
-
-			#sorted_vertex = sort_vertices_clockwise(np.squeeze(cnt, axis=1))
-   
+			
+			# Shortlisting the regions based on there area
 			if cv.contourArea(cnt) > 1650.0:
 
 				approx_cnt = cv.approxPolyDP(cnt, 0.015 * cv.arcLength(cnt, True), True) # [[[X Y]] [[X Y]] ... [[X Y]]]
-					
+				
+				# Checking if the number of sides of the selected region is 5.
 				if (len(approx_cnt)) == 5:
 					
 					if(np.any(mask)):
+         
+						# Check if approximated vertices are good features, so if they are not i a white area of the mask
 						confermed_cnt = check_mask(approx_cnt, mask)
 							
-						if(confermed_cnt.shape[0] > 0):
+						if(confermed_cnt.shape[0] > 0): # Append the good features
 							ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(confermed_cnt), winSize_sub, zeroZone_sub, criteria_sub)
 							self.tracked_features = np.vstack((self.tracked_features, np.squeeze(ref_approx_cnt)))
 					else:
@@ -146,9 +156,14 @@ class Board:
   
   
   
-	def get_clockwise_vertices_initial(self):
+	def get_clockwise_vertices_initial(self) -> np.ndarray[np.ndarray[np.ndarray[np.float32]]]:
+		'''
+		PURPOSE: reshape the obtained features, sort them in clockwise order and remove the last polygon by area
+		ARGUMENTS: None
+		RETURN:
+  			- (np.ndarray[np.ndarray[np.ndarray[np.float32]]]): sorted vertices polygon
+		'''	
      
-		#print(self.tracked_features.shape)
 		self.tracked_features = sort_vertices_clockwise(self.tracked_features, self.centroid)
 		
 		self.tracked_features = self.tracked_features[:int(self.tracked_features.shape[0]/5)*5,:]
@@ -157,7 +172,6 @@ class Board:
   
 		# I have to sort clockwise the alst polygon in order to compute correctly the contourArea
 		if(cv.contourArea(sort_vertices_clockwise(reshaped_clockwise[-1,:,:])) <= 1600.0):
-			#print('removing it')
 			reshaped_clockwise = reshaped_clockwise[:reshaped_clockwise.shape[0]-1, :, :]
 		
 		return np.array([sort_vertices_clockwise(poly) for poly in reshaped_clockwise])
@@ -167,54 +181,72 @@ class Board:
 
 
 
-	# fix this
-	def polygons_check_and_clockwise(self):
+	def polygons_check_and_clockwise(self) -> np.ndarray[np.ndarray[np.ndarray[np.float32]]]:
+		'''
+		PURPOSE: remove the polygon that are convex, order clockwie and remove the alst polygon by area
+		ARGUMENTS: None
+		RETURN:
+			- (np.ndarray[np.ndarray[np.ndarray[np.float32]]]): reshaped features 
+		'''			
+
+		# Ordering clockwse respect to the centroid
 		self.tracked_features = sort_vertices_clockwise(self.tracked_features, self.centroid)
   
 		actual_traked_polygons = np.zeros((0,5,2), dtype=np.float32)
 
-		ft_stack = np.zeros((0,2), dtype=np.float32)
+		ft_stack = np.zeros((0,2), dtype=np.float32)	
 
-		#for tf in self.tracked_features:
-		for idx in range(0, self.tracked_features.shape[0], 5): # iterate 5 vertices each times
-			#print('ok', self.tracked_features[idx:idx+5])
+		# Iterate the features 5 by 5 
+		for idx in range(0, self.tracked_features.shape[0], 5):
 			order_ft = self.tracked_features[idx:idx+5] 
 
-			# ---------------- Hooping that in case LK not detect a single corner and not more than one ----------------
-			#print(are_lines_parallel(np.array([order_ft[1,:], order_ft[0,:]]), np.array([order_ft[4,:], order_ft[3,:]])))
+
 			if (cv.isContourConvex(sort_vertices_clockwise(order_ft)) or ft_stack.shape[0] != 0):
-       				#or not are_lines_parallel(np.array([order_ft[1,:], order_ft[0,:]]), np.array([order_ft[4,:], order_ft[3,:]]))):
 				#print(idx, order_ft)
        
 				#print('polygon not correctly detected')
 				if ft_stack.shape[0] != 0 and order_ft.shape[0] > 3:
 					#print('fixing it')
-					new_polygon = np.vstack((ft_stack[0,:], order_ft[:4,:])) # first 4 vertices from the polygon plus the first vertices of the ft_stack
-					ft_stack = np.delete(ft_stack, 0, axis=0) # removing the added element
+     
+					# The new polygon will be the first vertices of the ft_stack plus the first 4 vertices from the polygon plus the 
+					new_polygon = np.vstack((ft_stack[0,:], order_ft[:4,:]))
+					ft_stack = np.delete(ft_stack, 0, axis=0) # Removing the added element
+     
+					# Increase the features
 					actual_traked_polygons = np.vstack((actual_traked_polygons, np.expand_dims(new_polygon, axis=0)))
+
+				# Add the last element of the original polygon the the temporal variable
 				ft_stack = np.vstack((ft_stack, order_ft[-1]))
 			elif (order_ft.shape[0] == 5):
+				# Stack the whole polygon to the new features to track
 				actual_traked_polygons = np.vstack((actual_traked_polygons, np.expand_dims(order_ft, axis=0)))
-			#print(ft_stack.shape)
-    
-		#print(actual_traked_polygons.shape)
- 
-		#actual_traked_polygons.shape[0] == 19 and q
+
+		# Remove the last tracked polygon by area
 		if(cv.contourArea(sort_vertices_clockwise(actual_traked_polygons[-1,:,:])) <= 1600.0):
-		#if(cv.contourArea(actual_traked_polygons[-1,:,:]) <= 320.0):
-			#print('removing it')
 			actual_traked_polygons = actual_traked_polygons[:actual_traked_polygons.shape[0]-1, :, :]
 
-		#return actual_traked_polygons 
+		# Update the feature to track
 		self.tracked_features = np.reshape(actual_traked_polygons, (actual_traked_polygons.shape[0]*5, 2))
 
+		# Sort the vertices of each polygon clockwise
 		return np.array([sort_vertices_clockwise(poly) for poly in actual_traked_polygons])
 
 
 
 
 
-	def apply_LF_OF(self, thresh, prev_frameg, frameg, mask, winsize_lk):
+	def apply_LF_OF(self, thresh: np.ndarray[np.uint8], prev_frameg: np.ndarray[np.uint8], frameg: np.ndarray[np.uint8], \
+     		mask: np.ndarray[np.uint8], winsize_lk: Tuple[int, int]) -> None:
+		'''
+		PURPOSE: remove the polygon that are convex, order clockwie and remove the alst polygon by area
+		ARGUMENTS: 
+			- thresh (np.ndarray[np.uint8]): threshold image
+			- prev_frameg (np.ndarray[np.uint8]): previous gray frame
+			- frameg (np.ndarray[np.uint8]): actual gray frame
+			- mask (np.ndarray[np.uint8]): mask
+			- winsize_lk (Tuple[int, int]): window size
+		RETURN: None
+		'''	
      
 		# Forward Optical Flow
 		p1, st, _ = cv.calcOpticalFlowPyrLK(prev_frameg, frameg, self.tracked_features, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)#, flags=cv.OPTFLOW_LK_GET_MIN_EIGENVALS, minEigThreshold=0.01)
@@ -249,13 +281,21 @@ class Board:
 		'''	
      
 		for id_poly in polygons: self.polygon_list[id_poly].cover = True
-
-
-
   
   
-
-	def compute_markers(self, thresh, reshaped_clockwise, actual_fps, marker_reference):
+  
+	def compute_markers(self, thresh: np.ndarray[np.uint8], reshaped_clockwise: np.ndarray[np.ndarray[np.ndarray[np.float32]]], \
+     		actual_fps: int, marker_reference: Dict[int, Tuple[int, int, int]]):
+		'''
+		PURPOSE: remove the polygon that are convex, order clockwie and remove the alst polygon by area
+		ARGUMENTS:
+			- thresh (np.ndarray[np.uint8]):  threshold image
+			- reshaped_clockwise (np.ndarray[np.ndarray[np.ndarray[np.float32]]])
+			- actual_fps (int): index frmae 
+			- marker_reference (Dict[int, Tuple[int, int, int]])): dictionary of the marker reference coordinates
+		RETURN:
+			- dict_stats_to_return (List[Dict[int, int, np.float64, np.float64, int, int, int]]): lis of dictionary containing the information to save in the .csv file
+		'''	
      
 		dict_stats_to_return = []		
   

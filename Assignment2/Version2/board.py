@@ -139,10 +139,10 @@ class Board:
 		for cnt in contours:
 			
 			# Sort the vertices in clockwise order
-			sorted_vertex = sort_vertices_clockwise(np.squeeze(cnt, axis=1))
+			#sorted_vertex = sort_vertices_clockwise(np.squeeze(cnt, axis=1))
    
 			# Shortlisting the regions based on there area.
-			if cv.contourArea(sorted_vertex) > 1650:  # previously was 1720
+			if cv.contourArea(cnt) > 1650.0:  # previously was 1720
 				
 				approx_cnt = cv.approxPolyDP(cnt, 0.02 * cv.arcLength(cnt, True), True) # [[[X Y]] [[X Y]] ... [[X Y]]]
 				
