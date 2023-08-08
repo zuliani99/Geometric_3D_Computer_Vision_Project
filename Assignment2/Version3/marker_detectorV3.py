@@ -4,10 +4,10 @@ import time
 import copy
 
 from board import Board
-from utils import save_stats, set_marker_reference_coords, resize_for_laptop
+from utils import save_stats, set_marker_reference_coords, resize_for_laptop, sort_vertices_clockwise, are_lines_parallel
 
 
-using_laptop = False
+using_laptop = True
 
 # Dictionary of object file name that we have to process with associated parameters
 parameters = {
@@ -48,7 +48,7 @@ def main():
 		prev_frameg = None
 
 		while True:
-			#print('\n\n-------------------------------------', actual_fps, '-------------------------------------')
+			print('\n\n-------------------------------------', actual_fps, '-------------------------------------')
 			start = time.time()
 			
 			# Extract a frame
@@ -72,6 +72,7 @@ def main():
 			
 			#reshaped_clockwise = board.get_clockwise_vertices_initial()
 			reshaped_clockwise = board.polygons_check_and_clockwise()
+   
 			  
 			# Obtain the dictionary of statistics
 			dict_stats_to_extend = board.compute_markers(thresh, reshaped_clockwise, actual_fps, marker_reference)
@@ -107,7 +108,7 @@ def main():
 			if key == ord('q'):
 				return
 
-			#cv.waitKey(-1)
+			cv.waitKey(-1)
 			
 		print(' DONE')
   

@@ -28,9 +28,9 @@ def set_marker_reference_coords() -> Dict[int, Tuple[int, int, int]]:
         angle = id * math.radians(-15)
   
         marker_reference_coords[id] = (
-              ox + math.cos(angle) * (Ax - ox) - math.sin(angle) * (Ay - oy), # X coordinate
+            ox + math.cos(angle) * (Ax - ox) - math.sin(angle) * (Ay - oy), # X coordinate
             oy + math.sin(angle) * (Ax - ox) + math.cos(angle) * (Ay - oy), # Y coordinate
-             0	# Z coordinate
+            0	# Z coordinate
         )
     
     return marker_reference_coords
@@ -236,13 +236,27 @@ def check_mask(approx_cnt: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], mask: n
     #slopes1 = (points1[1, 1] - points1[0, 1]) / (points1[1, 0] - points1[0, 0])
     #slopes2 = (points2[1, 1] - points2[0, 1]) / (points2[1, 0] - points2[0, 0])
 
-    angle1 = np.arctan2(points1[1, 1] - points1[0, 1], points1[1, 0] - points1[0, 0]) * 180.0  / np.pi
-    angle2 = np.arctan2(points2[1, 1] - points2[0, 1], points2[1, 0] - points2[0, 0]) * 180.0  / np.pi
+    #angle1 = np.arctan2(points1[1, 1] - points1[0, 1], points1[1, 0] - points1[0, 0]) * 180.0  / np.pi
+    #angle2 = np.arctan2(points2[1, 1] - points2[0, 1], points2[1, 0] - points2[0, 0]) * 180.0  / np.pi
 
     # Check if the slopes are approximately equal
-    print(np.abs(angle1 - angle2) )
-    return np.all(np.abs(angle1 - angle2) > 0.3)
-    #return np.isclose(angle1, angle2, atol=0.5)q
+    #print(np.abs(angle1 - angle2) )
+    #return np.all(np.abs(angle1 - angle2) > 0.3)
+    #return np.isclose(angle1, angle2, atol=0.5)
+
+    x_coords_1, y_coords_1 = zip(*points1)
+    x_coords_2, y_coords_2 = zip(*points2)
+    
+    A_1 = np.vstack([x_coords_1, np.ones(len(x_coords_1))]).T
+    m_1, _ = np.linalg.lstsq(A_1, y_coords_1)[0]
+    
+    A_2 = np.vstack([x_coords_2, np.ones(len(x_coords_2))]).T
+    m_2, _ = np.linalg.lstsq(A_2, y_coords_2)[0]
+    
+    print(m_1, m_2)
+    
+    return np.isclose(m_1, m_2, atol=10)
+    
 
 
 def are_lines_near_parallel_to_y_axis(points1, points2, x_threshold=0.4):
