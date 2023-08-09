@@ -1,4 +1,4 @@
-# Silhouette-based space carving
+# Silhouette-Based Space Carving
 The goal of this project is to implement technique known as [“space carving"](https://www.cs.toronto.edu/~kyros/pubs/00.ijcv.carve.pdf) to reconstruct the shape of a 
 3D object from multiple photographs taken at known but arbitrarily distributed viewpoints. An object is placed 
 on top of a rotating plate together with a custom-designed fiducal marker (see the following sections for details). 
