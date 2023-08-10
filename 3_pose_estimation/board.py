@@ -24,7 +24,8 @@ class Board:
 		self.polygon_list: List[Polygon] = [Polygon() for _ in range(n_polygons)]
 		self.tracked_features = np.zeros((0,2), dtype=np.float32)
 		self.circle_mask_size = circle_mask_size
-		self.centroid = np.array([1300, 550])
+		#self.centroid = np.array([1300, 550])
+		self.centroid = np.array([1300, 540])
   
   
   	
@@ -49,7 +50,7 @@ class Board:
 					cv.circle(image, (int(x), int(y)), 4, poly.color, -1)
 					cv.line(image, (int(x), int(y)), self.centroid, poly.color, 1, cv.LINE_AA)
      
-		cv.drawMarker(image, self.centroid, color=(255,255,255), markerType=cv.MARKER_CROSS, thickness=2)
+		#cv.drawMarker(image, self.centroid, color=(255,255,255), markerType=cv.MARKER_CROSS, thickness=2)
 
 		return image
             

@@ -31,14 +31,14 @@ def main() -> None:
 	count_frame = 0
 
 	while count_frame < video_length:
-     
+
 		calibration_video.set(cv.CAP_PROP_POS_FRAMES, count_frame)
-		
+
 		ret, frame = calibration_video.read()
 		if not ret: break
-  
+
 		frameg = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-  
+
 		# Find the chess board corners
 		ret, corners = cv.findChessboardCorners(frameg, chessboard_size, None)
 		if ret == True:
@@ -51,19 +51,26 @@ def main() -> None:
 			cv.imshow('Chessboard Frame', frame)
 
 		count_frame += skip_rate
-	
+
 		cv.waitKey(100)
-  
+
 	cv.destroyAllWindows()
-	
+
 	print(' DONE\n')
- 
- 
-	print('Running Camera Calibration...')	
-	ret, cameraMatrix, dist, _, _ = cv.calibrateCamera(objpoints, imgpoints, (frame_width, frame_height), None, None)
+
+
+	print('Running Camera Calibration...')
+	ret, cameraMatrix, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, (frame_width, frame_height), None, None)
 	print(' DONE\n')
- 
-	
+
+	mean_error = 0
+	for i in range(len(objpoints)):
+		imgpoints2, _ = cv.projectPoints(objpoints[i], rvecs[i], tvecs[i], cameraMatrix, dist)
+		error = cv.norm(imgpoints[i], imgpoints2, cv.NORM_L2) / len(imgpoints2)
+		mean_error += error
+	print(f'Total Error: {mean_error / len(objpoints)}\n')
+	 
+
 	print('Saving Intrinsic and Distortion matricies...')
 	np.save('./calibration_info/cameraMatrix', cameraMatrix)
 	np.save('./calibration_info/dist', dist)
