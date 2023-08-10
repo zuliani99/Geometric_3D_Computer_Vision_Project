@@ -26,6 +26,7 @@ class Board:
 		self.circle_mask_size = circle_mask_size
 		#self.centroid = np.array([1300, 550])
 		self.centroid = np.array([1300, 540])
+		#self.anchor = None
   
   
   	
@@ -286,7 +287,7 @@ class Board:
   
   
 	def compute_markers(self, thresh: np.ndarray[np.uint8], reshaped_clockwise: np.ndarray[np.ndarray[np.ndarray[np.float32]]], \
-     		marker_reference: Dict[int, Tuple[int, int, int]]):
+	     		marker_reference: Dict[int, Tuple[int, int, int]]):
 		'''
 		PURPOSE: remove the polygon that are convex, order clockwie and remove the alst polygon by area
 		ARGUMENTS:
@@ -296,9 +297,9 @@ class Board:
 		RETURN:
 			- dict_stats_to_return (List[Dict[int, int, np.float64, np.float64, int, int, int]]): lis of dictionary containing the information to save in the .csv file
 		'''	
-     
+	     
 		dict_stats_to_return = np.zeros((0,6), dtype=np.float32)
-  
+
 		# np.array of ones in which at the end of the computation will store only the covered polygons
 		covered_polys = np.ones((1, 24))[0]
 		#print(self.tracked_features.shape)
@@ -310,10 +311,10 @@ class Board:
 			external_points_dict = dict(enumerate(
 				list(map(lambda x: find_distance_between_points(x, self.centroid), poly))
 			))
-		   
+
 			# Obtain the id of the two farthest point from the board centre
 			id_external_points = sorted(external_points_dict.items(), key=lambda x:x[1])[-2:]
-   
+
 			#print(id_external_points)
 
 			# Obtain the point between the two farthest point
@@ -328,15 +329,15 @@ class Board:
 
 			A = np.squeeze(poly[np.squeeze(np.setdiff1d(np.arange(5), hull))])
 			#print(A)
-   
+
 			if(len(A) != 0):
-	
+
 				#cv.waitKey(-1)
 
 				if(len(A.shape) > 1): 
 					#print('len(A.shape) > 1')
 					A = A[0]
-			
+
 				# Compute the polygon index and all circles centre coordinates
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
 				#print(index)
@@ -348,7 +349,7 @@ class Board:
 					# Get the X, Y and Z marker reference 2D coordinates for the polygon with given index
 					X, Y, Z = 0, 0, 0
 					A = None
-				else:
+				else:        
 					self.polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
 					covered_polys[index] = 0
 					#print('\n')
@@ -365,9 +366,13 @@ class Board:
 			# Append the information
 			#dict_stats_to_return.append({'frame': actual_fps, 'mark_id': index, 'Px': A[0], 'Py': A[1], 'X': X, 'Y': Y, 'Z': Z})
 			if A is not None: dict_stats_to_return = np.vstack((dict_stats_to_return, np.array([np.float32(index), A[0], A[1], X, Y, Z])))
-   
-   
+
+
 		# Set the cover cover attributo to true on all cover polygons
 		self.covered_polygon(np.where(covered_polys == 1)[0])
-   
+
+		'''if self.anchor is None: self.anchor = dict_stats_to_return[-1,0]
+		elif self.anchor not in dict_stats_to_return[:,0]:
+			self.anchor = dict_stats_to_return[-1,0]'''
+
 		return dict_stats_to_return

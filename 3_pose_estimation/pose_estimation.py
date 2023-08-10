@@ -33,6 +33,25 @@ def draw_origin(img, corner, imgpts):
 
 
 
+def draw_cube(img, imgpts):
+
+    imgpts = np.int32(imgpts).reshape(-1,2)
+
+    # draw ground floor in green
+    img = cv.drawContours(img, [imgpts[:4]],-1,(0,0,255),3, cv.LINE_AA)
+
+    # draw pillars in blue color
+    for i,j in zip(range(4),range(4,8)):
+        img = cv.line(img, tuple(imgpts[i]), tuple(imgpts[j]),(0,0,255),3, cv.LINE_AA)
+
+    # draw top layer in red color
+    img = cv.drawContours(img, [imgpts[4:]],-1,(0,0,255),3)
+
+    return img
+
+
+
+
 def main():
 	
 	# Set the marker reference coordinates for the 24 polygonls
@@ -41,7 +60,9 @@ def main():
 	camera_matrix = np.load('./calibration_info/cameraMatrix.npy')
 	dist = np.load('./calibration_info/dist.npy')
  
-	axis = np.float32([[20,0,0], [0,20,0], [0,0,30]]).reshape(-1,3)
+	axis_centroid = np.float32([[20,0,0], [0,20,0], [0,0,30]]).reshape(-1,3)
+	axis_vertical_edges = np.float32([[-55,-55,80], [-55,55,80], [55,55,80], [55,-55,80],
+                   					  [-55,-55,190],[-55,55,190],[55,55,190],[55,-55,190] ])
  
 	# Iterate for each object
 	for obj, hyper_param in parameters.items():
@@ -66,7 +87,7 @@ def main():
 		prev_frameg = None
 
 		while True:
-			print('\n\n-------------------------------------', actual_fps, '-------------------------------------')
+			#print('\n\n-------------------------------------', actual_fps, '-------------------------------------')
 			start = time.time()
 			
 			# Extract a frame
@@ -99,56 +120,67 @@ def main():
 			twoD_points = np.float32(pixsl_info[:,1:3])
 			threeD_points = np.float32(pixsl_info[:,3:6])
    
+   
+			edited_frame = board.draw_stuff(frame)
+   
 			#print(twoD_points)
 
-			#edited_frame = frame
 
 			# qui posso fare cose
-			if pixsl_info.shape[0] >= 6:
+   
+   
+   
+   
+   
+			#if pixsl_info.shape[0] >= 6:
 	   
-				#rint(camera_matrix, dist)
+			#print(camera_matrix, dist)
 
-				# Find the rotation and translation vectors
-				ret, rvecs, tvecs = cv.solvePnP(objectPoints=threeD_points, imagePoints=twoD_points, cameraMatrix=camera_matrix, distCoeffs=dist, flags=cv.SOLVEPNP_IPPE)
-				# ------------------------------------------ ERROR HERE ------------------------------------------
-				# pixsl_info deve essere np.float32
+			# Find the rotation and translation vectors
+			ret, rvecs, tvecs = cv.solvePnP(objectPoints=threeD_points, imagePoints=twoD_points, cameraMatrix=camera_matrix, distCoeffs=dist, flags=cv.SOLVEPNP_IPPE)
+			# ------------------------------------------ ERROR HERE ------------------------------------------
+			# pixsl_info deve essere np.float32
 
-				# Project 3D points to image plane
-				imgpts, jac = cv.projectPoints(objectPoints=axis, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
+			# Project 3D points to image plane
+			imgpts_centroid, _ = cv.projectPoints(objectPoints=axis_centroid, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
+			imgpts_cube, _ = cv.projectPoints(objectPoints=axis_vertical_edges, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
     	
-				#print(imgpts.shape)
+			#print(imgpts.shape)
 	
-				# ora il mio dubbio e' come capire come dirgli di disegnare il quadrato 
-				# credo che se dal immagine non distorta rieesco a prendermi le coordinate die punti e poi qel punto che e' nascosto
-				# riuscire a calcolarmi la sua posizione che dovrebbe essere possibile avendo l'immagine non distorta dovrei riuscire ad interpoalre
-				# TUTTO DA VERIFICARE OVVIAMENTE
+			# ora il mio dubbio e' come capire come dirgli di disegnare il quadrato 
+			# credo che se dal immagine non distorta rieesco a prendermi le coordinate die punti e poi qel punto che e' nascosto
+			# riuscire a calcolarmi la sua posizione che dovrebbe essere possibile avendo l'immagine non distorta dovrei riuscire ad interpoalre
+			# TUTTO DA VERIFICARE OVVIAMENTE
 	
-				# questa e' la semplificazione per l'assignment, poi devo prendermi i voxel che dovrebbero essere come una griglia su ogni faccia visibile del quadrato 3D
-				# da li poi devo vedere il background e foreground se il relativo pixel/voxel tocca prima il background lo elimino dalla visualizzazione mentre
-				# se tocca il foreground cioe' l'oggetto lo mostro
+			# questa e' la semplificazione per l'assignment, poi devo prendermi i voxel che dovrebbero essere come una griglia su ogni faccia visibile del quadrato 3D
+			# da li poi devo vedere il background e foreground se il relativo pixel/voxel tocca prima il background lo elimino dalla visualizzazione mentre
+			# se tocca il foreground cioe' l'oggetto lo mostro
    
 	
 	
-				newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(camera_matrix, dist, (frame_width, frame_height), 1, (frame_width, frame_height))
+			newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(camera_matrix, dist, (frame_width, frame_height), 1, (frame_width, frame_height))
 	
-				# Undistort the image
-				undist = cv.undistort(frame, camera_matrix, dist, None, newCameraMatrix)	
-				x, y, w, h = roi
-				undist = undist[y:y+h, x:x+w]
+			# Undistort the image
+			undist = cv.undistort(edited_frame, camera_matrix, dist, None, newCameraMatrix)	
+			x, y, w, h = roi
+			undist = undist[y:y+h, x:x+w]
 	
- 
-				undist_edited = draw_origin(undist, (board.centroid[0], int(undist.shape[0] / 2)), np.int32(imgpts))
+
+			undist_edited = draw_origin(undist, (board.centroid[0], int(undist.shape[0] / 2)), np.int32(imgpts_centroid))
+			undist_edited = draw_cube(undist_edited, np.int32(imgpts_cube))
+			#pixsl_info[np.where(pixsl_info[:, 0] == board.achor)[0]][:,1:3] # NON SERVE QUINID NON SERVE NEMMENO L'ANCHOR
+    
+    
+			#print(pixsl_info)
+    
+    
+			#print(imgpts_cube)
+
 
 	
-	
-	
-				cv.imshow('Undistorted Image', undist_edited)
-				#cv.imshow('Image Frame', frame)
+			#cv.imshow('Undistorted Image', undist_edited)
+			#cv.imshow('Image Frame', frame)
 				
-
-
-
-				#edited_frame = board.draw_stuff(frame)
 
 			end = time.time()
 			fps = 1 / (end-start)
@@ -156,14 +188,17 @@ def main():
 			avg_fps += fps
 
 			# Get the resized frame
-			#frame_with_fps_resized = resize_for_laptop(using_laptop, copy.deepcopy(frame))
+			frame_with_fps_resized = resize_for_laptop(using_laptop, copy.deepcopy(undist_edited))
   
 			# Output the frame with the FPS
 			#cv.putText(frame_with_fps_resized, f"{fps:.2f} FPS", (30, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 			#cv.imshow(f'Marker Detector of {obj}', frame_with_fps_resized)
+   			
+			cv.putText(frame_with_fps_resized, f"{fps:.2f} FPS", (30, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+			cv.imshow(f'Marker Detector of {obj}', frame_with_fps_resized)
 			
 			# Save the frame without the FPS count
-			#output_video.write(edited_frame)
+			output_video.write(undist_edited)
 			
 	
 			prev_frameg = frameg
