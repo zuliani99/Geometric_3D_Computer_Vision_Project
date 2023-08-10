@@ -85,7 +85,7 @@ def main():
   
 		
   		# Create output video writer
-		output_video = cv.VideoWriter(f"../output_part3/{obj_id}/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
+		output_video = cv.VideoWriter(f"../output_part3/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
 
 		prev_frameg = None
 
