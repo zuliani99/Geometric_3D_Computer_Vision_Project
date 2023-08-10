@@ -295,14 +295,16 @@ class Board:
 			- reshaped_clockwise (np.ndarray[np.ndarray[np.ndarray[np.float32]]])
 			- marker_reference (Dict[int, Tuple[int, int, int]])): dictionary of the marker reference coordinates
 		RETURN:
-			- dict_stats_to_return (List[Dict[int, int, np.float64, np.float64, int, int, int]]): lis of dictionary containing the information to save in the .csv file
+			- pixel_info (np.ndarray[np.flaot32]): lis of dictionary containing the information to save in the .csv file
 		'''	
 	     
-		dict_stats_to_return = np.zeros((0,6), dtype=np.float32)
+		pixel_info = np.zeros((0,6), dtype=np.float32)
 
 		# np.array of ones in which at the end of the computation will store only the covered polygons
 		covered_polys = np.ones((1, 24))[0]
-		#print(self.tracked_features.shape)
+		
+  		#print(self.tracked_features.shape)
+
 		# Iterate through the reshaped tracked features in clockwise order
 		for poly in reshaped_clockwise:
 			#print(poly)
@@ -319,18 +321,39 @@ class Board:
 
 			# Obtain the point between the two farthest point
 			middle_point = find_middle_point(poly[id_external_points[0][0]], poly[id_external_points[1][0]])
+
 			#print(middle_point)
-			# Compute the convex hull of the contour
+	
+	 		# Compute the convex hull of the contour
 			hull = np.squeeze(cv.convexHull(poly, returnPoints=False))
    			# The Convex Hull of a shape or a group of points is a tight fitting convex boundary around the points or the shape
-			#print(hull)
+	
+ 			#print(hull)
 			#print('Convex?', cv.isContourConvex(poly))
+   
 			# Get the coordinate of the point A by getting the missing index
-
 			A = np.squeeze(poly[np.squeeze(np.setdiff1d(np.arange(5), hull))])
 			#print(A)
+   
+			if(len(A.shape) == 1):
+				# Compute the polygon index and all circles centre coordinates
+				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
+				if(index <= 24):
+					self.polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
+					covered_polys[index] = 0
 
-			if(len(A) != 0):
+					# Get the X, Y and Z marker reference 2D coordinates for the polygon with given index
+					X, Y, Z = marker_reference[index] 
+   
+					pixel_info = np.vstack((pixel_info, np.array([np.float32(index), A[0], A[1], X, Y, Z])))
+		
+  		# Set the cover cover attributo to true on all cover polygons
+		self.covered_polygon(np.where(covered_polys == 1)[0])		
+
+		return pixel_info
+   
+   
+'''			if(len(A) != 0):
 
 				#cv.waitKey(-1)
 
@@ -365,14 +388,9 @@ class Board:
 
 			# Append the information
 			#dict_stats_to_return.append({'frame': actual_fps, 'mark_id': index, 'Px': A[0], 'Py': A[1], 'X': X, 'Y': Y, 'Z': Z})
-			if A is not None: dict_stats_to_return = np.vstack((dict_stats_to_return, np.array([np.float32(index), A[0], A[1], X, Y, Z])))
+			if A is not None: dict_stats_to_return = np.vstack((dict_stats_to_return, np.array([np.float32(index), A[0], A[1], X, Y, Z])))'''
 
 
-		# Set the cover cover attributo to true on all cover polygons
-		self.covered_polygon(np.where(covered_polys == 1)[0])
-
-		'''if self.anchor is None: self.anchor = dict_stats_to_return[-1,0]
+'''		if self.anchor is None: self.anchor = dict_stats_to_return[-1,0]
 		elif self.anchor not in dict_stats_to_return[:,0]:
 			self.anchor = dict_stats_to_return[-1,0]'''
-
-		return dict_stats_to_return
