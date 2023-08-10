@@ -303,12 +303,8 @@ class Board:
 		# np.array of ones in which at the end of the computation will store only the covered polygons
 		covered_polys = np.ones((1, 24))[0]
 		
-  		#print(self.tracked_features.shape)
-
 		# Iterate through the reshaped tracked features in clockwise order
 		for poly in reshaped_clockwise:
-			#print(poly)
-
 			# Obtain the external point distance between the approximated board centroid and each approximated polygon vertex
 			external_points_dict = dict(enumerate(
 				list(map(lambda x: find_distance_between_points(x, self.centroid), poly))
@@ -317,40 +313,65 @@ class Board:
 			# Obtain the id of the two farthest point from the board centre
 			id_external_points = sorted(external_points_dict.items(), key=lambda x:x[1])[-2:]
 
-			#print(id_external_points)
-
 			# Obtain the point between the two farthest point
 			middle_point = find_middle_point(poly[id_external_points[0][0]], poly[id_external_points[1][0]])
-
-			#print(middle_point)
 	
 	 		# Compute the convex hull of the contour
 			hull = np.squeeze(cv.convexHull(poly, returnPoints=False))
    			# The Convex Hull of a shape or a group of points is a tight fitting convex boundary around the points or the shape
 	
- 			#print(hull)
-			#print('Convex?', cv.isContourConvex(poly))
-   
 			# Get the coordinate of the point A by getting the missing index
 			A = np.squeeze(poly[np.squeeze(np.setdiff1d(np.arange(5), hull))])
-			#print(A)
    
 			if(len(A.shape) == 1):
 				# Compute the polygon index and all circles centre coordinates
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
-				if(index <= 24):
+				if(index < 24):
 					self.polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
 					covered_polys[index] = 0
 
 					# Get the X, Y and Z marker reference 2D coordinates for the polygon with given index
 					X, Y, Z = marker_reference[index] 
    
-					pixel_info = np.vstack((pixel_info, np.array([np.float32(index), A[0], A[1], X, Y, Z])))
+					pixel_info = np.vstack((pixel_info, np.array([index, A[0], A[1], X, Y, Z], dtype=np.float32)))
 		
   		# Set the cover cover attributo to true on all cover polygons
 		self.covered_polygon(np.where(covered_polys == 1)[0])		
 
 		return pixel_info
+
+
+	def draw_origin(self, img, corner, imgpts):
+ 
+		cv.arrowedLine(img, corner, tuple(imgpts[0].ravel()), (255,0,0), 4, cv.LINE_AA)
+		cv.putText(img, 'Y', tuple(imgpts[0].ravel()), cv.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2, cv.LINE_AA)
+	
+		cv.arrowedLine(img, corner, tuple(imgpts[1].ravel()), (0,255,0), 4, cv.LINE_AA)
+		cv.putText(img, 'X', tuple(imgpts[1].ravel()), cv.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2, cv.LINE_AA)
+	
+		cv.arrowedLine(img, corner, tuple(imgpts[2].ravel()), (0,0,255), 4, cv.LINE_AA)
+		cv.putText(img, 'Z', tuple(imgpts[2].ravel()), cv.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2, cv.LINE_AA)
+
+		return img
+
+
+
+	def draw_cube(self, img, imgpts):
+
+		imgpts = np.int32(imgpts).reshape(-1,2)
+
+		# draw ground floor in green
+		cv.drawContours(img, [imgpts[:4]], -1, (0,0,255), 3, cv.LINE_AA)
+
+		# draw pillars in blue color
+		for i,j in zip(range(4), range(4,8)):
+			cv.line(img, tuple(imgpts[i]), tuple(imgpts[j]), (0,0,255), 3, cv.LINE_AA)
+
+		# draw top layer in red color
+		cv.drawContours(img, [imgpts[4:]], -1, (0,0,255), 3)
+
+		return img
+
    
    
 '''			if(len(A) != 0):
