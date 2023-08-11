@@ -67,6 +67,8 @@ def main():
 				for x in range (-unidst_axis+1, unidst_axis, 2): row = np.vstack((row, np.array([x, y, z], dtype=np.int32)))
 				center_voxels_at_z = np.vstack((center_voxels_at_z, np.expand_dims(row, axis=0)))
 			base_center_voxels = np.vstack((base_center_voxels, np.expand_dims(center_voxels_at_z, axis=0)))
+   
+		V_set = np.ones((np.power(unidst_axis, 3), 1), dtype=np.int32)
 
   
 		#print(base_center_voxels)
@@ -118,52 +120,48 @@ def main():
 
 				# Find the rotation and translation vectors
 				ret, rvecs, tvecs = cv.solvePnP(objectPoints=threeD_points.astype('float32'), imagePoints=twoD_points.astype('float32'), cameraMatrix=camera_matrix, distCoeffs=dist, flags=cv.SOLVEPNP_IPPE)
-				#print(rvecs)
+
 				# Computing the Camera Projection Matrix
 				rot_matx, _ = cv.Rodrigues(rvecs)
-				#print(rot_matx)
 				rot_tran_mtx = np.concatenate([rot_matx, tvecs], axis=-1)
-				#print(rot_tran_mtx)
 				proj_mtx = np.matmul(camera_matrix, rot_tran_mtx)
-				#print(proj_mtx)
-    			
-       
-				
-				#proj_mtx = np.concatenate((np.dot(camera_matrix,rot_matx),np.dot(camera_matrix,tvecs)), axis = 1)
-	
+
 				# Homogeneous coordinates
 				voxels_cube_centres_exp = np.concatenate((base_center_voxels, np.ones((*base_center_voxels.shape[:-1], 1))), axis=-1)
-				#print(voxels_cube_centres_exp)
-				#print(proj_mtx.shape, np.transpose(voxels_cube_centres_exp).shape)
 
 				# Get the prjection of the voxels center into the image
 				proj_voxels = np.transpose(np.matmul(proj_mtx, np.reshape(np.transpose(voxels_cube_centres_exp), (4, np.power(unidst_axis, 3)))))
-				#print(proj_voxels[0])
-				#print(proj_voxels[0][0] / proj_voxels[0][2], proj_voxels[0][1] / proj_voxels[0][2])
-				#print(proj_voxels.shape)
-				# ----------------------- DISEGNO I CENTRI DEI VOXELS -----------------------
-	 
-				
 
+	 
 				imgpts_centroid, _ = cv.projectPoints(objectPoints=axis_centroid, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
 				imgpts_cube, _ = cv.projectPoints(objectPoints=axis_vertical_edges, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
-			   
-				#qprint(imgpts_centroid.shape, imgpts_cube.shape)
-		  	 
+			   		  	 
 		  
 				newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(camera_matrix, dist, (frame_width, frame_height), 1, (frame_width, frame_height))
 		  
 				# Undistort the image
 				undist = cv.undistort(edited_frame, camera_matrix, dist, None, newCameraMatrix)	
 				x, y, w, h = roi
-				undist = undist[y:y+h, x:x+w] # Adjust the imaghe resolution
+				undist = undist[y:y+h, x:x+w] # Adjust the image resolution
 
 				undist = board.draw_origin(undist, (board.centroid[0], int(undist.shape[0] / 2)), np.int32(imgpts_centroid))
 				undist = board.draw_cube(undist, np.int32(imgpts_cube))
+    
+    
+				undist_b_f_image = cv.undistort(b_f_image, camera_matrix, dist, None, newCameraMatrix)	
 
-				for voxel_coords in proj_voxels:
+				for idx, voxel_coords in enumerate(proj_voxels):
+					#cv.drawMarker(undist, (int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])), markerSize=12, color=(211,211,211), markerType=cv.MARKER_SQUARE, thickness=1, line_type=cv.LINE_AA)
+					cv.circle(undist, (int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])), 1, (211,211,211), -1)
 					
-					cv.drawMarker(undist, (int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])), markerSize=12, color=(211,211,211), markerType=cv.MARKER_SQUARE, thickness=1, line_type=cv.LINE_AA)
+     
+					if undist_b_f_image[int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])] == 0:
+						pass
+						# ------------------------ FARE UIL CONRTROLLO-------------- CONTROLLO SE HA SENSO USARE UN ENUMERATE
+      
+      
+      
+      
 
 				edited_frame = undist
 					
