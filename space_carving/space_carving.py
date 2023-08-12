@@ -5,19 +5,19 @@ import copy
 
 
 from utils import set_marker_reference_coords, resize_for_laptop, get_base_center_voxels
+from background_foreground_segmentation import apply_segmentation
 from board import Board
 
 
 parameters = {
 	'obj01.mp4': {'circle_mask_size': 15, 'window_size': (10, 10), 'undist_axis': 55},
-	'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 60},
-	'obj03.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 70},
-	'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10), 'undist_axis': 55},
+	#'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 60},
+	#'obj03.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 70},
+	#'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10), 'undist_axis': 55},
 }
 
 
 using_laptop = False
-undistorted_resolution = (1909, 1066)
 #voxel_cube_dim = 2 # set by default
 
 
@@ -45,6 +45,9 @@ def main():
 		actual_fps = 0
 		avg_fps = 0.0
 		obj_id = obj.split('.')[0]
+
+		undistorted_resolution = None
+		prev_frameg = None
   
 		unidst_axis = hyper_param['undist_axis']
   
@@ -62,21 +65,25 @@ def main():
 		# Initialize an index array to mark the mantained voxel that will determine the object volume
 		V_set = np.ones((np.power(unidst_axis, 3), 1), dtype=np.int32)
 
-		#print(base_center_voxels)
+		# create the board object
 		board = Board(n_polygons=24, circle_mask_size=hyper_param['circle_mask_size'])
   
-		# Create output video writer
-		output_video = cv.VideoWriter(f"../output_part3/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), undistorted_resolution)
-
-		prev_frameg = None
+		# Create output video writer initialized at None since we do not know the undistorted resolution
+		output_video = None
+  
 
 		while True:
+			print(f'------------------------------ {actual_fps} ------------------------------')
 			start = time.time()
 			   
 			# Extract a frame
 			ret, frame = input_video.read()
 
 			if not ret:	break
+   
+   
+			# Apply the segmentation
+			resulting_mask, segmented_frame = apply_segmentation(obj, frame)
 
 		   
 			frameg = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
@@ -95,18 +102,18 @@ def main():
 			#reshaped_clockwise = board.get_clockwise_vertices_initial()
 			reshaped_clockwise = board.polygons_check_and_clockwise()
    
-				 
 			# Obtain the dictionary of statistics
 			pixsl_info = board.compute_markers(thresh, reshaped_clockwise, marker_reference)
-				  
-			twoD_points = pixsl_info[:,1:3]
-			threeD_points = pixsl_info[:,3:6]
 
 			# Draw the marker detector stuff
 			edited_frame = board.draw_stuff(frame)
    
    
 			if pixsl_info.shape[0] >= 6:
+       
+				twoD_points = pixsl_info[:,1:3]
+				threeD_points = pixsl_info[:,3:6]
+    
 
 				# Find the rotation and translation vectors
 				ret, rvecs, tvecs = cv.solvePnP(objectPoints=threeD_points.astype('float32'), imagePoints=twoD_points.astype('float32'), cameraMatrix=camera_matrix, distCoeffs=dist, flags=cv.SOLVEPNP_IPPE)
@@ -121,7 +128,7 @@ def main():
 
 				# Get the prjection of the voxels center into the image
 				proj_voxels = np.transpose(np.matmul(proj_mtx, np.reshape(np.transpose(voxels_cube_centres_exp), (4, np.power(unidst_axis, 3)))))
-
+    
 	 
 				imgpts_centroid, _ = cv.projectPoints(objectPoints=axis_centroid, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
 				imgpts_cube, _ = cv.projectPoints(objectPoints=axis_vertical_edges, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
@@ -134,28 +141,33 @@ def main():
 				x, y, w, h = roi
 				undist = undist[y:y+h, x:x+w] # Adjust the image resolution
 
-				undist = board.draw_origin(undist, (board.centroid[0], int(undist.shape[0] / 2)), np.int32(imgpts_centroid))
+				
+
+				# Update the undistorted_resolution and output_video the first time that the undistorted image resutn a valid shape
+				if undistorted_resolution is None: 
+					undistorted_resolution = undist.shape[:2]
+					output_video = cv.VideoWriter(f'../output_project/{obj_id}.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), np.flip(undistorted_resolution))
+    
+    
+				undist = board.draw_origin(undist, (board.centroid[0], undistorted_resolution[0] // 2), np.int32(imgpts_centroid))
 				undist = board.draw_cube(undist, np.int32(imgpts_cube))
     
     
-				undist_b_f_image = cv.undistort(b_f_image, camera_matrix, dist, None, newCameraMatrix)	
+				# Undistorting the segmented frame to analyze the voxels centre
+				undist_b_f_image = cv.undistort(resulting_mask, camera_matrix, dist, None, newCameraMatrix)	
 
 				for idx, voxel_coords in enumerate(proj_voxels):
+					print(int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2]), undist_b_f_image[int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])])
 					#cv.drawMarker(undist, (int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])), markerSize=12, color=(211,211,211), markerType=cv.MARKER_SQUARE, thickness=1, line_type=cv.LINE_AA)
-					cv.circle(undist, (int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])), 1, (211,211,211), -1)
-					
-     
-					if undist_b_f_image[int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])] == 0:
-						pass
+					#cv.circle(undist, (int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])), 1, (211,211,211), -1)
+		
+					if undist_b_f_image[int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])] == 0: V_set[idx] = 0
 						# ------------------------ FARE UIL CONRTROLLO-------------- CONTROLLO SE HA SENSO USARE UN ENUMERATE
       
       
-      
-      
-
 				edited_frame = undist
 					
-
+			
 			end = time.time()
 			fps = 1 / (end-start)
    
@@ -183,9 +195,21 @@ def main():
 			if key == ord('q'):
 				return
 
+
+
+
 			#cv.waitKey(-1)
 			   
-   
+		
+		
+  
+  
+  
+  
+		resulting_voxels = base_center_voxels.flatten()[np.where(V_set == 1)[0]]
+		print(resulting_voxels)
+		print(np.where(V_set == 1)[0])
+  
    
 		print(' DONE')
 
@@ -195,7 +219,6 @@ def main():
 		input_video.release()
 		output_video.release()
 		cv.destroyAllWindows()
-
 
 
 

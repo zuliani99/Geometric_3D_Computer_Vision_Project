@@ -158,7 +158,6 @@ def main() -> None:
 		frame_width = int(input_video.get(cv.CAP_PROP_FRAME_WIDTH))
 		frame_height = int(input_video.get(cv.CAP_PROP_FRAME_HEIGHT))
 		fps = input_video.get(cv.CAP_PROP_FPS)
-		tot_fps = int(input_video.get(cv.CAP_PROP_FRAME_COUNT))
 
 		# Create output video writer
 		output_video = cv.VideoWriter(f"../output_part1/{obj.split('.')[0]}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), fps, (frame_width, frame_height))

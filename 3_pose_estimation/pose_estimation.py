@@ -91,7 +91,7 @@ def main():
     
 				if undistorted_resolution is None: 
 					undistorted_resolution = undist.shape[:2]
-					output_video = cv.VideoWriter(f'../output_part3/{obj_id}_mask.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), np.flip(undistorted_resolution))
+					output_video = cv.VideoWriter(f'../output_part3/{obj_id}_cube.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), np.flip(undistorted_resolution))
     
 
 				undist = draw_origin(undist, (1300, undistorted_resolution[0] // 2), np.int32(imgpts_centroid))

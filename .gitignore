@@ -4,4 +4,6 @@ Related_Labs/
 output_part1/
 output_part2/
 output_part3/
+output_project/
 *.pyc
+*.txt
