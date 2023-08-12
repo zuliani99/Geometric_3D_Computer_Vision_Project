@@ -244,6 +244,22 @@ def get_base_center_voxels(unidst_axis):
 	return base_center_voxels
 
 
+def write_ply_file(obj_id, voxels_cube_coords):
+    # Create the header
+	header = """ply
+	format ascii 1.0
+	element vertex {}
+	property float x
+	property float y
+	property float z
+	end_header
+	""".format(voxels_cube_coords.shape[0])
+
+	# Write header and vertex data to a file
+	with open(f'./output_project/{obj_id}/3d_{obj_id}.ply', 'w') as f:
+		f.write(header)
+		np.savetxt(f, voxels_cube_coords, fmt='%.4f')
+
 
 
 '''def are_lines_parallel(points1, points2):

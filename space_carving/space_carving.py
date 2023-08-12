@@ -70,7 +70,6 @@ def main():
   
 		# Create output video writer initialized at None since we do not know the undistorted resolution
 		output_video = None
-  
 
 		while True:
 			print(f'------------------------------ {actual_fps} ------------------------------')
@@ -146,7 +145,7 @@ def main():
 				# Update the undistorted_resolution and output_video the first time that the undistorted image resutn a valid shape
 				if undistorted_resolution is None: 
 					undistorted_resolution = undist.shape[:2]
-					output_video = cv.VideoWriter(f'../output_project/{obj_id}.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), np.flip(undistorted_resolution))
+					output_video = cv.VideoWriter(f'../output_project/{obj_id}/{obj_id}.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), np.flip(undistorted_resolution))
     
     
 				undist = board.draw_origin(undist, (board.centroid[0], undistorted_resolution[0] // 2), np.int32(imgpts_centroid))
@@ -157,7 +156,7 @@ def main():
 				undist_b_f_image = cv.undistort(resulting_mask, camera_matrix, dist, None, newCameraMatrix)	
 
 				for idx, voxel_coords in enumerate(proj_voxels):
-					print(int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2]), undist_b_f_image[int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])])
+					print(idx, int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2]), undist_b_f_image[int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])])
 					#cv.drawMarker(undist, (int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])), markerSize=12, color=(211,211,211), markerType=cv.MARKER_SQUARE, thickness=1, line_type=cv.LINE_AA)
 					#cv.circle(undist, (int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])), 1, (211,211,211), -1)
 		
@@ -209,6 +208,14 @@ def main():
 		resulting_voxels = base_center_voxels.flatten()[np.where(V_set == 1)[0]]
 		print(resulting_voxels)
 		print(np.where(V_set == 1)[0])
+  
+  
+  
+  
+  
+		#write_ply_file(obj_id, voxels_cube_coords)
+  
+  
   
    
 		print(' DONE')
