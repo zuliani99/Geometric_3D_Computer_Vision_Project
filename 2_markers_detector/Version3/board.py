@@ -327,43 +327,19 @@ class Board:
 			# Get the coordinate of the point A by getting the missing index
 
 			A = np.squeeze(poly[np.squeeze(np.setdiff1d(np.arange(5), hull))])
-			#print(A)
    
-			if(len(A) != 0):
-	
-				#cv.waitKey(-1)
-
-				if(len(A.shape) > 1): 
-					#print('len(A.shape) > 1')
-					A = A[0]
-			
+			if(len(A.shape) == 1):
 				# Compute the polygon index and all circles centre coordinates
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
-				#print(index)
-				if(index > 24): # this is an error
-					#print('index grater than 24: ERROR', index, cv.isContourConvex(poly))
-					index = -1
-					#self.polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
-					#print('\n')
-					# Get the X, Y and Z marker reference 2D coordinates for the polygon with given index
-					X, Y, Z = 0, 0, 0
-					A = [-1, -1]
-				else:
+				if(index < 24):
 					self.polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
 					covered_polys[index] = 0
-					#print('\n')
+
 					# Get the X, Y and Z marker reference 2D coordinates for the polygon with given index
 					X, Y, Z = marker_reference[index] 
-			else:
-				#print('convex polygon', cv.isContourConvex(poly))
-				#print(poly)
-				index = -1
-				X, Y, Z = 0, 0, 0
-				A = [-1, -1]
-			#print('\n')
+   
+					dict_stats_to_return.append({'frame': actual_fps, 'mark_id': index, 'Px': A[0], 'Py': A[1], 'X': X, 'Y': Y, 'Z': Z})
 
-			# Append the information
-			dict_stats_to_return.append({'frame': actual_fps, 'mark_id': index, 'Px': A[0], 'Py': A[1], 'X': X, 'Y': Y, 'Z': Z})
    
 		# Set the cover cover attributo to true on all cover polygons
 		self.covered_polygon(np.where(covered_polys == 1)[0])

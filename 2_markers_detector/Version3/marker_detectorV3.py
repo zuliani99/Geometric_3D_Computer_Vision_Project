@@ -4,7 +4,7 @@ import time
 import copy
 
 from board import Board
-from utils import save_stats, set_marker_reference_coords, resize_for_laptop, sort_vertices_clockwise, are_lines_parallel
+from utils import save_stats, set_marker_reference_coords, resize_for_laptop#, sort_vertices_clockwise, are_lines_parallel
 
 
 using_laptop = True
@@ -48,7 +48,7 @@ def main():
 		prev_frameg = None
 
 		while True:
-			print('\n\n-------------------------------------', actual_fps, '-------------------------------------')
+			#print('\n\n-------------------------------------', actual_fps, '-------------------------------------')
 			start = time.time()
 			
 			# Extract a frame
@@ -108,7 +108,7 @@ def main():
 			if key == ord('q'):
 				return
 
-			cv.waitKey(-1)
+			#cv.waitKey(-1)
 			
 		print(' DONE')
   
