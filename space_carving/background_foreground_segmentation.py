@@ -57,34 +57,11 @@ def change_contrast(img: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], clipLimit
 
 	# Converting image from LAB Color model to BGR color spcae
 	return cv.cvtColor(limg, cv.COLOR_LAB2RGB)
-
-
-
-def apply_foreground_background(mask: np.ndarray[np.ndarray[np.uint8]], img: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-    	-> np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
-    '''
-	PURPOSE: apply the foreground and background segmentation
-	ARGUMENTS:
-		- mask (np.ndarray[np.ndarray[np.uint8]])
-		- img (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]]): image where apply the segmentation 
-	RETURN:
-		- segmented (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]]): black and white segmented image
-	'''
-    
-    segmented = img
-    
-    foreground = np.where(mask==255)
-    background = np.where(mask==0)
-    
-    segmented[foreground[0], foreground[1], :] = [255, 255, 255]
-    segmented[background[0], background[1], :] = [0, 0, 0]
-    
-    return segmented
     
 
 
 def apply_segmentation(obj: str, frame: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-    	-> Tuple[np.ndarray[np.ndarray[np.uint8]], np.ndarray[np.ndarray[np.ndarray[np.uint8]]]]:
+    	-> np.ndarray[np.ndarray[np.uint8]]:
 	'''
 	PURPOSE: apply the segmentation with all the color conversions and morphological operations
 	ARGUMENTS:
@@ -92,7 +69,6 @@ def apply_segmentation(obj: str, frame: np.ndarray[np.ndarray[np.ndarray[np.uint
 		- frame (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image video frame
 	RETURN:
 		- morph_op_2 (np.ndarray[np.ndarray[np.uint8]]): final mask
-		- apply_foreground_background return (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]])
 	'''
  
     # Convert the imahe into RGB format
@@ -134,4 +110,4 @@ def apply_segmentation(obj: str, frame: np.ndarray[np.ndarray[np.ndarray[np.uint
 	# Second Morphological Operation
 	morph_op_2 = cv.morphologyEx(morph_op_1, morph2, kernel2, iterations = iter2)
  
-	return morph_op_2, apply_foreground_background(morph_op_2, rgb)
+	return morph_op_2

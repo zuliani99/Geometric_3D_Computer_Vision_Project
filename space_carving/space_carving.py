@@ -4,7 +4,7 @@ import time
 import copy
 
 
-from utils import set_marker_reference_coords, resize_for_laptop, get_base_center_voxels
+from utils import set_marker_reference_coords, resize_for_laptop, get_cube_and_centroids_voxels
 from background_foreground_segmentation import apply_segmentation
 from board import Board
 
@@ -18,7 +18,7 @@ parameters = {
 
 
 using_laptop = False
-#voxel_cube_dim = 2 # set by default
+voxel_cube_dim = 4
 
 
 
@@ -60,10 +60,10 @@ def main():
 
 
 		# Get the coordinates of the voxel center
-		base_center_voxels = get_base_center_voxels(unidst_axis)
-
+		center_voxels, cube_coords_centroid = get_cube_and_centroids_voxels(unidst_axis, voxel_cube_dim)
+  
 		# Initialize an index array to mark the mantained voxel that will determine the object volume
-		V_set = np.ones((np.power(unidst_axis, 3), 1), dtype=np.int32)
+		V_set = np.ones((np.power((unidst_axis * 2) // voxel_cube_dim, 3), 1), dtype=np.int32)
 
 		# create the board object
 		board = Board(n_polygons=24, circle_mask_size=hyper_param['circle_mask_size'])
@@ -72,18 +72,13 @@ def main():
 		output_video = None
 
 		while True:
-			print(f'------------------------------ {actual_fps} ------------------------------')
+			#print(f'------------------------------ {actual_fps} ------------------------------')
 			start = time.time()
 			   
 			# Extract a frame
 			ret, frame = input_video.read()
 
 			if not ret:	break
-   
-   
-			# Apply the segmentation
-			resulting_mask, segmented_frame = apply_segmentation(obj, frame)
-
 		   
 			frameg = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 			_, thresh = cv.threshold(frameg, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
@@ -123,12 +118,22 @@ def main():
 				proj_mtx = np.matmul(camera_matrix, rot_tran_mtx)
 
 				# Homogeneous coordinates
-				voxels_cube_centres_exp = np.concatenate((base_center_voxels, np.ones((*base_center_voxels.shape[:-1], 1))), axis=-1)
+				voxels_cube_centres_exp = np.concatenate((center_voxels, np.ones((*center_voxels.shape[:-1], 1))), axis=-1)
 
 				# Get the prjection of the voxels center into the image
-				proj_voxels = np.transpose(np.matmul(proj_mtx, np.reshape(np.transpose(voxels_cube_centres_exp), (4, np.power(unidst_axis, 3)))))
+				proj_voxels = np.transpose(np.matmul(proj_mtx, np.reshape(np.transpose(voxels_cube_centres_exp), (4, np.power((unidst_axis * 2) // voxel_cube_dim, 3)))))
     
+    
+    
+   				 # Homogeneous coordinates
+				voxels_cube_coords_exp = np.concatenate((center_voxels, np.ones((*center_voxels.shape[:-1], 1))), axis=-1)
+
+				# Get the prjection of the voxels center into the image
+				proj_cube = np.transpose(np.matmul(proj_mtx, np.reshape(np.transpose(voxels_cube_coords_exp), (4, np.power((unidst_axis * 2) // voxel_cube_dim, 3)))))
 	 
+  
+  
+  
 				imgpts_centroid, _ = cv.projectPoints(objectPoints=axis_centroid, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
 				imgpts_cube, _ = cv.projectPoints(objectPoints=axis_vertical_edges, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
 			   		  	 
@@ -139,6 +144,10 @@ def main():
 				undist = cv.undistort(edited_frame, camera_matrix, dist, None, newCameraMatrix)	
 				x, y, w, h = roi
 				undist = undist[y:y+h, x:x+w] # Adjust the image resolution
+    
+    
+				# Apply the segmentation
+				undist_mask = apply_segmentation(obj, undist)
 
 				
 
@@ -153,16 +162,16 @@ def main():
     
     
 				# Undistorting the segmented frame to analyze the voxels centre
-				undist_b_f_image = cv.undistort(resulting_mask, camera_matrix, dist, None, newCameraMatrix)	
+				undist_b_f_image = cv.undistort(undist_mask, camera_matrix, dist, None, newCameraMatrix)	
 
 				for idx, voxel_coords in enumerate(proj_voxels):
-					print(idx, int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2]), undist_b_f_image[int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])])
+					#print(idx, int(voxel_coords[0] // voxel_coords[2]), int(voxel_coords[1] // voxel_coords[2]), undistorted_resolution)
 					#cv.drawMarker(undist, (int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])), markerSize=12, color=(211,211,211), markerType=cv.MARKER_SQUARE, thickness=1, line_type=cv.LINE_AA)
 					#cv.circle(undist, (int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])), 1, (211,211,211), -1)
+					if(int(voxel_coords[0] // voxel_coords[2]) < undistorted_resolution[0] and int(voxel_coords[1] // voxel_coords[2]) < undistorted_resolution[1]):
 		
-					if undist_b_f_image[int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])] == 0: V_set[idx] = 0
-						# ------------------------ FARE UIL CONRTROLLO-------------- CONTROLLO SE HA SENSO USARE UN ENUMERATE
-      
+						if undist_b_f_image[int(voxel_coords[0] // voxel_coords[2]), int(voxel_coords[1] // voxel_coords[2])] == 0:	V_set[idx] = 0
+							# ------------------------ FARE UIL CONRTROLLO-------------- CONTROLLO SE HA SENSO USARE UN ENUMERATE
       
 				edited_frame = undist
 					
@@ -204,18 +213,15 @@ def main():
   
   
   
+		mantained_voxels_idx = np.where(V_set == 1)[0]
+		
+		#voxels_center = np.zeros((0,3), dtype=np.int32)
+		#flatten_proj_voxels = proj_voxels.flatten()
+		#for idx in mantained_voxels_idx:
+			#voxels_center = np.vstack((voxels_center, np.array([flatten_proj_voxels[idx], flatten_proj_voxels[idx + 1], flatten_proj_voxels[idx + 2]])))
+		#print(voxels_center)
   
-		resulting_voxels = base_center_voxels.flatten()[np.where(V_set == 1)[0]]
-		print(resulting_voxels)
-		print(np.where(V_set == 1)[0])
-  
-  
-  
-  
-  
-		#write_ply_file(obj_id, voxels_cube_coords)
-  
-  
+		
   
    
 		print(' DONE')

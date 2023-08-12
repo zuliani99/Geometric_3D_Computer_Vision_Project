@@ -232,16 +232,42 @@ def check_mask(approx_cnt: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], mask: n
 
 
 
-def get_base_center_voxels(unidst_axis):
-	base_center_voxels = np.zeros((0, unidst_axis, unidst_axis, 3), dtype=np.int32)
-	for z in range (71, 70 + (unidst_axis*2), 2):
-		center_voxels_at_z = np.zeros((0, unidst_axis, 3), dtype=np.int32)
-		for y in range (-unidst_axis+1, unidst_axis, 2):
-			row = np.zeros((0,3), dtype=np.int32)
-			for x in range (-unidst_axis+1, unidst_axis, 2): row = np.vstack((row, np.array([x, y, z], dtype=np.int32)))
-			center_voxels_at_z = np.vstack((center_voxels_at_z, np.expand_dims(row, axis=0)))
-		base_center_voxels = np.vstack((base_center_voxels, np.expand_dims(center_voxels_at_z, axis=0)))
-	return base_center_voxels
+def get_cube_and_centroids_voxels(unidst_semi_axis, voxel_cube_dim):
+	axis_length = (unidst_semi_axis * 2) // voxel_cube_dim
+    
+	center_voxels = np.zeros((0, axis_length, axis_length, 3), dtype=np.int32)
+	cube_coords_voxels = np.zeros((0, axis_length, axis_length, 8, 3), dtype=np.int32)
+ 
+	for z in range (70 + (voxel_cube_dim // 2), 70 + (unidst_semi_axis * 2) - voxel_cube_dim // 2 + 1, voxel_cube_dim):
+		center_voxels_at_z = np.zeros((0, axis_length, 3), dtype=np.int32)
+		cube_coords_voxels_at_z = np.zeros((0, axis_length, 8, 3), dtype=np.int32)
+		
+		for y in range (-unidst_semi_axis + voxel_cube_dim // 2, unidst_semi_axis - voxel_cube_dim // 2 + 1, voxel_cube_dim):
+			rows = np.zeros((0,3), dtype=np.int32)
+			cubes = np.zeros((0,8,3), dtype=np.int32)
+			
+			for x in range (-unidst_semi_axis + voxel_cube_dim // 2, unidst_semi_axis - voxel_cube_dim // 2 + 1, voxel_cube_dim):
+				rows = np.vstack((rows, np.array([x, y, z], dtype=np.int32)))
+				cube = np.array([
+					np.array([y + voxel_cube_dim // 2, x + voxel_cube_dim // 2, z + voxel_cube_dim // 2]),
+					np.array([y + voxel_cube_dim // 2, x + voxel_cube_dim // 2, z - voxel_cube_dim // 2]),
+					np.array([y + voxel_cube_dim // 2, x - voxel_cube_dim // 2, z + voxel_cube_dim // 2]),
+					np.array([y + voxel_cube_dim // 2, x - voxel_cube_dim // 2, z - voxel_cube_dim // 2]),
+					np.array([y - voxel_cube_dim // 2, x + voxel_cube_dim // 2, z + voxel_cube_dim // 2]),
+					np.array([y - voxel_cube_dim // 2, x + voxel_cube_dim // 2, z - voxel_cube_dim // 2]),
+					np.array([y - voxel_cube_dim // 2, x - voxel_cube_dim // 2, z + voxel_cube_dim // 2]),
+					np.array([y - voxel_cube_dim // 2, x - voxel_cube_dim // 2, z - voxel_cube_dim // 2]),
+				], dtype=np.int32)
+				cubes = np.vstack((cubes, np.expand_dims(cube, axis=0)))
+			
+			center_voxels_at_z = np.vstack((center_voxels_at_z, np.expand_dims(rows, axis=0)))
+			cube_coords_voxels_at_z = np.vstack((cube_coords_voxels_at_z, np.expand_dims(cubes, axis=0)))
+  
+		center_voxels = np.vstack((center_voxels, np.expand_dims(center_voxels_at_z, axis=0)))
+		cube_coords_voxels = np.vstack((cube_coords_voxels, np.expand_dims(cube_coords_voxels_at_z, axis=0)))
+
+	return center_voxels, cube_coords_voxels
+
 
 
 def write_ply_file(obj_id, voxels_cube_coords):
