@@ -231,23 +231,23 @@ def check_mask(approx_cnt: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], mask: n
 	return to_return
 
 
-
+# all respect the marker reference coordinates
 def get_cube_and_centroids_voxels(unidst_semi_axis, voxel_cube_dim):
 	axis_length = (unidst_semi_axis * 2) // voxel_cube_dim
     
-	center_voxels = np.zeros((0, axis_length, axis_length, 3), dtype=np.int32)
-	cube_coords_voxels = np.zeros((0, axis_length, axis_length, 8, 3), dtype=np.int32)
+	center_voxels = np.zeros((0, axis_length, axis_length, 3), dtype=np.float32)
+	cube_coords_voxels = np.zeros((0, axis_length, axis_length, 8, 3), dtype=np.float32)
  
 	for z in range (70 + (voxel_cube_dim // 2), 70 + (unidst_semi_axis * 2) - voxel_cube_dim // 2 + 1, voxel_cube_dim):
-		center_voxels_at_z = np.zeros((0, axis_length, 3), dtype=np.int32)
-		cube_coords_voxels_at_z = np.zeros((0, axis_length, 8, 3), dtype=np.int32)
+		center_voxels_at_z = np.zeros((0, axis_length, 3), dtype=np.float32)
+		cube_coords_voxels_at_z = np.zeros((0, axis_length, 8, 3), dtype=np.float32)
 		
 		for y in range (-unidst_semi_axis + voxel_cube_dim // 2, unidst_semi_axis - voxel_cube_dim // 2 + 1, voxel_cube_dim):
-			rows = np.zeros((0,3), dtype=np.int32)
-			cubes = np.zeros((0,8,3), dtype=np.int32)
+			rows = np.zeros((0,3), dtype=np.float32)
+			cubes = np.zeros((0,8,3), dtype=np.float32)
 			
 			for x in range (-unidst_semi_axis + voxel_cube_dim // 2, unidst_semi_axis - voxel_cube_dim // 2 + 1, voxel_cube_dim):
-				rows = np.vstack((rows, np.array([x, y, z], dtype=np.int32)))
+				rows = np.vstack((rows, np.array([x, y, z], dtype=np.float32)))
 				cube = np.array([
 					np.array([y + voxel_cube_dim // 2, x + voxel_cube_dim // 2, z + voxel_cube_dim // 2]),
 					np.array([y + voxel_cube_dim // 2, x + voxel_cube_dim // 2, z - voxel_cube_dim // 2]),
@@ -257,7 +257,7 @@ def get_cube_and_centroids_voxels(unidst_semi_axis, voxel_cube_dim):
 					np.array([y - voxel_cube_dim // 2, x + voxel_cube_dim // 2, z - voxel_cube_dim // 2]),
 					np.array([y - voxel_cube_dim // 2, x - voxel_cube_dim // 2, z + voxel_cube_dim // 2]),
 					np.array([y - voxel_cube_dim // 2, x - voxel_cube_dim // 2, z - voxel_cube_dim // 2]),
-				], dtype=np.int32)
+				], dtype=np.float32)
 				cubes = np.vstack((cubes, np.expand_dims(cube, axis=0)))
 			
 			center_voxels_at_z = np.vstack((center_voxels_at_z, np.expand_dims(rows, axis=0)))
@@ -271,20 +271,24 @@ def get_cube_and_centroids_voxels(unidst_semi_axis, voxel_cube_dim):
 
 
 def write_ply_file(obj_id, voxels_cube_coords):
+	print(voxels_cube_coords.shape)
+    
     # Create the header
-	header = """ply
+	header = """
+	ply
 	format ascii 1.0
 	element vertex {}
 	property float x
 	property float y
 	property float z
+ 	property list uchar int vertex_indices
 	end_header
 	""".format(voxels_cube_coords.shape[0])
 
 	# Write header and vertex data to a file
-	with open(f'./output_project/{obj_id}/3d_{obj_id}.ply', 'w') as f:
+	with open(f'../output_project/{obj_id}/3d_{obj_id}.ply', 'w') as f:
 		f.write(header)
-		np.savetxt(f, voxels_cube_coords, fmt='%.4f')
+		np.savetxt(f, voxels_cube_coords, fmt='%.4f', newline='\n') # Here it must be 2D
 
 
 

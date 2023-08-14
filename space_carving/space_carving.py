@@ -4,7 +4,7 @@ import time
 import copy
 
 
-from utils import set_marker_reference_coords, resize_for_laptop, get_cube_and_centroids_voxels
+from utils import set_marker_reference_coords, resize_for_laptop, get_cube_and_centroids_voxels, write_ply_file
 from background_foreground_segmentation import apply_segmentation
 from board import Board
 
@@ -18,7 +18,7 @@ parameters = {
 
 
 using_laptop = False
-voxel_cube_dim = 4
+voxel_cube_dim = 2
 
 
 
@@ -59,11 +59,12 @@ def main():
 										])
 
 
-		# Get the coordinates of the voxel center
+		# Get the coordinates of the voxel center (3D marker reference)
 		center_voxels, cube_coords_centroid = get_cube_and_centroids_voxels(unidst_axis, voxel_cube_dim)
   
 		# Initialize an index array to mark the mantained voxel that will determine the object volume
-		V_set = np.ones((np.power((unidst_axis * 2) // voxel_cube_dim, 3), 1), dtype=np.int32)
+		binary_centroid_fore_back = np.ones((np.power(center_voxels.shape[0], 3), 1), dtype=np.int32)
+		#print('binary_centroid_fore_back', binary_centroid_fore_back.shape)
 
 		# create the board object
 		board = Board(n_polygons=24, circle_mask_size=hyper_param['circle_mask_size'])
@@ -116,30 +117,37 @@ def main():
 				rot_matx, _ = cv.Rodrigues(rvecs)
 				rot_tran_mtx = np.concatenate([rot_matx, tvecs], axis=-1)
 				proj_mtx = np.matmul(camera_matrix, rot_tran_mtx)
-
-				# Homogeneous coordinates
-				voxels_cube_centres_exp = np.concatenate((center_voxels, np.ones((*center_voxels.shape[:-1], 1))), axis=-1)
-
-				# Get the prjection of the voxels center into the image
-				proj_voxels = np.transpose(np.matmul(proj_mtx, np.reshape(np.transpose(voxels_cube_centres_exp), (4, np.power((unidst_axis * 2) // voxel_cube_dim, 3)))))
     
-    
-    
-   				 # Homogeneous coordinates
-				voxels_cube_coords_exp = np.concatenate((center_voxels, np.ones((*center_voxels.shape[:-1], 1))), axis=-1)
+   				# Homogeneous coordinates for voxel cube coordinates
+				voxels_cube_coords_exp = np.concatenate((cube_coords_centroid, np.ones((*cube_coords_centroid.shape[:-1], 1))), axis=-1)
 
 				# Get the prjection of the voxels center into the image
-				proj_cube = np.transpose(np.matmul(proj_mtx, np.reshape(np.transpose(voxels_cube_coords_exp), (4, np.power((unidst_axis * 2) // voxel_cube_dim, 3)))))
-	 
+				imgpts_cube_vert_coords = np.transpose(np.matmul(proj_mtx, np.reshape(np.transpose(voxels_cube_coords_exp), (4, np.power((unidst_axis * 2) // voxel_cube_dim, 3) * voxels_cube_coords_exp.shape[3]))))
+
+
   
-  
-  
+				imgpts_cubes_centroid, _ = cv.projectPoints(objectPoints=np.reshape(center_voxels, (np.power(center_voxels.shape[0], 3), 3)), rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
+
 				imgpts_centroid, _ = cv.projectPoints(objectPoints=axis_centroid, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
 				imgpts_cube, _ = cv.projectPoints(objectPoints=axis_vertical_edges, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
 			   		  	 
-		  
 				newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(camera_matrix, dist, (frame_width, frame_height), 1, (frame_width, frame_height))
 		  
+				imgpts_cubes_centroid = np.squeeze(imgpts_cubes_centroid)
+    
+    
+    
+    
+    
+    
+				new_shape_cube_vert_coords = np.asarray(cube_coords_centroid.shape[:3])
+				new_shape_cube_vert_coords = np.append(new_shape_cube_vert_coords, np.array([8, 3]))
+				imgpts_cube_vert_coords_reshaped = np.reshape(imgpts_cube_vert_coords, new_shape_cube_vert_coords) 
+
+
+    
+    
+    
 				# Undistort the image
 				undist = cv.undistort(edited_frame, camera_matrix, dist, None, newCameraMatrix)	
 				x, y, w, h = roi
@@ -149,7 +157,6 @@ def main():
 				# Apply the segmentation
 				undist_mask = apply_segmentation(obj, undist)
 
-				
 
 				# Update the undistorted_resolution and output_video the first time that the undistorted image resutn a valid shape
 				if undistorted_resolution is None: 
@@ -160,19 +167,17 @@ def main():
 				undist = board.draw_origin(undist, (board.centroid[0], undistorted_resolution[0] // 2), np.int32(imgpts_centroid))
 				undist = board.draw_cube(undist, np.int32(imgpts_cube))
     
-    
 				# Undistorting the segmented frame to analyze the voxels centre
 				undist_b_f_image = cv.undistort(undist_mask, camera_matrix, dist, None, newCameraMatrix)	
+    
+    
+				for idx, centr_coords in enumerate(imgpts_cubes_centroid):
+					if(centr_coords[0] < undistorted_resolution[0] and centr_coords[1]  < undistorted_resolution[1]):
+						if(undist_b_f_image[int(centr_coords[0]), int(centr_coords[1])] == 0): binary_centroid_fore_back[idx] = 0
+							
+					# ------------------------ NACORA DA AGGIUNGERE IL DISCORSO DI METTERE A ZERO SU TUTTO L'ASSE ------------------------
+    
 
-				for idx, voxel_coords in enumerate(proj_voxels):
-					#print(idx, int(voxel_coords[0] // voxel_coords[2]), int(voxel_coords[1] // voxel_coords[2]), undistorted_resolution)
-					#cv.drawMarker(undist, (int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])), markerSize=12, color=(211,211,211), markerType=cv.MARKER_SQUARE, thickness=1, line_type=cv.LINE_AA)
-					#cv.circle(undist, (int(voxel_coords[0] / voxel_coords[2]), int(voxel_coords[1] / voxel_coords[2])), 1, (211,211,211), -1)
-					if(int(voxel_coords[0] // voxel_coords[2]) < undistorted_resolution[0] and int(voxel_coords[1] // voxel_coords[2]) < undistorted_resolution[1]):
-		
-						if undist_b_f_image[int(voxel_coords[0] // voxel_coords[2]), int(voxel_coords[1] // voxel_coords[2])] == 0:	V_set[idx] = 0
-							# ------------------------ FARE UIL CONRTROLLO-------------- CONTROLLO SE HA SENSO USARE UN ENUMERATE
-      
 				edited_frame = undist
 					
 			
@@ -210,23 +215,24 @@ def main():
 			   
 		
 		
+		new_shape_bit_centroid = np.asarray(center_voxels.shape[:3])
+		new_shape_bit_centroid = np.append(new_shape_bit_centroid, np.array([1]))
   
-  
-  
-		mantained_voxels_idx = np.where(V_set == 1)[0]
+		binary_centroid_fore_back_reshaped = np.reshape(binary_centroid_fore_back, new_shape_bit_centroid)
+		mantained_centroids_idx = np.argwhere(binary_centroid_fore_back_reshaped == 1)
+		resulting_voxels = imgpts_cube_vert_coords_reshaped[mantained_centroids_idx[:, 0], mantained_centroids_idx[:, 1], mantained_centroids_idx[:, 2]]
 		
-		#voxels_center = np.zeros((0,3), dtype=np.int32)
-		#flatten_proj_voxels = proj_voxels.flatten()
-		#for idx in mantained_voxels_idx:
-			#voxels_center = np.vstack((voxels_center, np.array([flatten_proj_voxels[idx], flatten_proj_voxels[idx + 1], flatten_proj_voxels[idx + 2]])))
-		#print(voxels_center)
   
 		
   
    
 		print(' DONE')
-
 		print(f'Average FPS is: {str(avg_fps / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}\n')
+  
+
+		print('Saving PLY file...')
+		write_ply_file(obj_id, np.reshape(resulting_voxels, (resulting_voxels.shape[0] * 8, 3)))
+		print(' DONE\n')
 
 		# Release the input and output streams
 		input_video.release()
