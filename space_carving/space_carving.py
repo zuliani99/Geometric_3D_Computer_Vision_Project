@@ -114,22 +114,30 @@ def main():
 				ret, rvecs, tvecs = cv.solvePnP(objectPoints=threeD_points.astype('float32'), imagePoints=twoD_points.astype('float32'), cameraMatrix=camera_matrix, distCoeffs=dist, flags=cv.SOLVEPNP_IPPE)
 
 				# Computing the Camera Projection Matrix
-				rot_matx, _ = cv.Rodrigues(rvecs)
-				print(rot_matx.shape)
-				rot_tran_mtx = np.concatenate([rot_matx, tvecs], axis=-1)
-				print(rot_tran_mtx.shape)
-				proj_mtx = np.matmul(camera_matrix, rot_tran_mtx)
-				print(proj_mtx.shape)
+				#rot_matx, _ = cv.Rodrigues(rvecs)
+				#print(rot_matx, rot_matx.shape)
+				#rot_tran_mtx = np.vstack((np.concatenate([rot_matx, tvecs], axis=-1), np.array([0.0, 0.0, 0.0, 1.0]))) # 4x4
+				#print(rot_tran_mtx, rot_tran_mtx.shape)
+				#proj_mtx = np.matmul(camera_matrix, rot_tran_mtx)
+				#print(proj_mtx.shape)
     
     
    				# Homogeneous coordinates for voxel cube coordinates
-				voxels_cube_coords_exp = np.concatenate((cube_coords_centroid, np.ones((*cube_coords_centroid.shape[:-1], 1))), axis=-1)
-				print(voxels_cube_coords_exp.shape)
+				#voxels_cube_coords_exp = np.concatenate((cube_coords_centroid, np.ones((*cube_coords_centroid.shape[:-1], 1))), axis=-1)
+				#voxels_cube_coords_exp = np.vstack((np.concatenate((cube_coords_centroid, np.ones((*cube_coords_centroid.shape[:-1], 1))), axis=-1), np.array([0, 0, 0, 1])))
+				#print(voxels_cube_coords_exp[0], voxels_cube_coords_exp.shape)
     
 
 				# Get the prjection of the voxels center into the image
-				imgpts_cube_vert_coords = np.transpose(np.matmul(proj_mtx, np.reshape(np.transpose(voxels_cube_coords_exp), (4, np.power((unidst_axis * 2) // voxel_cube_dim, 3) * voxels_cube_coords_exp.shape[3]))))
-				print(imgpts_cube_vert_coords.shape)
+				#imgpts_cube_vert_coords = np.transpose(np.matmul(proj_mtx, np.reshape(np.transpose(voxels_cube_coords_exp), (4, np.power((unidst_axis * 2) // voxel_cube_dim, 3) * voxels_cube_coords_exp.shape[3]))))
+				#imgpts_cube_vert_coords = np.transpose(np.matmul(rot_tran_mtx, np.reshape(voxels_cube_coords_exp, (4, np.power((unidst_axis * 2) // voxel_cube_dim, 3) * voxels_cube_coords_exp.shape[3]))))
+				#print(imgpts_cube_vert_coords, imgpts_cube_vert_coords.shape)
+
+				#first_three_columns = imgpts_cube_vert_coords[:, :3]
+				#fourth_column = imgpts_cube_vert_coords[:, 3]
+				#imgpts_cube_vert_coords = first_three_columns / fourth_column[:, np.newaxis]
+				
+				#print(imgpts_cube_vert_coords, imgpts_cube_vert_coords.shape)
 
 
   
@@ -147,9 +155,9 @@ def main():
     
     
     
-				new_shape_cube_vert_coords = np.asarray(cube_coords_centroid.shape[:3])
-				new_shape_cube_vert_coords = np.append(new_shape_cube_vert_coords, np.array([8, 3]))
-				imgpts_cube_vert_coords_reshaped = np.reshape(imgpts_cube_vert_coords, new_shape_cube_vert_coords) 
+				#new_shape_cube_vert_coords = np.asarray(cube_coords_centroid.shape[:3])
+				#new_shape_cube_vert_coords = np.append(new_shape_cube_vert_coords, np.array([8, 3]))
+				#imgpts_cube_vert_coords_reshaped = np.reshape(imgpts_cube_vert_coords, new_shape_cube_vert_coords) 
 
 
     
@@ -222,7 +230,7 @@ def main():
 
 
 
-			cv.waitKey(-1)
+			#cv.waitKey(-1)
 			   
 		
 		
@@ -231,7 +239,10 @@ def main():
   
 		binary_centroid_fore_back_reshaped = np.reshape(binary_centroid_fore_back, new_shape_bit_centroid)
 		mantained_centroids_idx = np.argwhere(binary_centroid_fore_back_reshaped == 1)
-		resulting_voxels = imgpts_cube_vert_coords_reshaped[mantained_centroids_idx[:, 0], mantained_centroids_idx[:, 1], mantained_centroids_idx[:, 2]]
+  
+
+		#resulting_voxels = imgpts_cube_vert_coords_reshaped[mantained_centroids_idx[:, 0], mantained_centroids_idx[:, 1], mantained_centroids_idx[:, 2]]
+		resulting_voxels = cube_coords_centroid[mantained_centroids_idx[:, 0], mantained_centroids_idx[:, 1], mantained_centroids_idx[:, 2]]
 		
   
 		
