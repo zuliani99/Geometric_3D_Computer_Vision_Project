@@ -18,7 +18,7 @@ parameters = {
 
 
 using_laptop = False
-voxel_cube_dim = 2
+voxel_cube_dim = 4
 
 
 
@@ -115,14 +115,21 @@ def main():
 
 				# Computing the Camera Projection Matrix
 				rot_matx, _ = cv.Rodrigues(rvecs)
+				print(rot_matx.shape)
 				rot_tran_mtx = np.concatenate([rot_matx, tvecs], axis=-1)
+				print(rot_tran_mtx.shape)
 				proj_mtx = np.matmul(camera_matrix, rot_tran_mtx)
+				print(proj_mtx.shape)
+    
     
    				# Homogeneous coordinates for voxel cube coordinates
 				voxels_cube_coords_exp = np.concatenate((cube_coords_centroid, np.ones((*cube_coords_centroid.shape[:-1], 1))), axis=-1)
+				print(voxels_cube_coords_exp.shape)
+    
 
 				# Get the prjection of the voxels center into the image
 				imgpts_cube_vert_coords = np.transpose(np.matmul(proj_mtx, np.reshape(np.transpose(voxels_cube_coords_exp), (4, np.power((unidst_axis * 2) // voxel_cube_dim, 3) * voxels_cube_coords_exp.shape[3]))))
+				print(imgpts_cube_vert_coords.shape)
 
 
   
@@ -168,12 +175,16 @@ def main():
 				undist = board.draw_cube(undist, np.int32(imgpts_cube))
     
 				# Undistorting the segmented frame to analyze the voxels centre
-				undist_b_f_image = cv.undistort(undist_mask, camera_matrix, dist, None, newCameraMatrix)	
+				undist_b_f_image = cv.undistort(undist_mask, camera_matrix, dist, None, newCameraMatrix)
+				#cv.imshow('segmented', undist_b_f_image)
     
     
 				for idx, centr_coords in enumerate(imgpts_cubes_centroid):
-					if(centr_coords[0] < undistorted_resolution[0] and centr_coords[1]  < undistorted_resolution[1]):
-						if(undist_b_f_image[int(centr_coords[0]), int(centr_coords[1])] == 0): binary_centroid_fore_back[idx] = 0
+					if(centr_coords[0] < undistorted_resolution[1] and centr_coords[1]  < undistorted_resolution[0]):
+						if(undist_b_f_image[int(centr_coords[1]), int(centr_coords[0])] == 0):
+							binary_centroid_fore_back[idx] = 0
+							cv.circle(undist, (int(centr_coords[0]), int(centr_coords[1])), 1, (255,255,255), -1)
+
 							
 					# ------------------------ NACORA DA AGGIUNGERE IL DISCORSO DI METTERE A ZERO SU TUTTO L'ASSE ------------------------
     
@@ -211,7 +222,7 @@ def main():
 
 
 
-			#cv.waitKey(-1)
+			cv.waitKey(-1)
 			   
 		
 		
@@ -229,9 +240,10 @@ def main():
 		print(' DONE')
 		print(f'Average FPS is: {str(avg_fps / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}\n')
   
+		voxels_cube_coords = np.reshape(resulting_voxels, (resulting_voxels.shape[0] * 8, 3))
 
-		print('Saving PLY file...')
-		write_ply_file(obj_id, np.reshape(resulting_voxels, (resulting_voxels.shape[0] * 8, 3)))
+		print(f'Saving PLY file with {voxels_cube_coords.shape[0]} vertices...')
+		write_ply_file(obj_id, voxels_cube_coords)
 		print(' DONE\n')
 
 		# Release the input and output streams

@@ -271,19 +271,16 @@ def get_cube_and_centroids_voxels(unidst_semi_axis, voxel_cube_dim):
 
 
 def write_ply_file(obj_id, voxels_cube_coords):
-	print(voxels_cube_coords.shape)
-    
     # Create the header
-	header = """
-	ply
+	header = """ply
 	format ascii 1.0
 	element vertex {}
 	property float x
 	property float y
 	property float z
- 	property list uchar int vertex_indices
 	end_header
 	""".format(voxels_cube_coords.shape[0])
+ 
 
 	# Write header and vertex data to a file
 	with open(f'../output_project/{obj_id}/3d_{obj_id}.ply', 'w') as f:
