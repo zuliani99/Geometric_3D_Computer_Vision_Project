@@ -11,9 +11,9 @@ from board import Board
 
 parameters = {
 	'obj01.mp4': {'circle_mask_size': 15, 'window_size': (10, 10), 'undist_axis': 55},
-	#'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 60},
-	#'obj03.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 70},
-	#'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10), 'undist_axis': 55},
+	'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 60},
+	'obj03.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 70},
+	'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10), 'undist_axis': 55},
 }
 
 
@@ -64,6 +64,8 @@ def main():
   
 		# Initialize an index array to mark the mantained voxel that will determine the object volume
 		binary_centroid_fore_back = np.ones((np.power(center_voxels.shape[0], 3), 1), dtype=np.int32)
+  
+		#res_bin_centroid_fore_back = np.zeros((np.power(center_voxels.shape[0], 3), 1), dtype=np.int32)
 		#print('binary_centroid_fore_back', binary_centroid_fore_back.shape)
 
 		# create the board object
@@ -85,6 +87,7 @@ def main():
 			_, thresh = cv.threshold(frameg, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
 			mask = np.zeros_like(frameg)
    
+			#bin_centroid_fore_back = np.zeros((np.power(center_voxels.shape[0], 3), 1), dtype=np.int32)
 			   
 			if(actual_fps % 10 == 0): 
 				# Each 10 frames recompute the whole features to track
@@ -148,17 +151,21 @@ def main():
     
     
 				for idx, centr_coords in enumerate(imgpts_cubes_centroid):
-					if(centr_coords[0] < undistorted_resolution[1] and centr_coords[1]  < undistorted_resolution[0]):
-						if(undist_b_f_image[int(centr_coords[1]), int(centr_coords[0])] == 0):
+					if(centr_coords[0] < undistorted_resolution[1] and centr_coords[1] < undistorted_resolution[0]):
+						if(undist_b_f_image[int(centr_coords[1]), int(centr_coords[0])] == 0): # == 255
 							binary_centroid_fore_back[idx] = 0
+							#bin_centroid_fore_back[idx] = 1
 							cv.circle(undist, (int(centr_coords[0]), int(centr_coords[1])), 1, (255,255,255), -1)
 
 							
 					# ------------------------ NACORA DA AGGIUNGERE IL DISCORSO DI METTERE A ZERO SU TUTTO L'ASSE ------------------------
     
-
+    
+				#res_bin_centroid_fore_back = np.logical_or(res_bin_centroid_fore_back, bin_centroid_fore_back)
+				#print(sum(bin_centroid_fore_back == True), sum(res_bin_centroid_fore_back == True))
 				edited_frame = undist
-					
+
+				
 			
 			end = time.time()
 			fps = 1 / (end-start)
@@ -198,6 +205,7 @@ def main():
 		new_shape_bit_centroid = np.append(new_shape_bit_centroid, np.array([1]))
   
 		binary_centroid_fore_back_reshaped = np.reshape(binary_centroid_fore_back, new_shape_bit_centroid)
+		#binary_centroid_fore_back_reshaped = np.reshape(res_bin_centroid_fore_back, new_shape_bit_centroid)
 		mantained_centroids_idx = np.argwhere(binary_centroid_fore_back_reshaped == 1)
   
 		resulting_voxels = cube_coords_centroid[mantained_centroids_idx[:, 0], mantained_centroids_idx[:, 1], mantained_centroids_idx[:, 2]]
@@ -205,7 +213,7 @@ def main():
   
    
 		print(' DONE')
-		print(f'Average FPS is: {str(avg_fps / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}\n')
+		print(f'Average FPS is: {str(avg_fps / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')
   
 		voxels_cube_coords = np.reshape(resulting_voxels, (resulting_voxels.shape[0] * 8, 3))
 		voxel_cube_faces = np.zeros((0,5), dtype=np.int32)
