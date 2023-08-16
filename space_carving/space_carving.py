@@ -151,7 +151,7 @@ def main():
     
     
 				for idx, centr_coords in enumerate(imgpts_cubes_centroid):
-					if(centr_coords[0] < undistorted_resolution[1] and centr_coords[1] < undistorted_resolution[0]):
+					if(centr_coords[0] < undistorted_resolution[1] and centr_coords[1] < undistorted_resolution[0] and centr_coords[0] >= 0  and centr_coords[1] >= 0):
 						if(undist_b_f_image[int(centr_coords[1]), int(centr_coords[0])] == 0): # == 255
 							binary_centroid_fore_back[idx] = 0
 							#bin_centroid_fore_back[idx] = 1
