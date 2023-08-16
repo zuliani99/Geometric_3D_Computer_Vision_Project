@@ -270,22 +270,25 @@ def get_cube_and_centroids_voxels(unidst_semi_axis, voxel_cube_dim):
 
 
 
-def write_ply_file(obj_id, voxels_cube_coords):
+def write_ply_file(obj_id, voxels_cube_coords, voxel_cube_faces):
     # Create the header
-	header = """ply
+	header = f"""ply
 	format ascii 1.0
-	element vertex {}
+	element vertex {voxels_cube_coords.shape[0]}
 	property float x
 	property float y
 	property float z
+ 	element face {voxel_cube_faces.shape[0]}
+	property list uchar int vertex_index
 	end_header
-	""".format(voxels_cube_coords.shape[0])
- 
-
+	"""
 	# Write header and vertex data to a file
 	with open(f'../output_project/{obj_id}/3d_{obj_id}.ply', 'w') as f:
 		f.write(header)
-		np.savetxt(f, voxels_cube_coords, fmt='%.4f', newline='\n') # Here it must be 2D
+		np.savetxt(f, voxels_cube_coords, fmt='%.4f', newline='\n')
+  
+	with open(f'../output_project/{obj_id}/3d_{obj_id}.ply', 'a') as f:
+		np.savetxt(f, voxel_cube_faces.astype(int), fmt='%i', newline='\n')
 
 
 
