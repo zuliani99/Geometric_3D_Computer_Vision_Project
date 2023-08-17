@@ -52,7 +52,7 @@ def main():
 		# Create the board object
 		board = Board(n_polygons=24, circle_mask_size=hyper_param['circle_mask_size'])
   
-		vocels_cube = VoxelsCube(unidst_axis=unidst_axis, voxel_cube_dim=4, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
+		voxels_cube = VoxelsCube(unidst_axis=unidst_axis, voxel_cube_dim=4, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
   
 		# Create output video writer initialized at None since we do not know the undistorted resolution
 		output_video = None
@@ -94,7 +94,7 @@ def main():
 				threeD_points = pixsl_info[:,3:6]
     
 				# Find the rotation and translation vectors
-				undist, imgpts_centroid, imgpts_cube, newCameraMatrix = vocels_cube.apply_projections(twoD_points, threeD_points, edited_frame)
+				undist, imgpts_centroid, imgpts_cube, newCameraMatrix = voxels_cube.apply_projections(twoD_points, threeD_points, edited_frame)
     
 				# Apply the segmentation
 				undist_mask = apply_segmentation(obj, undist)
@@ -113,7 +113,7 @@ def main():
 				undist_b_f_image = cv.undistort(undist_mask, camera_matrix, dist, None, newCameraMatrix)
     
     
-				edited_frame = vocels_cube.set_background_voxels(undistorted_resolution, undist_b_f_image, undist)
+				edited_frame = voxels_cube.set_background_voxels(undistorted_resolution, undist_b_f_image, undist)
     
 				
 			
@@ -153,7 +153,7 @@ def main():
 		print(' DONE')
 		print(f'Average FPS is: {str(avg_fps / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')
 
-		voxels_cube_coords, voxel_cube_faces = vocels_cube.get_cubes_coords_and_faces()
+		voxels_cube_coords, voxel_cube_faces = voxels_cube.get_cubes_coords_and_faces()
 
 		print(f'Saving PLY file with {voxels_cube_coords.shape[0]} vertices...')
 		write_ply_file(obj_id, voxels_cube_coords, voxel_cube_faces)
