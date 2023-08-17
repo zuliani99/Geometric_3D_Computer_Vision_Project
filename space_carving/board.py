@@ -26,7 +26,6 @@ class Board:
 		self.circle_mask_size = circle_mask_size
 		#self.centroid = np.array([1300, 550])
 		self.centroid = np.array([1300, 540])
-		#self.anchor = None
   
   
   	
@@ -371,47 +370,3 @@ class Board:
 		cv.drawContours(img, [imgpts[4:]], -1, (0,0,255), 3)
 
 		return img
-
-   
-   
-'''			if(len(A) != 0):
-
-				#cv.waitKey(-1)
-
-				if(len(A.shape) > 1): 
-					#print('len(A.shape) > 1')
-					A = A[0]
-
-				# Compute the polygon index and all circles centre coordinates
-				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
-				#print(index)
-				if(index > 24): # this is an error
-					#print('index grater than 24: ERROR', index, cv.isContourConvex(poly))
-					index = -1
-					#self.polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
-					#print('\n')
-					# Get the X, Y and Z marker reference 2D coordinates for the polygon with given index
-					X, Y, Z = 0, 0, 0
-					A = None
-				else:        
-					self.polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
-					covered_polys[index] = 0
-					#print('\n')
-					# Get the X, Y and Z marker reference 2D coordinates for the polygon with given index
-					X, Y, Z = marker_reference[index] 
-			else:
-				#print('convex polygon', cv.isContourConvex(poly))
-				#print(poly)
-				index = -1
-				X, Y, Z = 0, 0, 0
-				A = None
-			#print('\n')
-
-			# Append the information
-			#dict_stats_to_return.append({'frame': actual_fps, 'mark_id': index, 'Px': A[0], 'Py': A[1], 'X': X, 'Y': Y, 'Z': Z})
-			if A is not None: dict_stats_to_return = np.vstack((dict_stats_to_return, np.array([np.float32(index), A[0], A[1], X, Y, Z])))'''
-
-
-'''		if self.anchor is None: self.anchor = dict_stats_to_return[-1,0]
-		elif self.anchor not in dict_stats_to_return[:,0]:
-			self.anchor = dict_stats_to_return[-1,0]'''
