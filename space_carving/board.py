@@ -50,8 +50,6 @@ class Board:
 					cv.circle(image, (int(x), int(y)), 4, poly.color, -1)
 					cv.line(image, (int(x), int(y)), self.centroid, poly.color, 1, cv.LINE_AA)
      
-		#cv.drawMarker(image, self.centroid, color=(255,255,255), markerType=cv.MARKER_CROSS, thickness=2)
-
 		return image
             
        
@@ -106,7 +104,6 @@ class Board:
 		'''	
   
 		return self.draw_index(self.draw_green_cross_and_blu_rectangle(self.draw_red_polygon(image)))
-		#return self.draw_red_polygon(image)
 
   
 
@@ -250,12 +247,12 @@ class Board:
 		'''	
      
 		# Forward Optical Flow
-		p1, st, _ = cv.calcOpticalFlowPyrLK(prev_frameg, frameg, self.tracked_features, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)#, flags=cv.OPTFLOW_LK_GET_MIN_EIGENVALS, minEigThreshold=0.01)
+		p1, st, _ = cv.calcOpticalFlowPyrLK(prev_frameg, frameg, self.tracked_features, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)
 		
 		assert(p1.shape[0] == self.tracked_features.shape[0])
 		
 		# Backword Optical Flow
-		p0r, st0, _ = cv.calcOpticalFlowPyrLK(frameg, prev_frameg, p1, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)#, flags=cv.OPTFLOW_LK_GET_MIN_EIGENVALS, minEigThreshold=0.01)
+		p0r, st0, _ = cv.calcOpticalFlowPyrLK(frameg, prev_frameg, p1, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)
 		
 		fb_good = (np.fabs(p0r - self.tracked_features) < 0.8).all(axis=1)
 		fb_good = np.logical_and(np.logical_and(fb_good, st.flatten()), st0.flatten())
@@ -340,7 +337,16 @@ class Board:
 		return pixel_info
 
 
-	def draw_origin(self, img, corner, imgpts):
+	def draw_origin(self, img: np.NDArray[np.uint8], corner: Tuple(int, int), imgpts: np.NDArray[np.int32]) -> np.NDArray[np.uint8]:
+		'''
+		PURPOSE: draw the origin with the axis
+		ARGUMENTS:
+			- img (np.NDArray[np.uint8]): image to modify
+			- corner (Tuple(int, int)): position of the origin
+			- imgpts (np.NDArray[np.int32]): image points
+		RETURN:
+			- (np.NDArray[np.uint8]): modified frame
+		'''	
  
 		cv.arrowedLine(img, corner, tuple(imgpts[0].ravel()), (255,0,0), 4, cv.LINE_AA)
 		cv.putText(img, 'Y', tuple(imgpts[0].ravel()), cv.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2, cv.LINE_AA)
@@ -355,8 +361,16 @@ class Board:
 
 
 
-	def draw_cube(self, img, imgpts):
-
+	def draw_cube(self, img: np.NDArray[np.uint8], imgpts: np.NDArray[np.int32]) -> np.NDArray[np.uint8]:
+		'''
+		PURPOSE: draw a red cube that inglobe the object
+		ARGUMENTS:
+			- img (np.NDArray[np.uint8]): image to modify
+			- imgpts (np.NDArray[np.int32]): image points
+		RETURN:
+			- (np.NDArray[np.uint8]): modified frame
+		'''	
+		
 		imgpts = np.int32(imgpts).reshape(-1,2)
 
 		# draw ground floor in green

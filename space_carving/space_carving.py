@@ -3,7 +3,6 @@ import cv2 as cv
 import time
 import copy
 
-
 from utils import set_marker_reference_coords, resize_for_laptop, write_ply_file
 from background_foreground_segmentation import apply_segmentation
 from board import Board
@@ -19,6 +18,7 @@ parameters = {
 
 
 using_laptop = False
+
 
 
 def main():
@@ -49,9 +49,10 @@ def main():
   
 		unidst_axis = hyper_param['undist_axis']
 
-		# Create the board object
+		# Create the Board object
 		board = Board(n_polygons=24, circle_mask_size=hyper_param['circle_mask_size'])
-  
+
+		# Create the VoxelsCube object
 		voxels_cube = VoxelsCube(unidst_axis=unidst_axis, voxel_cube_dim=2, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
   
 		# Create output video writer initialized at None since we do not know the undistorted resolution
@@ -88,7 +89,8 @@ def main():
    
    
 			if pixsl_info.shape[0] >= 6:
-       
+				
+				# Extract the 2D and 3D points
 				twoD_points = pixsl_info[:,1:3]
 				threeD_points = pixsl_info[:,3:6]
     
@@ -104,18 +106,17 @@ def main():
 					undistorted_resolution = undist.shape[:2]
 					output_video = cv.VideoWriter(f'../output_project/{obj_id}/{obj_id}.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), np.flip(undistorted_resolution))
     
-    
+	
 				undist = board.draw_origin(undist, (board.centroid[0], undistorted_resolution[0] // 2), np.int32(imgpts_centroid))
 				undist = board.draw_cube(undist, np.int32(imgpts_cube))
     
 				# Undistorting the segmented frame to analyze the voxels centre
 				undist_b_f_image = cv.undistort(undist_mask, camera_matrix, dist, None, newCameraMatrix)
     
-    
+				# Update the binary array of foreground voxels and draw the background one
 				edited_frame = voxels_cube.set_background_voxels(undistorted_resolution, undist_b_f_image, undist)
     
 				
-			
 			end = time.time()
 			fps = 1 / (end-start)
    
@@ -152,9 +153,10 @@ def main():
 		print(' DONE')
 		print(f'Average FPS is: {str(avg_fps / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')
 
+		# Get the voxel cube ciooirdinates and faces to write a PLY file
 		voxels_cube_coords, voxel_cube_faces = voxels_cube.get_cubes_coords_and_faces()
 
-		print(f'Saving PLY file with {voxels_cube_coords.shape[0]} vertices...')
+		print(f'Saving PLY file with {voxels_cube_coords.shape[0]} vertices and {voxel_cube_faces.shape[0]} faces...')
 		write_ply_file(obj_id, voxels_cube_coords, voxel_cube_faces)
 		print(' DONE\n')
 

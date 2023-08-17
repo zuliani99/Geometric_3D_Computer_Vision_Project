@@ -114,7 +114,7 @@ def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid:
  
 	for dist in dist_A_Cir_Ctr:
 		# Find the rateo between the distace from A and the circle centre and the distance between A
-		  # and the middle point between the two extreme points 
+		# and the middle point between the two extreme points 
 		rateo = dist / dist_A_Ext_Mid
  
 		new_point_x = middle_point[0] + (rateo * dx) # Compute the X coordinates of a centre circle point
@@ -175,6 +175,7 @@ def sort_vertices_clockwise(vertices: np.ndarray[np.float32] | np.ndarray[np.nda
 	   
 	angles = np.arctan2(vertices[:, 1] - centroid[1], vertices[:, 0] - centroid[0])
 	sorted_indices = np.argsort(angles)
+
 	return vertices[sorted_indices]
 
 
@@ -200,7 +201,7 @@ def resize_for_laptop(using_laptop: bool, frame: np.ndarray[np.ndarray[np.ndarra
 	PURPOSE: resize the image if using_laptop is True
 	ARGUMENTS:
 		- using_laptop (bool)
-		- frame (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): frame to resze
+		- frame (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): frame to resize
 	RETURN:
 		- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resized frmae
 	'''	
@@ -216,10 +217,10 @@ def check_mask(approx_cnt: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], mask: n
 	'''
 	PURPOSE: resize the image if using_laptop is True
 	ARGUMENTS:
-		- approx_cnt (np.ndarray[np.ndarray[np.ndarray[np.uint8]]])
-		- mask (np.ndarray[np.uint8]): frame to resze
+		- approx_cnt (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): approximated contourns
+		- mask (np.ndarray[np.uint8]): frame to resize
 	RETURN:
-		- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resized frmae
+		- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resized frame
 	'''	
 
 	to_return = np.zeros((0,2), dtype=np.int32)
@@ -233,7 +234,16 @@ def check_mask(approx_cnt: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], mask: n
 
 
 
-def write_ply_file(obj_id, voxels_cube_coords, voxel_cube_faces):
+def write_ply_file(obj_id: str, voxels_cube_coords: np.NDArray[np.float32], voxel_cube_faces: np.NDArray[np.float32]) -> None:
+	'''
+	PURPOSE: resize the image if using_laptop is True
+	ARGUMENTS:
+		- obj_id (str)
+		- voxels_cube_coords (np.NDArray[np.float32]): array of voxels cube coordinates
+		- voxel_cube_faces (np.NDArray[np.float32]): array of voxels faces
+	RETURN: None
+	'''	
+
     # Create the header
 	header = f"""ply
 	format ascii 1.0
@@ -245,13 +255,22 @@ def write_ply_file(obj_id, voxels_cube_coords, voxel_cube_faces):
 	property list uchar int vertex_index
 	end_header
 	"""
+
 	# Write header and vertex data to a file
 	with open(f'../output_project/{obj_id}/3d_{obj_id}.ply', 'w') as f:
 		f.write(header)
 		np.savetxt(f, voxels_cube_coords, fmt='%.4f', newline='\n')
   
+	# Write face data to the same file
 	with open(f'../output_project/{obj_id}/3d_{obj_id}.ply', 'a') as f:
 		np.savetxt(f, voxel_cube_faces.astype(int), fmt='%i', newline='\n')
+
+
+
+
+
+
+
 
 
 
