@@ -11,7 +11,7 @@ from voxels_cube import VoxelsCube
 
 
 parameters = {
-	'obj01.mp4': {'circle_mask_size': 15, 'window_size': (10, 10), 'undist_axis': 55},
+	'obj01.mp4': {'circle_mask_size': 14, 'window_size': (7, 7), 'undist_axis': 55},
 	'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 60},
 	'obj03.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 70},
 	'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10), 'undist_axis': 55},
@@ -52,7 +52,7 @@ def main():
 		# Create the board object
 		board = Board(n_polygons=24, circle_mask_size=hyper_param['circle_mask_size'])
   
-		voxels_cube = VoxelsCube(unidst_axis=unidst_axis, voxel_cube_dim=4, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
+		voxels_cube = VoxelsCube(unidst_axis=unidst_axis, voxel_cube_dim=2, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
   
 		# Create output video writer initialized at None since we do not know the undistorted resolution
 		output_video = None
@@ -76,9 +76,8 @@ def main():
 			else: 
 				# The other frame use the Lucaks Kanade Optical Flow to estimate the postition of the traked features based on the previous frame
 				board.apply_LF_OF(thresh, prev_frameg, frameg, mask, hyper_param['window_size'])
-	 
-			   
-			#reshaped_clockwise = board.get_clockwise_vertices_initial()
+
+			# Remove the polygon that are convex, order clockwie and remove the alst polygon by area
 			reshaped_clockwise = board.polygons_check_and_clockwise()
    
 			# Obtain the dictionary of statistics
