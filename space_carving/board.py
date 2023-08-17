@@ -5,6 +5,8 @@ from utils import compute_index_and_cc_coords, find_distance_between_points, fin
 from polygon import Polygon
 
 from typing import List, Tuple, Dict
+import numpy.typing as npt
+
 
 
 # Set the needed parameters to find the refined corners
@@ -322,7 +324,7 @@ class Board:
 			if(len(A.shape) == 1):
 				# Compute the polygon index and all circles centre coordinates
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
-				if(index < 24):
+				if(index < 24 and len(pixel_info[pixel_info[:, 0] == index]) == 0):
 					self.polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
 					covered_polys[index] = 0
 
@@ -337,12 +339,12 @@ class Board:
 		return pixel_info
 
 
-	def draw_origin(self, img: np.NDArray[np.uint8], corner: Tuple(int, int), imgpts: np.NDArray[np.int32]) -> np.NDArray[np.uint8]:
+	def draw_origin(self, img: npt.NDArray[np.uint8], corner: Tuple[int, int], imgpts: npt.NDArray[np.int32]) -> npt.NDArray[np.uint8]:
 		'''
 		PURPOSE: draw the origin with the axis
 		ARGUMENTS:
 			- img (np.NDArray[np.uint8]): image to modify
-			- corner (Tuple(int, int)): position of the origin
+			- corner (Tuple[int, int]): position of the origin
 			- imgpts (np.NDArray[np.int32]): image points
 		RETURN:
 			- (np.NDArray[np.uint8]): modified frame
@@ -361,7 +363,7 @@ class Board:
 
 
 
-	def draw_cube(self, img: np.NDArray[np.uint8], imgpts: np.NDArray[np.int32]) -> np.NDArray[np.uint8]:
+	def draw_cube(self, img: npt.NDArray[np.uint8], imgpts: npt.NDArray[np.int32]) -> npt.NDArray[np.uint8]:
 		'''
 		PURPOSE: draw a red cube that inglobe the object
 		ARGUMENTS:

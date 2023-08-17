@@ -7,7 +7,7 @@ import copy
 
 
 # Objects Morphological Operations Hyperparameters
-hyperparameters = {
+'''hyperparameters = {
 	'obj01.mp4': {
 		'clipLimit': 8,
      	'first': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (4,4)), 11),
@@ -34,8 +34,17 @@ hyperparameters = {
      	'second': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (2,2)), 6),
       	'correction': (np.array([105,55,0]), np.array([120,255,255]))
     }
-}
+}'''
 
+hyperparameters = {
+	'obj01.mp4': {
+		'clipLimit': 8,
+     	'first': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (4,4)), 11),
+      	'second': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 9), #10?
+		'additional_mask_space': (300, 900, 270, 900),
+       	'correction': (np.array([105,65,5]), np.array([140,255,255]))
+    }
+}
 
 
 def change_contrast(img: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], clipLimit: int) \

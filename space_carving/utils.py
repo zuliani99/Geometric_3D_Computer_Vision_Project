@@ -4,6 +4,7 @@ from types import NoneType
 import cv2 as cv
 import numpy as np
 import random
+import numpy.typing as npt
 
 from typing import Dict, List, Tuple
 
@@ -234,7 +235,7 @@ def check_mask(approx_cnt: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], mask: n
 
 
 
-def write_ply_file(obj_id: str, voxels_cube_coords: np.NDArray[np.float32], voxel_cube_faces: np.NDArray[np.float32]) -> None:
+def write_ply_file(obj_id: str, voxels_cube_coords: npt.NDArray[np.float32], voxel_cube_faces: npt.NDArray[np.float32]) -> None:
 	'''
 	PURPOSE: resize the image if using_laptop is True
 	ARGUMENTS:

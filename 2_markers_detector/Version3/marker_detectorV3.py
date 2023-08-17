@@ -11,10 +11,10 @@ using_laptop = False
 
 # Dictionary of object file name that we have to process with associated parameters
 parameters = {
-	'obj01.mp4': {'circle_mask_size': 14, 'window_size': (7, 7)},
-	'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9)},
-	'obj03.mp4': {'circle_mask_size': 13, 'window_size': (9, 9)},
-	'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10)},
+	#'obj01.mp4': {'circle_mask_size': 14, 'window_size': (7, 7)},
+	#'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9)},
+	'obj03.mp4': {'circle_mask_size': 14, 'window_size': (7, 7)},
+	#'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10)},
 }
 
 

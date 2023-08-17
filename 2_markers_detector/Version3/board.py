@@ -331,7 +331,7 @@ class Board:
 			if(len(A.shape) == 1):
 				# Compute the polygon index and all circles centre coordinates
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
-				if(index < 24):
+				if(index < 24): # ----------------------- ADD THE CONTROL LIKE IN SPACE CARVING -----------------------
 					self.polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
 					covered_polys[index] = 0
 

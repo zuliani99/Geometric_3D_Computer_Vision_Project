@@ -12,7 +12,7 @@ from voxels_cube import VoxelsCube
 parameters = {
 	'obj01.mp4': {'circle_mask_size': 14, 'window_size': (7, 7), 'undist_axis': 55},
 	'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 60},
-	'obj03.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 70},
+	'obj03.mp4': {'circle_mask_size': 14, 'window_size': (7, 7), 'undist_axis': 70},
 	'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10), 'undist_axis': 55},
 }
 
@@ -47,13 +47,13 @@ def main():
 		undistorted_resolution = None
 		prev_frameg = None
   
-		unidst_axis = hyper_param['undist_axis']
+		half_axis_len = hyper_param['undist_axis']
 
 		# Create the Board object
 		board = Board(n_polygons=24, circle_mask_size=hyper_param['circle_mask_size'])
 
 		# Create the VoxelsCube object
-		voxels_cube = VoxelsCube(unidst_axis=unidst_axis, voxel_cube_dim=2, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
+		voxels_cube = VoxelsCube(half_axis_len=half_axis_len, voxel_cube_dim=2, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
   
 		# Create output video writer initialized at None since we do not know the undistorted resolution
 		output_video = None
