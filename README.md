@@ -48,4 +48,4 @@ pip install opencv-python
 
 
 ## Analyse the Results
-The Mesh result of each object are stored in the *optput_project* folder, I recomend use [“MeshLab](https://www.meshlab.net/#download) as software to deeply analyse the object shape.
+The Mesh result of each object are stored in the *optput_project* folder, I recomend use [MeshLab](https://www.meshlab.net/#download) as software to deeply analyse the object shape.
