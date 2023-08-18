@@ -235,7 +235,7 @@ class Board:
 
 
 
-	def apply_LF_OF(self, thresh: np.ndarray[np.uint8], prev_frameg: np.ndarray[np.uint8], frameg: np.ndarray[np.uint8], \
+	def apply_LK_OF(self, thresh: np.ndarray[np.uint8], prev_frameg: np.ndarray[np.uint8], frameg: np.ndarray[np.uint8], \
      		mask: np.ndarray[np.uint8], winsize_lk: Tuple[int, int]) -> None:
 		'''
 		PURPOSE: remove the polygon that are convex, order clockwie and remove the alst polygon by area

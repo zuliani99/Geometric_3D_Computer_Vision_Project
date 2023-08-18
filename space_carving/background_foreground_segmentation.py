@@ -18,7 +18,7 @@ hyperparameters = {
     },
 	'obj03.mp4': {
 		'clipLimit': 6,
-    	'first': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5)), 11),
+    	'first': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5)), 12),
      	'second': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 10),
 		'additional_mask_space': (100, 1000, 500, 1000),
     	'correction': (np.array([105,55,0]), np.array([120,255,255]))

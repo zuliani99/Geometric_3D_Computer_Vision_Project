@@ -2,6 +2,7 @@ import numpy as np
 import cv2 as cv
 import time
 import copy
+#import sys
 
 from utils import set_marker_reference_coords, resize_for_laptop, write_ply_file
 from background_foreground_segmentation import apply_segmentation
@@ -10,18 +11,22 @@ from voxels_cube import VoxelsCube
 
 
 parameters = {
-	'obj01.mp4': {'circle_mask_size': 14, 'window_size': (7, 7), 'undist_axis': 55},
-	'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 60},
+	#'obj01.mp4': {'circle_mask_size': 14, 'window_size': (7, 7), 'undist_axis': 55},
+	#'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 60},
 	'obj03.mp4': {'circle_mask_size': 14, 'window_size': (7, 7), 'undist_axis': 70},
-	'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10), 'undist_axis': 55},
+	#'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10), 'undist_axis': 55},
 }
 
 
-using_laptop = False
 
-
-
-def main():
+def main(using_laptop: bool, voxel_cube_dim: int) -> None:
+	'''
+	PURPOSE: function that start the whole computation
+	ARGUMENTS:
+		- using_laptop (bool): boolean variable to indicate the usage of a laptop or not
+		- voxel_cube_dim (int): pixel dimension of a voxel cube edge
+	RETURN: None
+	'''
 	 
 	# Set the marker reference coordinates for the 24 polygonls
 	marker_reference = set_marker_reference_coords()
@@ -53,7 +58,7 @@ def main():
 		board = Board(n_polygons=24, circle_mask_size=hyper_param['circle_mask_size'])
 
 		# Create the VoxelsCube object
-		voxels_cube = VoxelsCube(half_axis_len=half_axis_len, voxel_cube_dim=2, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
+		voxels_cube = VoxelsCube(half_axis_len=half_axis_len, voxel_cube_dim=voxel_cube_dim, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
   
 		# Create output video writer initialized at None since we do not know the undistorted resolution
 		output_video = None
@@ -76,7 +81,7 @@ def main():
 				board.find_interesting_points(thresh, frameg, mask)
 			else: 
 				# The other frame use the Lucaks Kanade Optical Flow to estimate the postition of the traked features based on the previous frame
-				board.apply_LF_OF(thresh, prev_frameg, frameg, mask, hyper_param['window_size'])
+				board.apply_LK_OF(thresh, prev_frameg, frameg, mask, hyper_param['window_size'])
 
 			# Remove the polygon that are convex, order clockwie and remove the alst polygon by area
 			reshaped_clockwise = board.polygons_check_and_clockwise()
@@ -168,5 +173,9 @@ def main():
 
 
 if __name__ == "__main__":
-	main()
+	#using_laptop = bool(sys.argv[1])
+	#voxel_cube_dim = int(sys.argv[2])
+	#if(voxel_cube_dim < 2 or voxel_cube_dim % 2 == 1): print('Insert corrent arguments in command line')
+	#else: main(using_laptop, voxel_cube_dim)
+	main(False, 2)
  

@@ -25,3 +25,27 @@ The complete algorithm works as follows:
   * Check if the projection of the voxel is inside or outside the silhouette. In the latter case, remove the voxel from V
 
 When all the frames have been processed, the remaining set of voxels define the volume occupied by the object.
+**Example Screen**![](/.screenshot_cracker.png)
+
+## Poject Structure
+The project structure is divided into three subproject:
+* Background foreground detection (*1_background_foreground_detection*)
+* Markers Detector (*2_markers_detector*)
+* Pose estimation (*3_pose_estimation*)
+Each mini project is anassignmet which student cna decide to develop during the course or take the final project that require additional work.
+
+The additional work is mainly summarize by the immplementation of the .ply file in order to export the object mesh built using the voxel structure.
+
+The final project can be examined in the *space_carving* folder
+
+## Requirements
+```console
+pip install numpy
+pip install opencv-python
+```
+
+## Application Start Up
+
+
+## Analyse the Results
+The Mesh result of each object are stored in the *optput_project* folder, I recomend use [“MeshLab](https://www.meshlab.net/#download) as software to deeply analyse the object shape.
