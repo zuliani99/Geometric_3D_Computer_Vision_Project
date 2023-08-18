@@ -157,20 +157,22 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			#cv.waitKey(-1)
 			   
 
+
+		# Release the input and output streams
+		input_video.release()
+		output_video.release()
+		cv.destroyAllWindows()
+		
+
 		print(' DONE')
 		print(f'Average FPS is: {str(avg_fps / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')
 
 		# Get the voxel cube ciooirdinates and faces to write a PLY file
 		voxels_cube_coords, voxel_cube_faces = voxels_cube.get_cubes_coords_and_faces()
 
-		print(f'Saving PLY file with {voxels_cube_coords.shape[0]} vertices and {voxel_cube_faces.shape[0]} faces...')
+		print(f'Saving PLY file...')
 		write_ply_file(obj_id, voxels_cube_coords, voxel_cube_faces)
 		print(' DONE\n')
-
-		# Release the input and output streams
-		input_video.release()
-		output_video.release()
-		cv.destroyAllWindows()
 
 
 
