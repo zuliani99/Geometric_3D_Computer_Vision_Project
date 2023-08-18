@@ -45,7 +45,10 @@ pip install opencv-python
 ```
 
 ## Application Start Up
-
+```console
+cd space_carving
+python space_carving.py
+```
 
 ## Analyse the Results
 The Mesh result of each object are stored in the *optput_project* folder, I recomend use [MeshLab](https://www.meshlab.net/#download) as software to deeply analyse the object shape.
