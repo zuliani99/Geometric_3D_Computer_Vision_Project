@@ -71,40 +71,50 @@ class VoxelsCube:
 		return center_voxels, cube_coords_voxels
 	
 	
-	
-	def apply_projections(self, twoD_points: npt.NDArray[np.float32], threeD_points: npt.NDArray[np.float32], to_edit_frame: npt.NDArray[np.uint8]) \
-			-> Tuple[npt.NDArray[np.uint8], cv.typing.MatLike, cv.typing.MatLike, cv.typing.MatLike]:
+	def get_undistorted_frame(self, to_edit_frame: npt.NDArray[np.uint8]) -> Tuple[npt.NDArray[np.uint8], cv.typing.MatLike]:
 		'''
 		PURPOSE: allpy the projections of voxels centroid, cube and board centroid
 		ARGUMENTS: 
+			- to_edit_frame (npt.NDArray[np.uint8]): frame to edit
+		RETURN: Tuple[npt.NDArray[np.uint8], cv.typing.MatLike]
+			- undist (npt.NDArray[np.uint8]): undistorted edited image
+			- newCameraMatrix (cv.typing.MatLike)
+		'''	
+
+		newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(self.camera_matrix, self.dist, (self.frame_width, self.frame_height), 1, (self.frame_width, self.frame_height))
+		  
+		# Undistort the image
+		undist = cv.undistort(to_edit_frame, self.camera_matrix, self.dist, None, newCameraMatrix)	
+		x, y, w, h = roi
+		undist = undist[y:y+h, x:x+w] # Adjust the image resolution
+
+		return undist, newCameraMatrix
+
+
+	
+	def apply_projections(self, twoD_points: npt.NDArray[np.float32], threeD_points: npt.NDArray[np.float32]) \
+			-> Tuple[npt.NDArray[np.uint8], cv.typing.MatLike, cv.typing.MatLike, cv.typing.MatLike]:
+		'''
+		PURPOSE: apply the projections of voxels centroid, cube and board centroid
+		ARGUMENTS: 
 			- twoD_points (np.NDArray[np.float32])
 			- threeD_points (np.NDArray[np.float32])
-			- to_edit_frame (np.NDArray[np.uint8]): frame to edit
 		RETURN: Tuple[np.NDArray[np.uint8], cv.typing.MatLike, cv.typing.MatLike, cv.typing.MatLike]
-			- undist (np.NDArray[np.uint8]): undistorted edited image
 			- imgpts_centroid (cv.typing.MatLike): 2D image centroid coordinates
 			- imgpts_cube (cv.typing.MatLike): 2D image cube coordinates
-			- newCameraMatrix (cv.typing.MatLike)
 		'''	
 
 		# Find the rotation and translation vectors
 		_, rvecs, tvecs = cv.solvePnP(objectPoints=threeD_points.astype('float32'), imagePoints=twoD_points.astype('float32'), cameraMatrix=self.camera_matrix, distCoeffs=self.dist, flags=cv.SOLVEPNP_IPPE)
   
 		imgpts_cubes_centroid, _ = cv.projectPoints(objectPoints=np.reshape(self.center_voxels, (np.power(self.center_voxels.shape[0], 3), 3)), rvec=rvecs, tvec=tvecs, cameraMatrix=self.camera_matrix, distCoeffs=self.dist)
+		
+		self.imgpts_cubes_centroid = np.squeeze(imgpts_cubes_centroid)
 
 		imgpts_centroid, _ = cv.projectPoints(objectPoints=self.axis_centroid, rvec=rvecs, tvec=tvecs, cameraMatrix=self.camera_matrix, distCoeffs=self.dist)
 		imgpts_cube, _ = cv.projectPoints(objectPoints=self.axis_vertical_edges, rvec=rvecs, tvec=tvecs, cameraMatrix=self.camera_matrix, distCoeffs=self.dist)
-			   		  	 
-		newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(self.camera_matrix, self.dist, (self.frame_width, self.frame_height), 1, (self.frame_width, self.frame_height))
-		  
-		self.imgpts_cubes_centroid = np.squeeze(imgpts_cubes_centroid)
-
-		# Undistort the image
-		undist = cv.undistort(to_edit_frame, self.camera_matrix, self.dist, None, newCameraMatrix)	
-		x, y, w, h = roi
-		undist = undist[y:y+h, x:x+w] # Adjust the image resolution
   
-		return undist, imgpts_centroid, imgpts_cube, newCameraMatrix
+		return imgpts_centroid, imgpts_cube
 
 
 

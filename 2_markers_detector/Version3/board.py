@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+import math
 
 from utils import compute_index_and_cc_coords, find_distance_between_points, find_middle_point, sort_vertices_clockwise, check_mask#, are_lines_parallel
 from polygon import Polygon
@@ -327,8 +328,13 @@ class Board:
 			# Get the coordinate of the point A by getting the missing index
 
 			A = np.squeeze(poly[np.squeeze(np.setdiff1d(np.arange(5), hull))])
+			print(A, A.shape)
+
+			print(find_distance_between_points(middle_point, A), find_distance_between_points(A, self.centroid), find_distance_between_points(middle_point, A) + find_distance_between_points(A, self.centroid), find_distance_between_points(middle_point, self.centroid))
    
-			if(len(A.shape) == 1):
+			if(len(A.shape) == 1 and \
+      				math.isclose(int(find_distance_between_points(middle_point, A) + find_distance_between_points(A, self.centroid)), 
+		       			int(find_distance_between_points(middle_point, self.centroid)), abs_tol=1)):
 				# Compute the polygon index and all circles centre coordinates
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
 				if(index < 24): # ----------------------- ADD THE CONTROL LIKE IN SPACE CARVING -----------------------

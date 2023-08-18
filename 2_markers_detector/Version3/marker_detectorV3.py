@@ -48,7 +48,7 @@ def main():
 		prev_frameg = None
 
 		while True:
-			#print('\n\n-------------------------------------', actual_fps, '-------------------------------------')
+			print('\n\n-------------------------------------', actual_fps, '-------------------------------------')
 			start = time.time()
 			
 			# Extract a frame

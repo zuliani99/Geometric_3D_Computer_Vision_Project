@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+import math
 
 from utils import compute_index_and_cc_coords, find_distance_between_points, find_middle_point, sort_vertices_clockwise, check_mask#, are_lines_parallel
 from polygon import Polygon
@@ -26,8 +27,7 @@ class Board:
 		self.polygon_list: List[Polygon] = [Polygon() for _ in range(n_polygons)]
 		self.tracked_features = np.zeros((0,2), dtype=np.float32)
 		self.circle_mask_size = circle_mask_size
-		#self.centroid = np.array([1300, 550])
-		self.centroid = np.array([1300, 540])
+		self.centroid = np.array([1300, 533])
   
   
   	
@@ -124,8 +124,8 @@ class Board:
 		if(not np.any(mask)): self.tracked_features = np.zeros((0,2), dtype=np.float32)
 		
 		# Consider only the board exluding all the object area that could be included erroneously
-		mask_thresh = np.zeros((1080, 1920), dtype=np.uint8)
-		mask_thresh[:, 1130:1600] = thresh[:, 1130:1600]
+		mask_thresh = np.zeros_like(thresh, dtype=np.uint8)
+		mask_thresh[:, 1130:1580] = thresh[:, 1130:1580]
 
 		# Finding the contourns
 		contours, _ = cv.findContours(mask_thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE) # [[[X Y]] [[X Y]] ... [[X Y]]]
@@ -320,8 +320,12 @@ class Board:
 	
 			# Get the coordinate of the point A by getting the missing index
 			A = np.squeeze(poly[np.squeeze(np.setdiff1d(np.arange(5), hull))])
-   
-			if(len(A.shape) == 1):
+
+			#print(find_distance_between_points(middle_point, A) + find_distance_between_points(A, self.centroid), find_distance_between_points(middle_point, self.centroid))
+
+			if(len(A.shape) == 1 and \
+      				math.isclose(find_distance_between_points(middle_point, A) + find_distance_between_points(A, self.centroid), 
+		       			find_distance_between_points(middle_point, self.centroid), abs_tol=1)):
 				# Compute the polygon index and all circles centre coordinates
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
 				if(index < 24 and len(pixel_info[pixel_info[:, 0] == index]) == 0):
@@ -349,7 +353,7 @@ class Board:
 		RETURN:
 			- (np.NDArray[np.uint8]): modified frame
 		'''	
- 
+
 		cv.arrowedLine(img, corner, tuple(imgpts[0].ravel()), (255,0,0), 4, cv.LINE_AA)
 		cv.putText(img, 'Y', tuple(imgpts[0].ravel()), cv.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2, cv.LINE_AA)
 	

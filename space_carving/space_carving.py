@@ -2,7 +2,6 @@ import numpy as np
 import cv2 as cv
 import time
 import copy
-#import sys
 
 from utils import set_marker_reference_coords, resize_for_laptop, write_ply_file
 from background_foreground_segmentation import apply_segmentation
@@ -11,10 +10,10 @@ from voxels_cube import VoxelsCube
 
 
 parameters = {
-	#'obj01.mp4': {'circle_mask_size': 14, 'window_size': (7, 7), 'undist_axis': 55},
-	#'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 60},
-	'obj03.mp4': {'circle_mask_size': 14, 'window_size': (7, 7), 'undist_axis': 70},
-	#'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10), 'undist_axis': 55},
+	'obj01.mp4': {'circle_mask_size': 14, 'window_size': (7, 7), 'undist_axis': 55},
+	'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 60},
+	'obj03.mp4': {'circle_mask_size': 14, 'window_size': (7, 7), 'undist_axis': 75},
+	'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10), 'undist_axis': 55},
 }
 
 
@@ -70,8 +69,11 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			ret, frame = input_video.read()
 
 			if not ret:	break
+
+			undist, newCameraMatrix = voxels_cube.get_undistorted_frame(frame)
+			
 		   
-			frameg = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+			frameg = cv.cvtColor(undist, cv.COLOR_BGR2GRAY)
 			_, thresh = cv.threshold(frameg, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
 			mask = np.zeros_like(frameg)
    
@@ -90,7 +92,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			pixsl_info = board.compute_markers(thresh, reshaped_clockwise, marker_reference)
 
 			# Draw the marker detector stuff
-			edited_frame = board.draw_stuff(frame)
+			edited_frame = board.draw_stuff(undist)
    
    
 			if pixsl_info.shape[0] >= 6:
@@ -100,10 +102,10 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 				threeD_points = pixsl_info[:,3:6]
     
 				# Find the rotation and translation vectors
-				undist, imgpts_centroid, imgpts_cube, newCameraMatrix = voxels_cube.apply_projections(twoD_points, threeD_points, edited_frame)
+				imgpts_centroid, imgpts_cube = voxels_cube.apply_projections(twoD_points, threeD_points)
     
 				# Apply the segmentation
-				undist_mask = apply_segmentation(obj, undist)
+				undist_mask = apply_segmentation(obj, edited_frame)
 
 
 				# Update the undistorted_resolution and output_video the first time that the undistorted image resutn a valid shape
@@ -112,14 +114,14 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 					output_video = cv.VideoWriter(f'../output_project/{obj_id}/{obj_id}.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), np.flip(undistorted_resolution))
     
 	
-				undist = board.draw_origin(undist, (board.centroid[0], undistorted_resolution[0] // 2), np.int32(imgpts_centroid))
-				undist = board.draw_cube(undist, np.int32(imgpts_cube))
+				edited_frame = board.draw_origin(edited_frame, (board.centroid[0], undistorted_resolution[0] // 2), np.int32(imgpts_centroid))
+				edited_frame = board.draw_cube(edited_frame, np.int32(imgpts_cube))
     
 				# Undistorting the segmented frame to analyze the voxels centre
 				undist_b_f_image = cv.undistort(undist_mask, camera_matrix, dist, None, newCameraMatrix)
     
 				# Update the binary array of foreground voxels and draw the background one
-				edited_frame = voxels_cube.set_background_voxels(undistorted_resolution, undist_b_f_image, undist)
+				edited_frame = voxels_cube.set_background_voxels(undistorted_resolution, undist_b_f_image, edited_frame)
     
 				
 			end = time.time()
@@ -173,9 +175,5 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 
 
 if __name__ == "__main__":
-	#using_laptop = bool(sys.argv[1])
-	#voxel_cube_dim = int(sys.argv[2])
-	#if(voxel_cube_dim < 2 or voxel_cube_dim % 2 == 1): print('Insert corrent arguments in command line')
-	#else: main(using_laptop, voxel_cube_dim)
 	main(False, 2)
  
