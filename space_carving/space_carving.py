@@ -155,17 +155,16 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 
 
 			#cv.waitKey(-1)
-			   
+		
+
+		print(' DONE')
+		print(f'Average FPS is: {str(avg_fps / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')
 
 
 		# Release the input and output streams
 		input_video.release()
 		output_video.release()
 		cv.destroyAllWindows()
-		
-
-		print(' DONE')
-		print(f'Average FPS is: {str(avg_fps / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')
 
 		# Get the voxel cube ciooirdinates and faces to write a PLY file
 		voxels_cube_coords, voxel_cube_faces = voxels_cube.get_cubes_coords_and_faces()

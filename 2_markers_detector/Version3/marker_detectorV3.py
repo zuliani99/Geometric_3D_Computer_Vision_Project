@@ -11,10 +11,10 @@ using_laptop = False
 
 # Dictionary of object file name that we have to process with associated parameters
 parameters = {
-	#'obj01.mp4': {'circle_mask_size': 14, 'window_size': (7, 7)},
-	#'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9)},
+	'obj01.mp4': {'circle_mask_size': 14, 'window_size': (7, 7)},
+	'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9)},
 	'obj03.mp4': {'circle_mask_size': 14, 'window_size': (7, 7)},
-	#'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10)},
+	'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10)},
 }
 
 
@@ -23,6 +23,9 @@ def main():
 	
 	# Set the marker reference coordinates for the 24 polygonls
 	marker_reference = set_marker_reference_coords()
+
+	camera_matrix = np.load('../../space_carving/calibration_info/cameraMatrix.npy')
+	dist = np.load('../../space_carving/calibration_info/dist.npy')
 
 	# Iterate for each object
 	for obj, hyper_param in parameters.items():
@@ -34,6 +37,8 @@ def main():
 		frame_width = int(input_video.get(cv.CAP_PROP_FRAME_WIDTH))
 		frame_height = int(input_video.get(cv.CAP_PROP_FRAME_HEIGHT))
 
+		newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(camera_matrix, dist, (frame_width, frame_height), 1, (frame_width, frame_height))
+
 		actual_fps = 0
 		avg_fps = 0.0
 		obj_id = obj.split('.')[0]
@@ -43,18 +48,27 @@ def main():
 		dict_stats = [] # Initialize the list of dictionary that we will save as .csv file
 		
   		# Create output video writer
-		output_video = cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
+		output_video = None #cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
 
 		prev_frameg = None
 
 		while True:
-			print('\n\n-------------------------------------', actual_fps, '-------------------------------------')
+			#print('\n\n-------------------------------------', actual_fps, '-------------------------------------')
 			start = time.time()
 			
 			# Extract a frame
 			ret, frame = input_video.read()
 
 			if not ret:	break
+
+			frame = cv.undistort(frame, camera_matrix, dist, None, newCameraMatrix)	
+			x, y, w, h = roi
+			frame = frame[y:y+h, x:x+w]
+
+			if output_video is None:
+				print(frame.shape)
+				frame_width, frame_height = frame.shape[1], frame.shape[0] 
+				output_video = cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
 
 		 
 			frameg = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)

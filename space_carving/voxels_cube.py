@@ -135,8 +135,6 @@ class VoxelsCube:
 				self.binary_centroid_fore_back[idx] = 0
 				cv.circle(undist, (int(centr_coords[0]), int(centr_coords[1])), 1, (255,255,255), -1)
 
-				# ------------------------ ANCORA DA AGGIUNGERE IL DISCORSO DI METTERE A ZERO SU TUTTO L'ASSE ------------------------
-
 		return undist
 
 

@@ -125,8 +125,8 @@ class Board:
 		if(not np.any(mask)): self.tracked_features = np.zeros((0,2), dtype=np.float32)
 		
 		# Consider only the board exluding all the object area that could be included erroneously
-		mask_thresh = np.zeros((1080, 1920), dtype=np.uint8)
-		mask_thresh[:, 1130:1600] = thresh[:, 1130:1600]
+		mask_thresh = np.zeros_like(thresh, dtype=np.uint8)
+		mask_thresh[:, 1130:1570] = thresh[:, 1130:1570]
 
 		# Finding the contourns
 		contours, _ = cv.findContours(mask_thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE) # [[[X Y]] [[X Y]] ... [[X Y]]]
@@ -177,6 +177,34 @@ class Board:
 		
 		return np.array([sort_vertices_clockwise(poly) for poly in reshaped_clockwise])
 
+	
+
+
+
+
+	'''	
+	# IDEA ABORTITA NON RACCHIOUDE TUTTI GLI ALTRI CASI
+	def MP_A_C_distance(self, new_order_ft):
+		external_points_dict = dict(enumerate(
+			list(map(lambda x: find_distance_between_points(x, self.centroid), new_order_ft))
+		))
+		id_external_points = sorted(external_points_dict.items(), key=lambda x:x[1])[-2:]
+		middle_point = find_middle_point(new_order_ft[id_external_points[0][0]], new_order_ft[id_external_points[1][0]])
+		hull = np.squeeze(cv.convexHull(new_order_ft, returnPoints=False))
+		#print(hull.shape)
+		if hull.shape[0] != 4: return True
+		A = np.squeeze(new_order_ft[np.squeeze(np.setdiff1d(np.arange(5), hull))])
+
+		#print(middle_point, A, find_distance_between_points(middle_point, A) + find_distance_between_points(A, self.centroid), 
+		#   			find_distance_between_points(middle_point, self.centroid))
+		#print(middle_point.shape, A.shape)
+		if len(middle_point.shape) == 1 and len(A.shape) == 1:
+			return not math.isclose(find_distance_between_points(middle_point, A) + find_distance_between_points(A, self.centroid), 
+		  			find_distance_between_points(middle_point, self.centroid), abs_tol=0.5)
+		else: return True
+		'''
+	
+
 
 
 
@@ -199,28 +227,30 @@ class Board:
 
 		# Iterate the features 5 by 5 
 		for idx in range(0, self.tracked_features.shape[0], 5):
-			order_ft = self.tracked_features[idx:idx+5] 
+			centroid_order_ft = self.tracked_features[idx:idx+5] 
 
+			new_order_ft = sort_vertices_clockwise(centroid_order_ft)
 
-			if (cv.isContourConvex(sort_vertices_clockwise(order_ft)) or ft_stack.shape[0] != 0):
+			if (ft_stack.shape[0] != 0 or cv.isContourConvex(new_order_ft)):# or self.MP_A_C_distance(new_order_ft)):
 				#print(idx, order_ft)
        
 				#print('polygon not correctly detected')
-				if ft_stack.shape[0] != 0 and order_ft.shape[0] > 3:
+				if ft_stack.shape[0] != 0 and centroid_order_ft.shape[0] > 3:
 					#print('fixing it')
      
 					# The new polygon will be the first vertices of the ft_stack plus the first 4 vertices from the polygon plus the 
-					new_polygon = np.vstack((ft_stack[0,:], order_ft[:4,:]))
+					new_polygon = np.vstack((ft_stack[0,:], centroid_order_ft[:4,:]))
 					ft_stack = np.delete(ft_stack, 0, axis=0) # Removing the added element
      
 					# Increase the features
 					actual_traked_polygons = np.vstack((actual_traked_polygons, np.expand_dims(new_polygon, axis=0)))
 
 				# Add the last element of the original polygon the the temporal variable
-				ft_stack = np.vstack((ft_stack, order_ft[-1]))
-			elif (order_ft.shape[0] == 5):
+				ft_stack = np.vstack((ft_stack, centroid_order_ft[-1]))
+				
+			elif (centroid_order_ft.shape[0] == 5):
 				# Stack the whole polygon to the new features to track
-				actual_traked_polygons = np.vstack((actual_traked_polygons, np.expand_dims(order_ft, axis=0)))
+				actual_traked_polygons = np.vstack((actual_traked_polygons, np.expand_dims(centroid_order_ft, axis=0)))
 
 		# Remove the last tracked polygon by area
 		if(cv.contourArea(sort_vertices_clockwise(actual_traked_polygons[-1,:,:])) <= 1600.0):
@@ -328,13 +358,13 @@ class Board:
 			# Get the coordinate of the point A by getting the missing index
 
 			A = np.squeeze(poly[np.squeeze(np.setdiff1d(np.arange(5), hull))])
-			print(A, A.shape)
+			#print(A, A.shape)
 
-			print(find_distance_between_points(middle_point, A), find_distance_between_points(A, self.centroid), find_distance_between_points(middle_point, A) + find_distance_between_points(A, self.centroid), find_distance_between_points(middle_point, self.centroid))
+			#print(find_distance_between_points(middle_point, A), find_distance_between_points(A, self.centroid), find_distance_between_points(middle_point, A) + find_distance_between_points(A, self.centroid), find_distance_between_points(middle_point, self.centroid))
    
-			if(len(A.shape) == 1 and \
-      				math.isclose(int(find_distance_between_points(middle_point, A) + find_distance_between_points(A, self.centroid)), 
-		       			int(find_distance_between_points(middle_point, self.centroid)), abs_tol=1)):
+			if(len(A.shape) == 1):# and \
+					#math.isclose(find_distance_between_points(middle_point, A) + find_distance_between_points(A, self.centroid), 
+					#	find_distance_between_points(middle_point, self.centroid), abs_tol=1)):
 				# Compute the polygon index and all circles centre coordinates
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
 				if(index < 24): # ----------------------- ADD THE CONTROL LIKE IN SPACE CARVING -----------------------
