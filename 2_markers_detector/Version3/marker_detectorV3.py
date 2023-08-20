@@ -85,7 +85,7 @@ def main():
 			#mask = np.zeros_like(frameg)
    
 			
-			if(actual_fps % 15 == 0): 
+			if(actual_fps % 10 == 0): # 10 
 				# Each 10 frames recompute the whole features to track
 				board.find_interesting_points(thresh, frameg) #mask
 			else: 

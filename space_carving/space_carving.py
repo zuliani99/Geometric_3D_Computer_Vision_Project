@@ -83,7 +83,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			_, thresh = cv.threshold(frameg, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
    
 			   
-			if(actual_fps % 15 == 0): 
+			if(actual_fps % 10 == 0): 
 				# Each 10 frames recompute the whole features to track
 				board.find_interesting_points(thresh, frameg) #mask
 			else: 
