@@ -10,10 +10,10 @@ from voxels_cube import VoxelsCube
 
 
 parameters = {
-	'obj01.mp4': {'circle_mask_size': 14, 'window_size': (7, 7), 'undist_axis': 55},
-	'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 60},
-	'obj03.mp4': {'circle_mask_size': 14, 'window_size': (7, 7), 'undist_axis': 75},
-	'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10), 'undist_axis': 55},
+	'obj01.mp4': {'undist_axis': 55},
+	'obj02.mp4': {'undist_axis': 60},
+	'obj03.mp4': {'undist_axis': 75},
+	'obj04.mp4': {'undist_axis': 55},
 }
 
 
@@ -36,7 +36,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
   
 	# Iterate for each object
 	for obj, hyper_param in parameters.items():
-	  
+		
 		print(f'Marker Detector for {obj}...')
 		input_video = cv.VideoCapture(f"../data/{obj}")
 		  
@@ -54,7 +54,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 		half_axis_len = hyper_param['undist_axis']
 
 		# Create the Board object
-		board = Board(n_polygons=24, circle_mask_size=hyper_param['circle_mask_size'])
+		board = Board(n_polygons=24)#, circle_mask_size=hyper_param['circle_mask_size'])
 
 		# Create the VoxelsCube object
 		voxels_cube = VoxelsCube(half_axis_len=half_axis_len, voxel_cube_dim=voxel_cube_dim, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
@@ -71,31 +71,39 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			if not ret:	break
 
 			undist, newCameraMatrix = voxels_cube.get_undistorted_frame(frame)
+
+			# Update the undistorted_resolution, output_video and the centroid the first time that the undistorted image resutn a valid shape
+			if undistorted_resolution is None: 
+				undistorted_resolution = undist.shape[:2]
+				output_video = cv.VideoWriter(f'../output_project/{obj_id}/{obj_id}.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), np.flip(undistorted_resolution))
+				board.set_centroid(np.array([1300, int(undistorted_resolution[0] // 2)]))
 			
 		   
 			frameg = cv.cvtColor(undist, cv.COLOR_BGR2GRAY)
 			_, thresh = cv.threshold(frameg, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
-			mask = np.zeros_like(frameg)
    
 			   
-			if(actual_fps % 10 == 0): 
+			if(actual_fps % 15 == 0): 
 				# Each 10 frames recompute the whole features to track
-				board.find_interesting_points(thresh, frameg, mask)
+				board.find_interesting_points(thresh, frameg) #mask
 			else: 
 				# The other frame use the Lucaks Kanade Optical Flow to estimate the postition of the traked features based on the previous frame
-				board.apply_LK_OF(thresh, prev_frameg, frameg, mask, hyper_param['window_size'])
+				board.apply_LK_OF(prev_frameg, frameg, (20, 20)) #mask
+
 
 			# Remove the polygon that are convex, order clockwie and remove the alst polygon by area
 			reshaped_clockwise = board.polygons_check_and_clockwise()
-   
+
 			# Obtain the dictionary of statistics
 			pixsl_info = board.compute_markers(thresh, reshaped_clockwise, marker_reference)
 
-			# Draw the marker detector stuff
-			edited_frame = board.draw_stuff(undist)
-   
-   
+			edited_frame = undist
+
+
 			if pixsl_info.shape[0] >= 6:
+
+				# Draw the marker detector stuff
+				edited_frame = board.draw_stuff(edited_frame)
 				
 				# Extract the 2D and 3D points
 				twoD_points = pixsl_info[:,1:3]
@@ -107,14 +115,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 				# Apply the segmentation
 				undist_mask = apply_segmentation(obj, edited_frame)
 
-
-				# Update the undistorted_resolution and output_video the first time that the undistorted image resutn a valid shape
-				if undistorted_resolution is None: 
-					undistorted_resolution = undist.shape[:2]
-					output_video = cv.VideoWriter(f'../output_project/{obj_id}/{obj_id}.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), np.flip(undistorted_resolution))
-    
-	
-				edited_frame = board.draw_origin(edited_frame, (board.centroid[0], undistorted_resolution[0] // 2), np.int32(imgpts_centroid))
+				edited_frame = board.draw_origin(edited_frame, np.int32(imgpts_centroid))
 				edited_frame = board.draw_cube(edited_frame, np.int32(imgpts_cube))
     
 				# Undistorting the segmented frame to analyze the voxels centre
@@ -137,7 +138,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			cv.imshow(f'Pose Estiamtion of {obj}', frame_with_fps_resized)
 			   
 			# Save the frame without the FPS count in case of no error
-			if pixsl_info.shape[0] >= 6: output_video.write(edited_frame)
+			output_video.write(edited_frame)
    
 	 
 			prev_frameg = frameg
@@ -156,6 +157,9 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 
 			#cv.waitKey(-1)
 		
+
+
+
 
 		print(' DONE')
 		print(f'Average FPS is: {str(avg_fps / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')

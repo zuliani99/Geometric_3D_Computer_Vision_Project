@@ -2,7 +2,7 @@ import numpy as np
 import cv2 as cv
 
 
-sampled_frames = 30
+sampled_frames = 40
 chessboard_size = (9,6)
 
 # termination criteria

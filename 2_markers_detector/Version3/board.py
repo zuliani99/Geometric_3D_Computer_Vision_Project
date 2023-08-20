@@ -2,7 +2,7 @@ import cv2 as cv
 import numpy as np
 import math
 
-from utils import compute_index_and_cc_coords, find_distance_between_points, find_middle_point, sort_vertices_clockwise, check_mask#, are_lines_parallel
+from utils import compute_index_and_cc_coords, find_distance_between_points, find_middle_point, sort_vertices_clockwise#, check_mask, are_lines_parallel
 from polygon import Polygon
 
 from typing import List, Tuple, Dict
@@ -21,11 +21,16 @@ maxlevel_lk = 3
 
 class Board:
     
-	def __init__(self, n_polygons: int, circle_mask_size: int) -> None:
+	def __init__(self, n_polygons: int) -> None: #, circle_mask_size: int
 		self.polygon_list: List[Polygon] = [Polygon() for _ in range(n_polygons)]
 		self.tracked_features = np.zeros((0,2), dtype=np.float32)
-		self.circle_mask_size = circle_mask_size
-		self.centroid = np.array([1300, 550])
+		#self.circle_mask_size = circle_mask_size
+		self.centroid = None#np.array([1300, 550])
+
+
+
+	def set_centroid(self, centroid):
+		if self.centroid is None: self.centroid = centroid
   
   
   	
@@ -94,7 +99,7 @@ class Board:
 				cv.putText(image, str(index), np.int32(poly.point_A), cv.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv.LINE_AA)
 		return image
   
-  
+
 
 	def draw_stuff(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) ->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
 		'''
@@ -108,10 +113,9 @@ class Board:
 		return self.draw_index(self.draw_green_cross_and_blu_rectangle(self.draw_red_polygon(image)))
 		#return self.draw_red_polygon(image)
 
-  
 
 
-	def find_interesting_points(self, thresh: np.ndarray[np.uint8], imgray: np.ndarray[np.uint8], mask: np.ndarray[np.uint8]) -> None:
+	def find_interesting_points(self, thresh: np.ndarray[np.uint8], imgray: np.ndarray[np.uint8]) -> None: #  mask: np.ndarray[np.uint8]
 		'''
 		PURPOSE: find bood features to track during the frame sequence
 		ARGUMENTS: 
@@ -122,7 +126,8 @@ class Board:
 		'''	
 
 		# In case I pass a filled arrayb by zeros, this means that we have to recompute the features
-		if(not np.any(mask)): self.tracked_features = np.zeros((0,2), dtype=np.float32)
+		#if(not np.any(mask)): self.tracked_features = np.zeros((0,2), dtype=np.float32)
+		self.tracked_features = np.zeros((0,2), dtype=np.float32)
 		
 		# Consider only the board exluding all the object area that could be included erroneously
 		mask_thresh = np.zeros_like(thresh, dtype=np.uint8)
@@ -142,22 +147,21 @@ class Board:
 				# Checking if the number of sides of the selected region is 5.
 				if (len(approx_cnt)) == 5:
 					
-					if(np.any(mask)):
+					#if(np.any(mask)):
          
 						# Check if approximated vertices are good features, so if they are not i a white area of the mask
-						confermed_cnt = check_mask(approx_cnt, mask)
+						#confermed_cnt = check_mask(approx_cnt, mask)
 							
-						if(confermed_cnt.shape[0] > 0): # Append the good features
-							ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(confermed_cnt), winSize_sub, zeroZone_sub, criteria_sub)
-							self.tracked_features = np.vstack((self.tracked_features, np.squeeze(ref_approx_cnt)))
-					else:
-						ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(approx_cnt), winSize_sub, zeroZone_sub, criteria_sub)
-						self.tracked_features = np.vstack((self.tracked_features, np.squeeze(ref_approx_cnt)))
+						#if(confermed_cnt.shape[0] > 0): # Append the good features
+							#ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(confermed_cnt), winSize_sub, zeroZone_sub, criteria_sub)
+							#self.tracked_features = np.vstack((self.tracked_features, np.squeeze(ref_approx_cnt)))
+					#else:
+					ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(approx_cnt), winSize_sub, zeroZone_sub, criteria_sub)
+					self.tracked_features = np.vstack((self.tracked_features, np.squeeze(ref_approx_cnt)))
 
   
   
-  
-	def get_clockwise_vertices_initial(self) -> np.ndarray[np.ndarray[np.ndarray[np.float32]]]:
+	#def get_clockwise_vertices_initial(self) -> np.ndarray[np.ndarray[np.ndarray[np.float32]]]:
 		'''
 		PURPOSE: reshape the obtained features, sort them in clockwise order and remove the last polygon by area
 		ARGUMENTS: None
@@ -165,48 +169,17 @@ class Board:
   			- (np.ndarray[np.ndarray[np.ndarray[np.float32]]]): sorted vertices polygon
 		'''	
      
-		self.tracked_features = sort_vertices_clockwise(self.tracked_features, self.centroid)
+		'''self.tracked_features = sort_vertices_clockwise(self.tracked_features, self.centroid)
 		
-		self.tracked_features = self.tracked_features[:int(self.tracked_features.shape[0]/5)*5,:]
+		self.tracked_features = self.tracked_features[:int(self.tracked_features.shape[0] // 5) * 5, :]
 			
-		reshaped_clockwise = np.reshape(self.tracked_features, (int(self.tracked_features.shape[0]/5), 5, 2))
+		reshaped_clockwise = np.reshape(self.tracked_features, (int(self.tracked_features.shape[0] // 5), 5, 2))
   
 		# I have to sort clockwise the alst polygon in order to compute correctly the contourArea
-		if(cv.contourArea(sort_vertices_clockwise(reshaped_clockwise[-1,:,:])) <= 1600.0):
-			reshaped_clockwise = reshaped_clockwise[:reshaped_clockwise.shape[0]-1, :, :]
+		if(cv.contourArea(sort_vertices_clockwise(reshaped_clockwise[-1,:,:])) <= 1500.0):
+			reshaped_clockwise = reshaped_clockwise[:reshaped_clockwise.shape[0] - 1, :, :]
 		
-		return np.array([sort_vertices_clockwise(poly) for poly in reshaped_clockwise])
-
-	
-
-
-
-
-	'''	
-	# IDEA ABORTITA NON RACCHIOUDE TUTTI GLI ALTRI CASI
-	def MP_A_C_distance(self, new_order_ft):
-		external_points_dict = dict(enumerate(
-			list(map(lambda x: find_distance_between_points(x, self.centroid), new_order_ft))
-		))
-		id_external_points = sorted(external_points_dict.items(), key=lambda x:x[1])[-2:]
-		middle_point = find_middle_point(new_order_ft[id_external_points[0][0]], new_order_ft[id_external_points[1][0]])
-		hull = np.squeeze(cv.convexHull(new_order_ft, returnPoints=False))
-		#print(hull.shape)
-		if hull.shape[0] != 4: return True
-		A = np.squeeze(new_order_ft[np.squeeze(np.setdiff1d(np.arange(5), hull))])
-
-		#print(middle_point, A, find_distance_between_points(middle_point, A) + find_distance_between_points(A, self.centroid), 
-		#   			find_distance_between_points(middle_point, self.centroid))
-		#print(middle_point.shape, A.shape)
-		if len(middle_point.shape) == 1 and len(A.shape) == 1:
-			return not math.isclose(find_distance_between_points(middle_point, A) + find_distance_between_points(A, self.centroid), 
-		  			find_distance_between_points(middle_point, self.centroid), abs_tol=0.5)
-		else: return True
-		'''
-	
-
-
-
+		return np.array([sort_vertices_clockwise(poly) for poly in reshaped_clockwise])'''
 
 
 
@@ -253,7 +226,7 @@ class Board:
 				actual_traked_polygons = np.vstack((actual_traked_polygons, np.expand_dims(centroid_order_ft, axis=0)))
 
 		# Remove the last tracked polygon by area
-		if(cv.contourArea(sort_vertices_clockwise(actual_traked_polygons[-1,:,:])) <= 1600.0):
+		if(cv.contourArea(sort_vertices_clockwise(actual_traked_polygons[-1,:,:])) <= 1500.0):
 			actual_traked_polygons = actual_traked_polygons[:actual_traked_polygons.shape[0]-1, :, :]
 
 		# Update the feature to track
@@ -264,14 +237,10 @@ class Board:
 
 
 
-
-
-	def apply_LF_OF(self, thresh: np.ndarray[np.uint8], prev_frameg: np.ndarray[np.uint8], frameg: np.ndarray[np.uint8], \
-     		mask: np.ndarray[np.uint8], winsize_lk: Tuple[int, int]) -> None:
+	def apply_LK_OF(self, prev_frameg: np.ndarray[np.uint8], frameg: np.ndarray[np.uint8], winsize_lk: Tuple[int, int]) -> None: #mask: np.ndarray[np.uint8]
 		'''
 		PURPOSE: remove the polygon that are convex, order clockwie and remove the alst polygon by area
 		ARGUMENTS: 
-			- thresh (np.ndarray[np.uint8]): threshold image
 			- prev_frameg (np.ndarray[np.uint8]): previous gray frame
 			- frameg (np.ndarray[np.uint8]): actual gray frame
 			- mask (np.ndarray[np.uint8]): mask
@@ -294,13 +263,12 @@ class Board:
 		self.tracked_features = p1[fb_good, :]
 
 		# Add a circle in the amsk in order to ignore near extracted feature
-		for x, y in self.tracked_features:
-			cv.circle(mask, (int(x), int(y)), self.circle_mask_size, 255, -1)
+		#for x, y in self.tracked_features:
+			#cv.circle(mask, (int(x), int(y)), self.circle_mask_size, 255, -1)
 
 		# Refine the corners
-		self.find_interesting_points(thresh, frameg, mask)
+		#self.find_interesting_points(thresh, frameg, mask)
 					
-
 
 
 	def covered_polygon(self, polygons: np.ndarray[np.int32]) -> None:
@@ -313,7 +281,7 @@ class Board:
      
 		for id_poly in polygons: self.polygon_list[id_poly].cover = True
   
-  
+
   
 	def compute_markers(self, thresh: np.ndarray[np.uint8], reshaped_clockwise: np.ndarray[np.ndarray[np.ndarray[np.float32]]], \
      		actual_fps: int, marker_reference: Dict[int, Tuple[int, int, int]]):
@@ -363,11 +331,11 @@ class Board:
 			#print(find_distance_between_points(middle_point, A), find_distance_between_points(A, self.centroid), find_distance_between_points(middle_point, A) + find_distance_between_points(A, self.centroid), find_distance_between_points(middle_point, self.centroid))
    
 			if(len(A.shape) == 1):# and \
-					#math.isclose(find_distance_between_points(middle_point, A) + find_distance_between_points(A, self.centroid), 
-					#	find_distance_between_points(middle_point, self.centroid), abs_tol=1)):
+				#	math.isclose(find_distance_between_points(middle_point, A) + find_distance_between_points(A, self.centroid), 
+				#		find_distance_between_points(middle_point, self.centroid), abs_tol=1.5)):
 				# Compute the polygon index and all circles centre coordinates
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
-				if(index < 24): # ----------------------- ADD THE CONTROL LIKE IN SPACE CARVING -----------------------
+				if(index < 24):
 					self.polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
 					covered_polys[index] = 0
 
@@ -381,3 +349,32 @@ class Board:
 		self.covered_polygon(np.where(covered_polys == 1)[0])
    
 		return dict_stats_to_return
+	
+
+
+
+'''	
+	# IDEA ABORTITA NON RACCHIOUDE TUTTI GLI ALTRI CASI
+	def MP_A_C_distance(self, new_order_ft):
+		external_points_dict = dict(enumerate(
+			list(map(lambda x: find_distance_between_points(x, self.centroid), new_order_ft))
+		))
+		id_external_points = sorted(external_points_dict.items(), key=lambda x:x[1])[-2:]
+		middle_point = find_middle_point(new_order_ft[id_external_points[0][0]], new_order_ft[id_external_points[1][0]])
+		hull = np.squeeze(cv.convexHull(new_order_ft, returnPoints=False))
+		#print(hull.shape)
+		if hull.shape[0] != 4: return True
+		A = np.squeeze(new_order_ft[np.squeeze(np.setdiff1d(np.arange(5), hull))])
+
+		#print(middle_point, A, find_distance_between_points(middle_point, A) + find_distance_between_points(A, self.centroid), 
+		#   			find_distance_between_points(middle_point, self.centroid))
+		#print(middle_point.shape, A.shape)
+		if len(middle_point.shape) == 1 and len(A.shape) == 1:
+			return not math.isclose(find_distance_between_points(middle_point, A) + find_distance_between_points(A, self.centroid), 
+		  			find_distance_between_points(middle_point, self.centroid), abs_tol=0.5)
+		else: return True
+'''
+	
+
+
+

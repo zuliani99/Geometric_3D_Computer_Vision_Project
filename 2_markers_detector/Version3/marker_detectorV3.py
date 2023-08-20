@@ -10,13 +10,21 @@ from utils import save_stats, set_marker_reference_coords, resize_for_laptop#, s
 using_laptop = False
 
 # Dictionary of object file name that we have to process with associated parameters
-parameters = {
+'''parameters = {
 	'obj01.mp4': {'circle_mask_size': 14, 'window_size': (7, 7)},
 	'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9)},
 	'obj03.mp4': {'circle_mask_size': 14, 'window_size': (7, 7)},
 	'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10)},
-}
+}'''
 
+'''parameters = {
+	'obj01.mp4': {'circle_mask_size': 15, 'window_size': (13, 13)},
+	'obj02.mp4': {'circle_mask_size': 15, 'window_size': (15, 15)},
+	'obj03.mp4': {'circle_mask_size': 14, 'window_size': (7, 7)},
+	'obj04.mp4': {'circle_mask_size': 15, 'window_size': (14, 14)},
+}'''
+
+objs = ['obj01.mp4', 'obj02.mp4', 'obj03.mp4', 'obj04.mp4']
 
 
 def main():
@@ -28,7 +36,7 @@ def main():
 	dist = np.load('../../space_carving/calibration_info/dist.npy')
 
 	# Iterate for each object
-	for obj, hyper_param in parameters.items():
+	for obj in objs:
 	 
 		print(f'Marker Detector for {obj}...')
 		input_video = cv.VideoCapture(f"../../data/{obj}")
@@ -43,7 +51,7 @@ def main():
 		avg_fps = 0.0
 		obj_id = obj.split('.')[0]
 
-		board = Board(n_polygons=24, circle_mask_size=hyper_param['circle_mask_size'])
+		board = Board(n_polygons=24)#, circle_mask_size=hyper_param['circle_mask_size'])
   
 		dict_stats = [] # Initialize the list of dictionary that we will save as .csv file
 		
@@ -66,22 +74,23 @@ def main():
 			frame = frame[y:y+h, x:x+w]
 
 			if output_video is None:
-				print(frame.shape)
+				#print(frame.shape)
 				frame_width, frame_height = frame.shape[1], frame.shape[0] 
 				output_video = cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
-
+				board.set_centroid(np.array([1300, int(frame_height // 2)]))
+				
 		 
 			frameg = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 			_, thresh = cv.threshold(frameg, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
-			mask = np.zeros_like(frameg)
+			#mask = np.zeros_like(frameg)
    
 			
-			if(actual_fps % 10 == 0): 
+			if(actual_fps % 15 == 0): 
 				# Each 10 frames recompute the whole features to track
-				board.find_interesting_points(thresh, frameg, mask)
+				board.find_interesting_points(thresh, frameg) #mask
 			else: 
 				# The other frame use the Lucaks Kanade Optical Flow to estimate the postition of the traked features based on the previous frame
-				board.apply_LF_OF(thresh, prev_frameg, frameg, mask, hyper_param['window_size'])
+				board.apply_LK_OF(prev_frameg, frameg, (20, 20)) #mask
 	
 			
 			#reshaped_clockwise = board.get_clockwise_vertices_initial()
@@ -90,6 +99,8 @@ def main():
 			  
 			# Obtain the dictionary of statistics
 			dict_stats_to_extend = board.compute_markers(thresh, reshaped_clockwise, actual_fps, marker_reference)
+
+			#print(dict_stats_to_extend)
 
 			edited_frame = board.draw_stuff(frame)
 

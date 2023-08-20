@@ -9,6 +9,7 @@ import numpy.typing as npt
 from typing import Dict, List, Tuple
 
 
+
 def set_marker_reference_coords() -> Dict[int, Tuple[int, int, int]]:
 	'''
 	PURPOSE: set the 2D marker reference coordinates in the 
@@ -38,6 +39,7 @@ def set_marker_reference_coords() -> Dict[int, Tuple[int, int, int]]:
   
   
 
+
 def save_stats(obj_id: str, dict_stats: List[Dict[int, Tuple[int, int, int]]]) -> None:
 	'''
 	PURPOSE: save as .csv file the list dictionaries
@@ -65,6 +67,7 @@ def save_stats(obj_id: str, dict_stats: List[Dict[int, Tuple[int, int, int]]]) -
 	
 
 
+
 def find_middle_point(Ep1: np.ndarray[np.int32], Ep2: np.ndarray[np.int32]) -> np.ndarray[np.float32]:
 	'''
 	PURPOSE: find the middle point between two points
@@ -79,6 +82,7 @@ def find_middle_point(Ep1: np.ndarray[np.int32], Ep2: np.ndarray[np.int32]) -> n
 
 
 
+
 def find_distance_between_points(p1: np.ndarray[np.int32], p2: np.ndarray[np.int32]) -> np.float64:
 	'''
 	PURPOSE: find the middle point between two points
@@ -90,6 +94,7 @@ def find_distance_between_points(p1: np.ndarray[np.int32], p2: np.ndarray[np.int
 	'''
 
 	return ((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2) ** 0.5
+
 
 
 
@@ -181,6 +186,7 @@ def sort_vertices_clockwise(vertices: np.ndarray[np.float32] | np.ndarray[np.nda
 
 
 
+
 def random_bgr_color() -> Tuple[int, int, int]:
 	'''
 	PURPOSE: random BGR color
@@ -193,6 +199,7 @@ def random_bgr_color() -> Tuple[int, int, int]:
 	green = random.randint(0, 255)
 	red = random.randint(0, 255)
 	return (blue, green, red)
+
 
 
 
@@ -210,27 +217,6 @@ def resize_for_laptop(using_laptop: bool, frame: np.ndarray[np.ndarray[np.ndarra
 	if using_laptop:
 		frame = cv.resize(frame, (1080, 600), interpolation=cv.INTER_AREA)
 	return frame
-
-
-
-def check_mask(approx_cnt: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], mask: np.ndarray[np.uint8]) \
-		-> np.ndarray[np.ndarray[np.uint8]]:
-	'''
-	PURPOSE: resize the image if using_laptop is True
-	ARGUMENTS:
-		- approx_cnt (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): approximated contourns
-		- mask (np.ndarray[np.uint8]): frame to resize
-	RETURN:
-		- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resized frame
-	'''	
-
-	to_return = np.zeros((0,2), dtype=np.int32)
-	for cnt in approx_cnt:
-		x, y = cnt[0]
-		
-		# If the extracted point has coordinates in teh mask filled by black we accept the feature
-		if mask[y, x] == 0: to_return = np.vstack((to_return, np.array([x, y])))
-	return to_return
 
 
 
@@ -265,47 +251,3 @@ def write_ply_file(obj_id: str, voxels_cube_coords: npt.NDArray[np.float32], vox
 	# Write face data to the same file
 	with open(f'../output_project/{obj_id}/3d_{obj_id}.ply', 'a') as f:
 		np.savetxt(f, voxel_cube_faces.astype(int), fmt='%i', newline='\n')
-
-
-
-
-
-
-
-
-
-
-'''def are_lines_parallel(points1, points2):
-	# Calculate the slopes of the lines using NumPy broadcasting
-	#slopes1 = (points1[1, 1] - points1[0, 1]) / (points1[1, 0] - points1[0, 0])
-	#slopes2 = (points2[1, 1] - points2[0, 1]) / (points2[1, 0] - points2[0, 0])
-
-	#angle1 = np.arctan2(points1[1, 1] - points1[0, 1], points1[1, 0] - points1[0, 0]) * 180.0  / np.pi
-	#angle2 = np.arctan2(points2[1, 1] - points2[0, 1], points2[1, 0] - points2[0, 0]) * 180.0  / np.pi
-
-	# Check if the slopes are approximately equal
-	#print(np.abs(angle1 - angle2) )
-	#return np.all(np.abs(angle1 - angle2) > 0.3)
-	#return np.isclose(angle1, angle2, atol=0.5)
-
-	x_coords_1, y_coords_1 = zip(*points1)
-	x_coords_2, y_coords_2 = zip(*points2)
-	
-	A_1 = np.vstack([x_coords_1, np.ones(len(x_coords_1))]).T
-	m_1, _ = np.linalg.lstsq(A_1, y_coords_1)[0]
-	
-	A_2 = np.vstack([x_coords_2, np.ones(len(x_coords_2))]).T
-	m_2, _ = np.linalg.lstsq(A_2, y_coords_2)[0]
-	
-	print(m_1, m_2)
-	
-	return np.isclose(m_1, m_2, atol=10)
-	
-
-
-def are_lines_near_parallel_to_y_axis(points1, points2, x_threshold=0.4):
-	# Check if the x-coordinates are approximately equal for the corresponding y-coordinates
-	y1, y2 = points1[:, 1], points2[:, 1]
-	x1, x2 = points1[:, 0], points2[:, 0]
-
-	return np.all(np.abs(x1 - x2) < x_threshold * np.abs(y1 - y2))'''
