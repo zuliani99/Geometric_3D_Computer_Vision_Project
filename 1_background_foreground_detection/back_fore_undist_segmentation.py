@@ -10,8 +10,8 @@ import copy
 hyperparameters = {
 	'obj01.mp4': {
 		'clipLimit': 8,
-     	'first': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (4,4)), 11),
-      	'second': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 9), #10?
+     	'first': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5)), 9),
+      	'second': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 11),
 		'additional_mask_space': (300, 900, 270, 900),
        	'correction': (np.array([105,65,5]), np.array([140,255,255]))
     },
@@ -23,15 +23,15 @@ hyperparameters = {
     },
 	'obj03.mp4': {
 		'clipLimit': 6,
-    	'first': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5)), 11),
+    	'first': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5)), 12),
      	'second': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 10),
 		'additional_mask_space': (100, 1000, 500, 1000),
     	'correction': (np.array([105,55,0]), np.array([120,255,255]))
     },
 	'obj04.mp4': {
 		'clipLimit': 3,
-    	'first': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 10),
-     	'second': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (2,2)), 6),
+    	'first': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 4),
+     	'second': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (2,2)), 3),
       	'correction': (np.array([105,55,0]), np.array([120,255,255]))
     }
 }
@@ -109,7 +109,7 @@ def apply_segmentation(obj: str, frame: np.ndarray[np.ndarray[np.ndarray[np.uint
 
 	# Add a constant rectangle to mask the left part of the image
 	rectangular_mask = np.full(rgb.shape[:2], 0, np.uint8)
-	rectangular_mask[:,1210:rgb.shape[1]] = 255
+	rectangular_mask[:,1180:rgb.shape[1]] = 255
  
 	mask = cv.bitwise_or(cv.ellipse(color_mask,(1370,540),(670,250),89,0,180,255,-1), rectangular_mask)
 	
@@ -194,8 +194,12 @@ def main() -> None:
 			cv.imshow(f"Segmented Video of {obj}", segmented_frame_with_fps)
 			cv.imshow(f"Countourns Segmentation of {obj}", frame)
    
-			if cv.waitKey(1) == ord('q'):
-				break
+			key = cv.waitKey(1)
+			if key == ord('p'):
+				cv.waitKey(-1) 
+   
+			if key == ord('q'):
+				return
 			
 			
 		print(' DONE\n')
