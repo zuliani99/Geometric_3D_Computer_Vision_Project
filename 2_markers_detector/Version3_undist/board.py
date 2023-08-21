@@ -129,75 +129,21 @@ class Board:
 		mask_thresh = np.zeros_like(thresh, dtype=np.uint8)
 		mask_thresh[:, 1130:1570] = thresh[:, 1130:1570]
 
-		# Finding the contourns
+		# Finding the contournsq
 		contours, _ = cv.findContours(mask_thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE) # [[[X Y]] [[X Y]] ... [[X Y]]]
 	
 		# Searching through every region selected to find the required polygon.
 		for cnt in contours:
 			
 			# Shortlisting the regions based on there area
-			if cv.contourArea(cnt) > 1600.0: # 1650.0
-				#									0.015
-				approx_cnt = cv.approxPolyDP(cnt, 0.014 * cv.arcLength(cnt, True), True) # [[[X Y]] [[X Y]] ... [[X Y]]]
+			if cv.contourArea(cnt) > 1500.0: # 1650.0
+
+				approx_cnt = cv.approxPolyDP(cnt, 0.015 * cv.arcLength(cnt, True), True) # [[[X Y]] [[X Y]] ... [[X Y]]]
 				
 				# Checking if the number of sides of the selected region is 5.
 				if (len(approx_cnt)) == 5:
 					ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(approx_cnt), winSize_sub, zeroZone_sub, criteria_sub)
 					self.tracked_features = np.vstack((self.tracked_features, np.squeeze(ref_approx_cnt)))
-
-
-
-	def polygons_check_and_clockwise(self) -> np.ndarray[np.ndarray[np.ndarray[np.float32]]]:
-		'''
-		PURPOSE: remove the polygon that are convex, order clockwie and remove the alst polygon by area
-		ARGUMENTS: None
-		RETURN:
-			- (np.ndarray[np.ndarray[np.ndarray[np.float32]]]): reshaped features 
-		'''			
-
-		# Ordering clockwse respect to the centroid
-		self.tracked_features = sort_vertices_clockwise(self.tracked_features, self.centroid)
-  
-		actual_traked_polygons = np.zeros((0,5,2), dtype=np.float32)
-
-		ft_stack = np.zeros((0,2), dtype=np.float32)	
-
-		# Iterate the features 5 by 5 
-		for idx in range(0, self.tracked_features.shape[0], 5):
-			centroid_order_ft = self.tracked_features[idx:idx+5] 
-
-			new_order_ft = sort_vertices_clockwise(centroid_order_ft)
-
-			if (ft_stack.shape[0] != 0 or cv.isContourConvex(new_order_ft)):# or self.MP_A_C_distance(new_order_ft)):
-				#print(idx, order_ft)
-       
-				#print('polygon not correctly detected')
-				if ft_stack.shape[0] != 0 and centroid_order_ft.shape[0] > 3:
-					#print('fixing it')
-     
-					# The new polygon will be the first vertices of the ft_stack plus the first 4 vertices from the polygon plus the 
-					new_polygon = np.vstack((ft_stack[0,:], centroid_order_ft[:4,:]))
-					ft_stack = np.delete(ft_stack, 0, axis=0) # Removing the added element
-     
-					# Increase the features
-					actual_traked_polygons = np.vstack((actual_traked_polygons, np.expand_dims(new_polygon, axis=0)))
-
-				# Add the last element of the original polygon the the temporal variable
-				ft_stack = np.vstack((ft_stack, centroid_order_ft[-1]))
-				
-			elif (centroid_order_ft.shape[0] == 5):
-				# Stack the whole polygon to the new features to track
-				actual_traked_polygons = np.vstack((actual_traked_polygons, np.expand_dims(centroid_order_ft, axis=0)))
-
-		# Remove the last tracked polygon by area
-		if(cv.contourArea(sort_vertices_clockwise(actual_traked_polygons[-1,:,:])) <= 1500.0):
-			actual_traked_polygons = actual_traked_polygons[:actual_traked_polygons.shape[0]-1, :, :]
-
-		# Update the feature to track
-		self.tracked_features = np.reshape(actual_traked_polygons, (actual_traked_polygons.shape[0]*5, 2))
-
-		# Sort the vertices of each polygon clockwise
-		return np.array([sort_vertices_clockwise(poly) for poly in actual_traked_polygons])
 
 
 
@@ -214,20 +160,9 @@ class Board:
 		# Forward Optical Flow
 		p1, st, _ = cv.calcOpticalFlowPyrLK(prev_frameg, frameg, self.tracked_features, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)#, flags=cv.OPTFLOW_LK_GET_MIN_EIGENVALS, minEigThreshold=0.00001)
 		
-		#assert(p1.shape[0] == self.tracked_features.shape[0])
-		
-		# Backword Optical Flow
-		#p0r, st0, _ = cv.calcOpticalFlowPyrLK(frameg, prev_frameg, p1, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)#, flags=cv.OPTFLOW_LK_GET_MIN_EIGENVALS, minEigThreshold=0.00001)
 		fb_good = p1[np.where(st == 1)[0]]
   
-		#fb_good = (np.fabs(p0r - self.tracked_features) < 5).all(axis=1)
-		#fb_good = np.logical_and(np.logical_and(fb_good, st.flatten()), st0.flatten())
-  
-		#print(self.tracked_features.shape, p1[fb_good, :].shape)
-
-		# Selecting good features
 		self.tracked_features = fb_good
-		#self.tracked_features = p1[fb_good, :]
 					
 
 
@@ -282,9 +217,10 @@ class Board:
 
 			# Get the coordinate of the point A by getting the missing index
 			A = np.squeeze(poly[np.squeeze(np.setdiff1d(np.arange(5), hull))])
-   
+			#print(A.shape, A)
 			if(len(A.shape) == 1):
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
+				#print(index)
 				if(index < 24):
 					self.polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
 					covered_polys[index] = 0

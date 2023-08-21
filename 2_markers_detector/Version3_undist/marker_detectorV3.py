@@ -7,9 +7,10 @@ from board import Board
 from utils import save_stats, set_marker_reference_coords, resize_for_laptop
 
 
-using_laptop = True
+using_laptop = False
 
 objs = ['obj01.mp4', 'obj02.mp4', 'obj03.mp4', 'obj04.mp4']
+#objs = ['obj02.mp4']
 
 
 def main():
@@ -74,17 +75,12 @@ def main():
 				board.find_interesting_points(thresh, frameg)
 			else: 
 				# The other frame use the Lucaks Kanade Optical Flow to estimate the postition of the traked features based on the previous frame
-				board.apply_LK_OF(prev_frameg, frameg, (25, 25))
+				board.apply_LK_OF(prev_frameg, frameg, (20, 20))
 	
 			
 			reshaped_clockwise = board.get_clockwise_vertices_initial()
-			#reshaped_clockwise = board.polygons_check_and_clockwise()
-   
-			for poly in reshaped_clockwise:
-				cv.drawContours(frame, [np.int32(poly)], 0, (0, 0, 255), 3, cv.LINE_AA) # controllo se nei frame sbaglaiti c'e' solo un punto
 
-   
-			  
+
 			# Obtain the dictionary of statistics
 			dict_stats_to_extend = board.compute_markers(thresh, reshaped_clockwise, actual_fps, marker_reference)
 
@@ -99,7 +95,7 @@ def main():
 			frame_with_fps_resized = resize_for_laptop(using_laptop, copy.deepcopy(frame))
   
 			# Output the frame with the FPS
-			cv.putText(frame_with_fps_resized, f"{fps:.2f} FPS", (20, 20), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+			cv.putText(frame_with_fps_resized, f"{fps:.2f} FPS", (30, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 			cv.imshow(f'Marker Detector of {obj}', frame_with_fps_resized)
 			
 			# Save the frame without the FPS count
