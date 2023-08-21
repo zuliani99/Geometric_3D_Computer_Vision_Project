@@ -4,25 +4,10 @@ import time
 import copy
 
 from board import Board
-from utils import save_stats, set_marker_reference_coords, resize_for_laptop#, sort_vertices_clockwise, are_lines_parallel
+from utils import save_stats, set_marker_reference_coords, resize_for_laptop
 
 
 using_laptop = False
-
-# Dictionary of object file name that we have to process with associated parameters
-'''parameters = {
-	'obj01.mp4': {'circle_mask_size': 14, 'window_size': (7, 7)},
-	'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9)},
-	'obj03.mp4': {'circle_mask_size': 14, 'window_size': (7, 7)},
-	'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10)},
-}'''
-
-'''parameters = {
-	'obj01.mp4': {'circle_mask_size': 15, 'window_size': (13, 13)},
-	'obj02.mp4': {'circle_mask_size': 15, 'window_size': (15, 15)},
-	'obj03.mp4': {'circle_mask_size': 14, 'window_size': (7, 7)},
-	'obj04.mp4': {'circle_mask_size': 15, 'window_size': (14, 14)},
-}'''
 
 objs = ['obj01.mp4', 'obj02.mp4', 'obj03.mp4', 'obj04.mp4']
 
@@ -56,12 +41,11 @@ def main():
 		dict_stats = [] # Initialize the list of dictionary that we will save as .csv file
 		
   		# Create output video writer
-		output_video = None #cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
+		output_video = None
 
 		prev_frameg = None
 
 		while True:
-			#print('\n\n-------------------------------------', actual_fps, '-------------------------------------')
 			start = time.time()
 			
 			# Extract a frame
@@ -74,7 +58,6 @@ def main():
 			frame = frame[y:y+h, x:x+w]
 
 			if output_video is None:
-				#print(frame.shape)
 				frame_width, frame_height = frame.shape[1], frame.shape[0] 
 				output_video = cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
 				board.set_centroid(np.array([1300, int(frame_height // 2)]))
@@ -82,7 +65,6 @@ def main():
 		 
 			frameg = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 			_, thresh = cv.threshold(frameg, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
-			#mask = np.zeros_like(frameg)
    
 			
 			if(actual_fps % 10 == 0): # 10 
@@ -99,8 +81,6 @@ def main():
 			  
 			# Obtain the dictionary of statistics
 			dict_stats_to_extend = board.compute_markers(thresh, reshaped_clockwise, actual_fps, marker_reference)
-
-			#print(dict_stats_to_extend)
 
 			edited_frame = board.draw_stuff(frame)
 
@@ -154,33 +134,8 @@ if __name__ == "__main__":
 	main()
  
  
- 
- 
- #reshaped_clockwise = board.polygons_check_and_clockwise2()
+#reshaped_clockwise = board.polygons_check_and_clockwise2()
    
 '''			for poly in reshaped_clockwise:
 				cv.drawContours(frame, [np.int32(poly)], 0, (0, 0, 255), 1, cv.LINE_AA) # controllo se nei frame sbaglaiti c'e' solo un punto
-				poly_ordered = sort_vertices_clockwise(poly, board.centroid)
-    
-    
-    
-				cv.line(frame, np.int32(poly_ordered[0,:]), np.int32(poly_ordered[1,:]), (0, 255, 255), 2, cv.LINE_AA) 
-				cv.line(frame, np.int32(poly_ordered[3,:]), np.int32(poly_ordered[4,:]), (255, 0, 255), 2, cv.LINE_AA)
-    
-    
-    
-				cv.circle(frame, np.int32(poly_ordered[1,:]), 3, (255,255,255), -1)
-				cv.circle(frame, np.int32(poly_ordered[3,:]), 3, (0,0,0), -1)
-    
-				#parallel_y = are_lines_near_parallel_to_y_axis(np.array([poly_ordered[1,:], poly_ordered[0,:]]), np.array([poly_ordered[4,:], poly_ordered[3,:]]))
-				parallel = are_lines_parallel(np.array([poly_ordered[1,:], poly_ordered[0,:]]), np.array([poly_ordered[4,:], poly_ordered[3,:]]))
-				#print(parallel, parallel_y)
-    
-				#if(not parallel_y and  not parallel):
-				if(parallel):# and not parallel):
-					print('parallel')
-					cv.drawContours(frame, [np.int32(poly)], 0, (255, 255, 0), 2, cv.LINE_AA)# controllo se nei frame sbaglaiti c'e' solo un punto
-
-    
-				#print('PARALLELE?? ', are_lines_parallel(np.array([poly[1,:], poly[0,:]]), np.array([poly[4,:], poly[3,:]])))'''
-				
+'''
