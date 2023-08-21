@@ -8,14 +8,14 @@ from typing import List, Tuple, Dict
 
 
 # Set the needed parameters to find the refined corners
-winSize_sub = (5, 5)
+winSize_sub = (3, 3)
 zeroZone_sub = (-1, -1)
 criteria_sub = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 100, 0.001)
 
 
 # se the Lucas Kanade parameters
 criteria_lk = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 100, 0.01)
-maxlevel_lk = 3
+maxlevel_lk = 4
 
 
 class Board:
@@ -27,11 +27,13 @@ class Board:
 
 
 
+
 	def set_centroid(self, centroid):
 		if self.centroid is None: self.centroid = centroid
   
   
   	
+   
 	def draw_red_polygon(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
     		->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
 		'''
@@ -57,6 +59,7 @@ class Board:
 
 		return image
             
+            
        
             
 	def draw_green_cross_and_blu_rectangle(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
@@ -81,6 +84,7 @@ class Board:
   
   
   
+  
 	def draw_index(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
     		->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
 		'''
@@ -99,6 +103,7 @@ class Board:
   
 
 
+
 	def draw_stuff(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) ->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
 		'''
 		PURPOSE: apply all the drawing function
@@ -112,7 +117,8 @@ class Board:
 
 
 
-	def find_interesting_points(self, thresh: np.ndarray[np.uint8], imgray: np.ndarray[np.uint8]) -> None: #  mask: np.ndarray[np.uint8]
+
+	def find_interesting_points(self, thresh: np.ndarray[np.uint8], imgray: np.ndarray[np.uint8]) -> None:
 		'''
 		PURPOSE: find bood features to track during the frame sequence
 		ARGUMENTS: 
@@ -122,33 +128,56 @@ class Board:
 		RETURN: None
 		'''	
 
-		# In case I pass a filled arrayb by zeros, this means that we have to recompute the features
+		# Recompute the features
 		self.tracked_features = np.zeros((0,2), dtype=np.float32)
 		
 		# Consider only the board exluding all the object area that could be included erroneously
 		mask_thresh = np.zeros_like(thresh, dtype=np.uint8)
-		mask_thresh[:, 1130:1570] = thresh[:, 1130:1570]
+		mask_thresh[:, 1140:1570] = thresh[:, 1140:1570]
 
-		# Finding the contournsq
+		# Finding the contourns
 		contours, _ = cv.findContours(mask_thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE) # [[[X Y]] [[X Y]] ... [[X Y]]]
 	
 		# Searching through every region selected to find the required polygon.
 		for cnt in contours:
 			
 			# Shortlisting the regions based on there area
-			if cv.contourArea(cnt) > 1500.0: # 1650.0
+			if(cv.contourArea(sort_vertices_clockwise(np.squeeze(cnt, axis=1)))) > 1550.0:
 
 				approx_cnt = cv.approxPolyDP(cnt, 0.015 * cv.arcLength(cnt, True), True) # [[[X Y]] [[X Y]] ... [[X Y]]]
-
 				
 				# Checking if the number of sides of the selected region is 5.
 				if (len(approx_cnt)) == 5:
 					ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(approx_cnt), winSize_sub, zeroZone_sub, criteria_sub)
 					self.tracked_features = np.vstack((self.tracked_features, np.squeeze(ref_approx_cnt)))
+     
+     
+     
+     
+	def get_clockwise_vertices_initial(self) -> np.ndarray[np.ndarray[np.ndarray[np.float32]]]:
+		'''
+		PURPOSE: reshape the obtained features, sort them in clockwise order and remove the last polygon by area
+		ARGUMENTS: None
+		RETURN:
+  			- (np.ndarray[np.ndarray[np.ndarray[np.float32]]]): sorted vertices polygon
+		'''	
+     
+		self.tracked_features = sort_vertices_clockwise(self.tracked_features, self.centroid)
+		
+		self.tracked_features = self.tracked_features[:int(self.tracked_features.shape[0] // 5) * 5, :]
+			
+		reshaped_clockwise = np.reshape(self.tracked_features, (int(self.tracked_features.shape[0] // 5), 5, 2))
+  
+		# I have to sort clockwise the alst polygon in order to compute correctly the contourArea
+		if(cv.contourArea(sort_vertices_clockwise(reshaped_clockwise[-1,:,:])) <= 1500.0):
+			reshaped_clockwise = reshaped_clockwise[:reshaped_clockwise.shape[0] - 1, :, :]
+		
+		return np.array([sort_vertices_clockwise(poly) for poly in reshaped_clockwise])
 
 
 
-	def apply_LK_OF(self, prev_frameg: np.ndarray[np.uint8], frameg: np.ndarray[np.uint8], winsize_lk: Tuple[int, int]) -> None:
+
+	def apply_LK_OF(self, prev_frameg: np.ndarray[np.uint8], frameg: np.ndarray[np.uint8], winsize_lk: Tuple[int, int]) -> None: 
 		'''
 		PURPOSE: remove the polygon that are convex, order clockwie and remove the alst polygon by area
 		ARGUMENTS: 
@@ -159,14 +188,14 @@ class Board:
 		'''	
      
 		# Forward Optical Flow
-		p1, st, _ = cv.calcOpticalFlowPyrLK(prev_frameg, frameg, self.tracked_features, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)#, flags=cv.OPTFLOW_LK_GET_MIN_EIGENVALS, minEigThreshold=0.00001)
-  		
+		p1, st, _ = cv.calcOpticalFlowPyrLK(prev_frameg, frameg, self.tracked_features, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)#, flags=cv.OPTFLOW_LK_GET_MIN_EIGENVALS, minEigThreshold=0.01)
+		
 		fb_good = p1[np.where(st == 1)[0]]
   
 		self.tracked_features = fb_good
 
-					
 
+					
 
 	def covered_polygon(self, polygons: np.ndarray[np.int32]) -> None:
 		'''
@@ -179,6 +208,7 @@ class Board:
 		for id_poly in polygons: self.polygon_list[id_poly].cover = True
   
 
+  
   
 	def compute_markers(self, thresh: np.ndarray[np.uint8], reshaped_clockwise: np.ndarray[np.ndarray[np.ndarray[np.float32]]], \
      		actual_fps: int, marker_reference: Dict[int, Tuple[int, int, int]]):
@@ -222,7 +252,7 @@ class Board:
 			#print(A.shape, A)
 			if(len(A.shape) == 1):
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
-				#print(index)
+
 				if(index < 24):
 					self.polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
 					covered_polys[index] = 0
@@ -237,25 +267,3 @@ class Board:
 		self.covered_polygon(np.where(covered_polys == 1)[0])
    
 		return dict_stats_to_return
-	
- 
- 
-	def get_clockwise_vertices_initial(self) -> np.ndarray[np.ndarray[np.ndarray[np.float32]]]:
-		'''
-		PURPOSE: reshape the obtained features, sort them in clockwise order and remove the last polygon by area
-		ARGUMENTS: None
-		RETURN:
-  			- (np.ndarray[np.ndarray[np.ndarray[np.float32]]]): sorted vertices polygon
-		'''	
-     
-		self.tracked_features = sort_vertices_clockwise(self.tracked_features, self.centroid)
-		
-		self.tracked_features = self.tracked_features[:int(self.tracked_features.shape[0] // 5) * 5, :]
-			
-		reshaped_clockwise = np.reshape(self.tracked_features, (int(self.tracked_features.shape[0] // 5), 5, 2))
-  
-		# I have to sort clockwise the alst polygon in order to compute correctly the contourArea
-		if(cv.contourArea(sort_vertices_clockwise(reshaped_clockwise[-1,:,:])) <= 1500.0):
-			reshaped_clockwise = reshaped_clockwise[:reshaped_clockwise.shape[0] - 1, :, :]
-		
-		return np.array([sort_vertices_clockwise(poly) for poly in reshaped_clockwise])

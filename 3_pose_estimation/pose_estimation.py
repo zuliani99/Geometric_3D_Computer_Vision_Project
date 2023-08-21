@@ -7,10 +7,10 @@ from utils import resize_for_laptop, draw_origin, draw_cube
 
 
 parameters = {
-	'obj01.mp4': {'circle_mask_size': 15, 'window_size': (10, 10), 'undist_axis': 55},
-	'obj02.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 60},
-	'obj03.mp4': {'circle_mask_size': 13, 'window_size': (9, 9), 'undist_axis': 70},
-	'obj04.mp4': {'circle_mask_size': 15, 'window_size': (10, 10), 'undist_axis': 55},
+	'obj01.mp4': {'undist_axis': 55},
+	'obj02.mp4': {'undist_axis': 60},
+	'obj03.mp4': {'undist_axis': 75},
+	'obj04.mp4': {'undist_axis': 55},
 }
 
 
@@ -94,7 +94,7 @@ def main():
 					output_video = cv.VideoWriter(f'../output_part3/{obj_id}_cube.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), np.flip(undistorted_resolution))
     
 
-				undist = draw_origin(undist, (1300, undistorted_resolution[0] // 2), np.int32(imgpts_centroid))
+				undist = draw_origin(undist, (128, undistorted_resolution[0] // 2), np.int32(imgpts_centroid))
 				undist = draw_cube(undist, np.int32(imgpts_cube))
       
 

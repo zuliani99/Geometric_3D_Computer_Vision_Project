@@ -54,7 +54,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 		half_axis_len = hyper_param['undist_axis']
 
 		# Create the Board object
-		board = Board(n_polygons=24)#, circle_mask_size=hyper_param['circle_mask_size'])
+		board = Board(n_polygons=24)
 
 		# Create the VoxelsCube object
 		voxels_cube = VoxelsCube(half_axis_len=half_axis_len, voxel_cube_dim=voxel_cube_dim, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
@@ -63,6 +63,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 		output_video = None
 
 		while True:
+      
 			start = time.time()
 			   
 			# Extract a frame
@@ -76,7 +77,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			if undistorted_resolution is None: 
 				undistorted_resolution = undist.shape[:2]
 				output_video = cv.VideoWriter(f'../output_project/{obj_id}/{obj_id}.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), np.flip(undistorted_resolution))
-				board.set_centroid(np.array([1300, int(undistorted_resolution[0] // 2)]))
+				board.set_centroid(np.array([1280, int(undistorted_resolution[0] // 2)]))
 			
 		   
 			frameg = cv.cvtColor(undist, cv.COLOR_BGR2GRAY)
@@ -84,22 +85,20 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
    
 			   
 			if(actual_fps % 5 == 0): 
-				# Each 10 frames recompute the whole features to track
-				board.find_interesting_points(thresh, frameg) #mask
-			else: 
+				# Each 5 frames recompute the whole features to track
+				board.find_interesting_points(thresh, frameg)
+			else:
 				# The other frame use the Lucaks Kanade Optical Flow to estimate the postition of the traked features based on the previous frame
-				board.apply_LK_OF(prev_frameg, frameg, (25, 25)) #mask
+				board.apply_LK_OF(prev_frameg, frameg, (20, 20))
 
 
-			# Remove the polygon that are convex, order clockwie and remove the alst polygon by area
-			#reshaped_clockwise = board.polygons_check_and_clockwise()
-			reshaped_clockwise = board.get_clockwise_vertices_initial()
+			reshaped_clockwise = board.get_clockwise_vertices_initial()   
 
 			# Obtain the dictionary of statistics
 			pixsl_info = board.compute_markers(thresh, reshaped_clockwise, marker_reference)
-
+   
 			edited_frame = undist
-
+   
 
 			if pixsl_info.shape[0] >= 6:
 
@@ -120,10 +119,10 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 				edited_frame = board.draw_cube(edited_frame, np.int32(imgpts_cube))
     
 				# Undistorting the segmented frame to analyze the voxels centre
-				#undist_b_f_image = cv.undistort(undist_mask, camera_matrix, dist, None, newCameraMatrix)
+				undist_b_f_image = cv.undistort(undist_mask, camera_matrix, dist, None, newCameraMatrix)
     
 				# Update the binary array of foreground voxels and draw the background one
-				#edited_frame = voxels_cube.set_background_voxels(undistorted_resolution, undist_b_f_image, edited_frame)
+				edited_frame = voxels_cube.set_background_voxels(undistorted_resolution, undist_b_f_image, edited_frame)
     
 				
 			end = time.time()
@@ -152,14 +151,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
    
 			if key == ord('q'):
 				return
-
-
-
-
-			#cv.waitKey(-1)
 		
-
-
 
 
 		print(' DONE')
@@ -172,11 +164,11 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 		cv.destroyAllWindows()
 
 		# Get the voxel cube ciooirdinates and faces to write a PLY file
-		'''voxels_cube_coords, voxel_cube_faces = voxels_cube.get_cubes_coords_and_faces()
+		voxels_cube_coords, voxel_cube_faces = voxels_cube.get_cubes_coords_and_faces()
 
 		print(f'Saving PLY file...')
 		write_ply_file(obj_id, voxels_cube_coords, voxel_cube_faces)
-		print(' DONE\n')'''
+		print(' DONE\n')
 
 
 

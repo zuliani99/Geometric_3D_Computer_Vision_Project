@@ -10,7 +10,6 @@ from utils import save_stats, set_marker_reference_coords, resize_for_laptop
 using_laptop = False
 
 objs = ['obj01.mp4', 'obj02.mp4', 'obj03.mp4', 'obj04.mp4']
-#objs = ['obj02.mp4']
 
 
 def main():
@@ -37,7 +36,7 @@ def main():
 		avg_fps = 0.0
 		obj_id = obj.split('.')[0]
 
-		board = Board(n_polygons=24)#, circle_mask_size=hyper_param['circle_mask_size'])
+		board = Board(n_polygons=24)
   
 		dict_stats = [] # Initialize the list of dictionary that we will save as .csv file
 		
@@ -47,8 +46,7 @@ def main():
 		prev_frameg = None
 
 		while True:
-			#print(f'----------------------------- {actual_fps} -----------------------------')
-      
+            
 			start = time.time()
 			
 			# Extract a frame
@@ -70,8 +68,8 @@ def main():
 			_, thresh = cv.threshold(frameg, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
    
 			
-			if(actual_fps % 5 == 0): # 10 
-				# Each 10 frames recompute tqhe whole features to track
+			if(actual_fps % 5 == 0):
+				# Each 5 frames recompute tqhe whole features to track
 				board.find_interesting_points(thresh, frameg)
 			else: 
 				# The other frame use the Lucaks Kanade Optical Flow to estimate the postition of the traked features based on the previous frame
@@ -79,7 +77,6 @@ def main():
 	
 			
 			reshaped_clockwise = board.get_clockwise_vertices_initial()
-
 
 			# Obtain the dictionary of statistics
 			dict_stats_to_extend = board.compute_markers(thresh, reshaped_clockwise, actual_fps, marker_reference)
@@ -115,7 +112,7 @@ def main():
 			if key == ord('q'):
 				return
 
-			#cv.waitKey(-1)
+
 			
 		print(' DONE')
   
@@ -134,10 +131,3 @@ def main():
 
 if __name__ == "__main__":
 	main()
- 
- 
-#reshaped_clockwise = board.polygons_check_and_clockwise2()
-   
-'''			for poly in reshaped_clockwise:
-				cv.drawContours(frame, [np.int32(poly)], 0, (0, 0, 255), 1, cv.LINE_AA) # controllo se nei frame sbaglaiti c'e' solo un punto
-'''
