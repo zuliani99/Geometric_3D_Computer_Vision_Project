@@ -138,7 +138,7 @@ class Board:
 		for cnt in contours:
 			
 			# Shortlisting the regions based on there area
-			if cv.contourArea(cnt) > 1650.0:
+			if cv.contourArea(cnt) > 1450.0: #1650.0
 
 				approx_cnt = cv.approxPolyDP(cnt, 0.015 * cv.arcLength(cnt, True), True) # [[[X Y]] [[X Y]] ... [[X Y]]]
 				
@@ -213,16 +213,19 @@ class Board:
 		# Forward Optical Flow
 		p1, st, _ = cv.calcOpticalFlowPyrLK(prev_frameg, frameg, self.tracked_features, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)#, flags=cv.OPTFLOW_LK_GET_MIN_EIGENVALS, minEigThreshold=0.01)
 		
-		assert(p1.shape[0] == self.tracked_features.shape[0])
+		fb_good = p1[np.where(st == 1)[0]]
+  
+		#assert(p1.shape[0] == self.tracked_features.shape[0])
 		
 		# Backword Optical Flow
-		p0r, st0, _ = cv.calcOpticalFlowPyrLK(frameg, prev_frameg, p1, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)#, flags=cv.OPTFLOW_LK_GET_MIN_EIGENVALS, minEigThreshold=0.01)
+		#p0r, st0, _ = cv.calcOpticalFlowPyrLK(frameg, prev_frameg, p1, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)#, flags=cv.OPTFLOW_LK_GET_MIN_EIGENVALS, minEigThreshold=0.01)
 		
-		fb_good = (np.fabs(p0r - self.tracked_features) < 0.8).all(axis=1)
-		fb_good = np.logical_and(np.logical_and(fb_good, st.flatten()), st0.flatten())
+		#fb_good = (np.fabs(p0r - self.tracked_features) < 0.8).all(axis=1)
+		#fb_good = np.logical_and(np.logical_and(fb_good, st.flatten()), st0.flatten())
 
 		# Selecting good features
-		self.tracked_features = p1[fb_good, :]
+		#self.tracked_features = p1[fb_good, :]
+		self.tracked_features = fb_good
 					
 
 
@@ -340,3 +343,24 @@ class Board:
 		cv.drawContours(img, [imgpts[4:]], -1, (0,0,255), 3)
 
 		return img
+
+
+	def get_clockwise_vertices_initial(self) -> np.ndarray[np.ndarray[np.ndarray[np.float32]]]:
+		'''
+		PURPOSE: reshape the obtained features, sort them in clockwise order and remove the last polygon by area
+		ARGUMENTS: None
+		RETURN:
+  			- (np.ndarray[np.ndarray[np.ndarray[np.float32]]]): sorted vertices polygon
+		'''	
+     
+		self.tracked_features = sort_vertices_clockwise(self.tracked_features, self.centroid)
+		
+		self.tracked_features = self.tracked_features[:int(self.tracked_features.shape[0] // 5) * 5, :]
+			
+		reshaped_clockwise = np.reshape(self.tracked_features, (int(self.tracked_features.shape[0] // 5), 5, 2))
+  
+		# I have to sort clockwise the alst polygon in order to compute correctly the contourArea
+		if(cv.contourArea(sort_vertices_clockwise(reshaped_clockwise[-1,:,:])) <= 1500.0):
+			reshaped_clockwise = reshaped_clockwise[:reshaped_clockwise.shape[0] - 1, :, :]
+		
+		return np.array([sort_vertices_clockwise(poly) for poly in reshaped_clockwise])

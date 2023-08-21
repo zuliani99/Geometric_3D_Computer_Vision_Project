@@ -83,16 +83,17 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			_, thresh = cv.threshold(frameg, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
    
 			   
-			if(actual_fps % 10 == 0): 
+			if(actual_fps % 5 == 0): 
 				# Each 10 frames recompute the whole features to track
 				board.find_interesting_points(thresh, frameg) #mask
 			else: 
 				# The other frame use the Lucaks Kanade Optical Flow to estimate the postition of the traked features based on the previous frame
-				board.apply_LK_OF(prev_frameg, frameg, (20, 20)) #mask
+				board.apply_LK_OF(prev_frameg, frameg, (25, 25)) #mask
 
 
 			# Remove the polygon that are convex, order clockwie and remove the alst polygon by area
-			reshaped_clockwise = board.polygons_check_and_clockwise()
+			#reshaped_clockwise = board.polygons_check_and_clockwise()
+			reshaped_clockwise = board.get_clockwise_vertices_initial()
 
 			# Obtain the dictionary of statistics
 			pixsl_info = board.compute_markers(thresh, reshaped_clockwise, marker_reference)
@@ -119,10 +120,10 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 				edited_frame = board.draw_cube(edited_frame, np.int32(imgpts_cube))
     
 				# Undistorting the segmented frame to analyze the voxels centre
-				undist_b_f_image = cv.undistort(undist_mask, camera_matrix, dist, None, newCameraMatrix)
+				#undist_b_f_image = cv.undistort(undist_mask, camera_matrix, dist, None, newCameraMatrix)
     
 				# Update the binary array of foreground voxels and draw the background one
-				edited_frame = voxels_cube.set_background_voxels(undistorted_resolution, undist_b_f_image, edited_frame)
+				#edited_frame = voxels_cube.set_background_voxels(undistorted_resolution, undist_b_f_image, edited_frame)
     
 				
 			end = time.time()
@@ -171,11 +172,11 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 		cv.destroyAllWindows()
 
 		# Get the voxel cube ciooirdinates and faces to write a PLY file
-		voxels_cube_coords, voxel_cube_faces = voxels_cube.get_cubes_coords_and_faces()
+		'''voxels_cube_coords, voxel_cube_faces = voxels_cube.get_cubes_coords_and_faces()
 
 		print(f'Saving PLY file...')
 		write_ply_file(obj_id, voxels_cube_coords, voxel_cube_faces)
-		print(' DONE\n')
+		print(' DONE\n')'''
 
 
 
