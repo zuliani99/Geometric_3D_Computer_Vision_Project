@@ -95,7 +95,7 @@ def main():
 			frame_with_fps_resized = resize_for_laptop(using_laptop, copy.deepcopy(frame))
   
 			# Output the frame with the FPS
-			cv.putText(frame_with_fps_resized, f"{fps:.2f} FPS", (30, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+			cv.putText(frame_with_fps_resized, f"{fps:.2f} FPS", (20, 20), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 			cv.imshow(f'Marker Detector of {obj}', frame_with_fps_resized)
 			
 			# Save the frame without the FPS count
