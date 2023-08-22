@@ -25,7 +25,7 @@ The complete algorithm works as follows:
   * Check if the projection of the voxel is inside or outside the silhouette. In the latter case, remove the voxel from V
 
 When all the frames have been processed, the remaining set of voxels define the volume occupied by the object.
-![](screenshot_cracker.png)
+![](screenshot_parrot.png)
 
 ## Poject Structure
 The project structure is divided into three subproject:
