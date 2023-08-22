@@ -111,17 +111,17 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 				# Draw the marker detector stuff
 				edited_frame = board.draw_stuff(edited_frame)
 				
-				# Extract the 2D and 3D points
-				IDs_points = pixels_info[:,0]
+				# Extract the indices ID, the 2D and 3D points
+				indices_ID = pixels_info[:,0]
 				twoD_points = pixels_info[:,1:3]
 				threeD_points = pixels_info[:,3:6]
     
     
 				# Find the rotation and translation vectors
-				imgpts_centroid, imgpts_cube = voxels_cube.apply_projections(IDs_points, twoD_points, threeD_points, marker_reference)
+				imgpts_centroid, imgpts_cube = voxels_cube.apply_projections(indices_ID, twoD_points, threeD_points, marker_reference)
 
 				# Get the RMSE for the actual frame
-				avg_rmse += voxels_cube.compute_RMSE(IDs_points, marker_reference, twoD_points)
+				avg_rmse += voxels_cube.compute_RMSE(indices_ID, marker_reference, twoD_points)
     
 				# Apply the segmentation
 				undist_mask = apply_segmentation(obj, edited_frame)
