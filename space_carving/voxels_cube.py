@@ -1,7 +1,7 @@
 import numpy as np
 import cv2 as cv
 
-from typing import Tuple
+from typing import Dict, Tuple
 
 
 
@@ -91,16 +91,19 @@ class VoxelsCube:
 
 
 	
-	def apply_projections_and_RMSE(self, IDs_points: np.ndarray[int, np.float32], twoD_points: np.ndarray[int, np.float32], threeD_points: np.ndarray[int, np.float32], marker_reference) \
-			-> Tuple[cv.typing.MatLike, cv.typing.MatLike]:
+	def apply_projections_and_RMSE(self, IDs_points: np.ndarray[int, np.float32], twoD_points: np.ndarray[int, np.float32], \
+    		threeD_points: np.ndarray[int, np.float32], marker_reference: Dict[int, Tuple[int, int, int]])-> Tuple[cv.typing.MatLike, cv.typing.MatLike, np.float32]:
 		'''
 		PURPOSE: apply the projections of voxels centroid, cube and board centroid
 		ARGUMENTS: 
+			- IDs_points: (np.ndarray[int, np.float32])
 			- twoD_points (np.ndarray[int, np.float32])
 			- threeD_points (np.ndarray[int, np.float32])
+			- marker_reference: Dict[int, Tuple[int, int, int]]
 		RETURN: Tuple[cv.typing.MatLike, cv.typing.MatLike]
 			- imgpts_centroid (cv.typing.MatLike): 2D image centroid coordinates
 			- imgpts_cube (cv.typing.MatLike): 2D image cube coordinates
+			- rmse (np.float32): RMSE of the reprojected points in the actual frame
 		'''	
 
 		# Find the rotation and translation vectors
@@ -112,13 +115,16 @@ class VoxelsCube:
 
 		imgpts_centroid, _ = cv.projectPoints(objectPoints=self.__axis_centroid, rvec=rvecs, tvec=tvecs, cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist)
 		imgpts_cube, _ = cv.projectPoints(objectPoints=self.__axis_vertical_edges, rvec=rvecs, tvec=tvecs, cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist)
-
+		
+		# Initializing the np array to store the marker reference coordinates of the actual detected index polygon
 		marker_reference_points = np.zeros((0,3), dtype=np.float32)
 		for idx in IDs_points:
 			marker_reference_points = np.vstack((marker_reference_points, np.array(marker_reference[idx], dtype=np.float32)))
-				
+		
+		# Compute the reprojection
 		reprojections, _ = cv.projectPoints(marker_reference_points, rvecs, tvecs, self.__camera_matrix, self.__dist)
 
+		# Compute the RMSE of the actual frame
 		rmse = np.sqrt(np.mean(np.square(np.linalg.norm(twoD_points - np.squeeze(reprojections), axis=1))))
   
 		return imgpts_centroid, imgpts_cube, rmse

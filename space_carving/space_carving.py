@@ -117,20 +117,6 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 				threeD_points = pixels_info[:,3:6]
     
     
-    
-				'''_, rvecs, tvecs = cv.solvePnP(objectPoints=threeD_points.astype('float32'), imagePoints=twoD_points.astype('float32'), cameraMatrix=camera_matrix, distCoeffs=dist, flags=cv.SOLVEPNP_IPPE)
-				
-				projection_test = np.zeros((0,3), dtype=np.float32)
-				for idx in pixels_info[:,0]:
-					projection_test = np.vstack((projection_test, np.array(marker_reference[idx], dtype=np.float32)))
-				
-				reprojections, _ = cv.projectPoints(projection_test, rvecs, tvecs, camera_matrix, dist)
-
-				avg_rmse += np.sqrt(np.mean(np.square(np.linalg.norm(twoD_points - np.squeeze(reprojections), axis=1))))'''		
-    
-    
-    
-    
 				# Find the rotation and translation vectors
 				imgpts_centroid, imgpts_cube, rmse = voxels_cube.apply_projections_and_RMSE(IDs_points, twoD_points, threeD_points, marker_reference)
 
