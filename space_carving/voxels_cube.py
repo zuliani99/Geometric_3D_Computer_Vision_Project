@@ -91,7 +91,7 @@ class VoxelsCube:
 
 
 	
-	def apply_projections(self, twoD_points: np.ndarray[int, np.float32], threeD_points: np.ndarray[int, np.float32]) \
+	def apply_projections_and_RMSE(self, IDs_points: np.ndarray[int, np.float32], twoD_points: np.ndarray[int, np.float32], threeD_points: np.ndarray[int, np.float32], marker_reference) \
 			-> Tuple[cv.typing.MatLike, cv.typing.MatLike]:
 		'''
 		PURPOSE: apply the projections of voxels centroid, cube and board centroid
@@ -112,8 +112,16 @@ class VoxelsCube:
 
 		imgpts_centroid, _ = cv.projectPoints(objectPoints=self.__axis_centroid, rvec=rvecs, tvec=tvecs, cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist)
 		imgpts_cube, _ = cv.projectPoints(objectPoints=self.__axis_vertical_edges, rvec=rvecs, tvec=tvecs, cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist)
+
+		marker_reference_points = np.zeros((0,3), dtype=np.float32)
+		for idx in IDs_points:
+			marker_reference_points = np.vstack((marker_reference_points, np.array(marker_reference[idx], dtype=np.float32)))
+				
+		reprojections, _ = cv.projectPoints(marker_reference_points, rvecs, tvecs, self.__camera_matrix, self.__dist)
+
+		rmse = np.sqrt(np.mean(np.square(np.linalg.norm(twoD_points - np.squeeze(reprojections), axis=1))))
   
-		return imgpts_centroid, imgpts_cube
+		return imgpts_centroid, imgpts_cube, rmse
 
 
 
