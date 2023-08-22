@@ -205,7 +205,7 @@ class Board:
   
   
 	def compute_markers(self, thresh: np.ndarray[int, np.uint8], reshaped_clockwise: np.ndarray[int, np.float32], \
-	     		marker_reference: Dict[int, Tuple[int, int, int]]) -> np.ndarray[int, np.flaot32]:
+	     		marker_reference: Dict[int, Tuple[int, int, int]]) -> np.ndarray[int, np.float32]:
 		'''
 		PURPOSE: remove the polygon that are convex, order clockwie and remove the alst polygon by area
 		ARGUMENTS:
@@ -213,7 +213,7 @@ class Board:
 			- reshaped_clockwise (np.ndarray[int, np.float32]) feature reshaped in clockwise order
 			- marker_reference (Dict[int, Tuple[int, int, int]])): dictionary of the marker reference coordinates
 		RETURN:
-			- pixel_info (np.ndarray[int, np.flaot32]): lis of dictionary containing the information to save in the .csv file
+			- pixel_info (np.ndarray[int, np.float32]): lis of dictionary containing the information to save in the .csv file
 		'''	
 	     
 		pixel_info = np.zeros((0,6), dtype=np.float32)

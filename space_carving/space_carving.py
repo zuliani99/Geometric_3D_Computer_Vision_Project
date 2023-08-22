@@ -8,6 +8,7 @@ from background_foreground_segmentation import apply_segmentation
 from board import Board
 from voxels_cube import VoxelsCube
 
+
 # Objects parameter
 parameters = {
 	'obj01.mp4': {'undist_axis': 55},
@@ -49,6 +50,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 
 		actual_fps = 0
 		avg_fps = 0.0
+		avg_rmse = 0.0
 		obj_id = obj.split('.')[0]
 
 		undistorted_resolution = None
@@ -99,19 +101,34 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			reshaped_clockwise = board.get_clockwise_vertices_initial()   
 
 			# Obtain the dictionary of statistics
-			pixsl_info = board.compute_markers(thresh, reshaped_clockwise, marker_reference)
+			pixels_info = board.compute_markers(thresh, reshaped_clockwise, marker_reference)
    
 			edited_frame = undist
    
 
-			if pixsl_info.shape[0] >= 6:
+			if pixels_info.shape[0] >= 6:
 
 				# Draw the marker detector stuff
 				edited_frame = board.draw_stuff(edited_frame)
 				
 				# Extract the 2D and 3D points
-				twoD_points = pixsl_info[:,1:3]
-				threeD_points = pixsl_info[:,3:6]
+				twoD_points = pixels_info[:,1:3]
+				threeD_points = pixels_info[:,3:6]
+    
+    
+    
+				_, rvecs, tvecs = cv.solvePnP(objectPoints=threeD_points.astype('float32'), imagePoints=twoD_points.astype('float32'), cameraMatrix=camera_matrix, distCoeffs=dist, flags=cv.SOLVEPNP_IPPE)
+				
+				projection_test = np.zeros((0,3), dtype=np.float32)
+				for idx in pixels_info[:,0]:
+					projection_test = np.vstack((projection_test, np.array(marker_reference[idx], dtype=np.float32)))
+				
+				reprojections, _ = cv.projectPoints(projection_test, rvecs, tvecs, camera_matrix, dist)
+
+				avg_rmse += np.sqrt(np.mean(np.square(np.linalg.norm(twoD_points - np.squeeze(reprojections), axis=1))))		
+    
+    
+    
     
 				# Find the rotation and translation vectors
 				imgpts_centroid, imgpts_cube = voxels_cube.apply_projections(twoD_points, threeD_points)
@@ -156,11 +173,12 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
    
 			if key == ord('q'):
 				return
-		
+		  
 
 
 		print(' DONE')
 		print(f'Average FPS is: {str(avg_fps / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')
+		print(f'Average RMSE is: {str(avg_rmse / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')
 
 
 		# Release the input and output streams
