@@ -118,9 +118,10 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
     
     
 				# Find the rotation and translation vectors
-				imgpts_centroid, imgpts_cube, rmse = voxels_cube.apply_projections_and_RMSE(IDs_points, twoD_points, threeD_points, marker_reference)
+				imgpts_centroid, imgpts_cube = voxels_cube.apply_projections(IDs_points, twoD_points, threeD_points, marker_reference)
 
-				avg_rmse += rmse
+				# Get the RMSE for the actual frame
+				avg_rmse += voxels_cube.compute_RMSE(IDs_points, marker_reference, twoD_points)
     
 				# Apply the segmentation
 				undist_mask = apply_segmentation(obj, edited_frame)
