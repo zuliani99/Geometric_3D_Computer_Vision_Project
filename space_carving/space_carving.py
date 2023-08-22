@@ -8,7 +8,7 @@ from background_foreground_segmentation import apply_segmentation
 from board import Board
 from voxels_cube import VoxelsCube
 
-
+# Objects parameter
 parameters = {
 	'obj01.mp4': {'undist_axis': 55},
 	'obj02.mp4': {'undist_axis': 60},
@@ -30,6 +30,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 	# Set the marker reference coordinates for the 24 polygonls
 	marker_reference = set_marker_reference_coords()
 	
+	# Load the camera matrix and distorsion
 	camera_matrix = np.load('./calibration_info/cameraMatrix.npy')
 	dist = np.load('./calibration_info/dist.npy')
   
@@ -38,6 +39,8 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 	for obj, hyper_param in parameters.items():
 		
 		print(f'Marker Detector for {obj}...')
+  
+		# Create the VideoCapture object
 		input_video = cv.VideoCapture(f"../data/{obj}")
 		  
 		# Get video properties
@@ -70,7 +73,8 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			ret, frame = input_video.read()
 
 			if not ret:	break
-
+   
+			# Get the undistorted frame and the new camera matrix of the last cited frame
 			undist, newCameraMatrix = voxels_cube.get_undistorted_frame(frame)
 
 			# Update the undistorted_resolution, output_video and the centroid the first time that the undistorted image resutn a valid shape
@@ -91,7 +95,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 				# The other frame use the Lucaks Kanade Optical Flow to estimate the postition of the traked features based on the previous frame
 				board.apply_LK_OF(prev_frameg, frameg, (20, 20))
 
-
+			# Order the detected features in clockwise order to be able to print correctly
 			reshaped_clockwise = board.get_clockwise_vertices_initial()   
 
 			# Obtain the dictionary of statistics
@@ -115,13 +119,14 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 				# Apply the segmentation
 				undist_mask = apply_segmentation(obj, edited_frame)
 
+				# Draw the projected cube and centroid
 				edited_frame = board.draw_origin(edited_frame, np.int32(imgpts_centroid))
 				edited_frame = board.draw_cube(edited_frame, np.int32(imgpts_cube))
     
 				# Undistorting the segmented frame to analyze the voxels centre
 				undist_b_f_image = cv.undistort(undist_mask, camera_matrix, dist, None, newCameraMatrix)
     
-				# Update the binary array of foreground voxels and draw the background one
+				# Update the binary array of foreground voxels and draw the background
 				edited_frame = voxels_cube.set_background_voxels(undistorted_resolution, undist_b_f_image, edited_frame)
     
 				
@@ -140,7 +145,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			# Save the frame without the FPS count in case of no error
 			output_video.write(edited_frame)
    
-	 
+	 		# Update the previous gray frame
 			prev_frameg = frameg
    
 			actual_fps += 1
@@ -163,10 +168,11 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 		output_video.release()
 		cv.destroyAllWindows()
 
+		print('Saving PLY file...')
+  
 		# Get the voxel cube ciooirdinates and faces to write a PLY file
 		voxels_cube_coords, voxel_cube_faces = voxels_cube.get_cubes_coords_and_faces()
-
-		print(f'Saving PLY file...')
+		# Save in a .ply file
 		write_ply_file(obj_id, voxels_cube_coords, voxel_cube_faces)
 		print(' DONE\n')
 

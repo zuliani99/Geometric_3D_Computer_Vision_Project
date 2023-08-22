@@ -1,6 +1,5 @@
 import cv2 as cv
 import numpy as np
-import math
 
 from utils import compute_index_and_cc_coords, find_distance_between_points, find_middle_point, sort_vertices_clockwise
 from polygon import Polygon
@@ -24,14 +23,21 @@ maxlevel_lk = 4
 class Board:
     
 	def __init__(self, n_polygons: int) -> None:
-		self.polygon_list: List[Polygon] = [Polygon() for _ in range(n_polygons)]
-		self.tracked_features = np.zeros((0,2), dtype=np.float32)
-		self.centroid = None
+		self.__polygon_list: List[Polygon] = [Polygon() for _ in range(n_polygons)]
+		self.__tracked_features = np.zeros((0,2), dtype=np.float32)
+		self.__centroid = None
 
 
 
-	def set_centroid(self, centroid):
-		if self.centroid is None: self.centroid = centroid
+	def set_centroid(self, centroid: npt.NDArray[np.int32]) -> None:
+		'''
+		PURPOSE: update the centroid value
+		ARGUMENTS: 
+			- centroid (npt.NDArray[np.int32])): new centroid value
+		RETURN: None
+		'''	
+		
+		if self.__centroid is None: self.__centroid = centroid
   
   
   	
@@ -44,7 +50,8 @@ class Board:
 		RETURN:
 			- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resuting image
 		'''	
-		for poly in self.polygon_list:
+  
+		for poly in self.__polygon_list:
 			if poly.cover == False:
 				cv.drawContours(image, [np.int32(poly.vertex_coords)], 0, (0, 0, 255), 1, cv.LINE_AA)
 
@@ -54,7 +61,7 @@ class Board:
 				
 				for x, y in poly.vertex_coords:
 					cv.circle(image, (int(x), int(y)), 4, poly.color, -1)
-					cv.line(image, (int(x), int(y)), self.centroid, poly.color, 1, cv.LINE_AA)
+					cv.line(image, (int(x), int(y)), self.__centroid, poly.color, 1, cv.LINE_AA)
      
 		return image
             
@@ -70,7 +77,7 @@ class Board:
 			- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resuting image
 		'''	
         
-		for poly in self.polygon_list:
+		for poly in self.__polygon_list:
 			if poly.cover == False:
 				for idx, coords in enumerate(reversed(poly.circles_ctr_coords), start=1): 
 					start = np.int32(coords[1])
@@ -92,7 +99,7 @@ class Board:
 			- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resuting image
 		'''	
      		
-		for index, poly in enumerate(self.polygon_list):
+		for index, poly in enumerate(self.__polygon_list):
 			if poly.cover == False:
 				cv.putText(image, str(index), np.int32(poly.point_A), cv.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 8, cv.LINE_AA)
 				cv.putText(image, str(index), np.int32(poly.point_A), cv.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv.LINE_AA)
@@ -120,12 +127,11 @@ class Board:
 		ARGUMENTS: 
 			- thresh (np.ndarray[np.uint8]): threshold resut
 			- imgray np.ndarray[np.uint8]): gray image
-			- mask np.ndarray[np.uint8]) mask to edit
 		RETURN: None
 		'''	
 
 		# Recompute the features
-		self.tracked_features = np.zeros((0,2), dtype=np.float32)
+		self.__tracked_features = np.zeros((0,2), dtype=np.float32)
 		
 		# Consider only the board exluding all the object area that could be included erroneously
 		mask_thresh = np.zeros_like(thresh, dtype=np.uint8)
@@ -145,7 +151,7 @@ class Board:
 				# Checking if the number of sides of the selected region is 5.
 				if (len(approx_cnt)) == 5:
 					ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(approx_cnt), winSize_sub, zeroZone_sub, criteria_sub)
-					self.tracked_features = np.vstack((self.tracked_features, np.squeeze(ref_approx_cnt)))
+					self.__tracked_features = np.vstack((self.__tracked_features, np.squeeze(ref_approx_cnt)))
 
 
 
@@ -157,11 +163,11 @@ class Board:
   			- (np.ndarray[np.ndarray[np.ndarray[np.float32]]]): sorted vertices polygon
 		'''	
      
-		self.tracked_features = sort_vertices_clockwise(self.tracked_features, self.centroid)
+		self.__tracked_features = sort_vertices_clockwise(self.__tracked_features, self.__centroid)
 		
-		self.tracked_features = self.tracked_features[:int(self.tracked_features.shape[0] // 5) * 5, :]
+		self.__tracked_features = self.__tracked_features[:int(self.__tracked_features.shape[0] // 5) * 5, :]
 			
-		reshaped_clockwise = np.reshape(self.tracked_features, (int(self.tracked_features.shape[0] // 5), 5, 2))
+		reshaped_clockwise = np.reshape(self.__tracked_features, (int(self.__tracked_features.shape[0] // 5), 5, 2))
   
 		# I have to sort clockwise the alst polygon in order to compute correctly the contourArea
 		if(cv.contourArea(sort_vertices_clockwise(reshaped_clockwise[-1,:,:])) <= 1500.0):
@@ -182,11 +188,11 @@ class Board:
 		'''	
      
 		# Forward Optical Flow
-		p1, st, _ = cv.calcOpticalFlowPyrLK(prev_frameg, frameg, self.tracked_features, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)#, flags=cv.OPTFLOW_LK_GET_MIN_EIGENVALS, minEigThreshold=0.01)
+		p1, st, _ = cv.calcOpticalFlowPyrLK(prev_frameg, frameg, self.__tracked_features, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)#, flags=cv.OPTFLOW_LK_GET_MIN_EIGENVALS, minEigThreshold=0.01)
 		
 		fb_good = p1[np.where(st == 1)[0]]
   
-		self.tracked_features = fb_good
+		self.__tracked_features = fb_good
 					
 
 
@@ -198,7 +204,7 @@ class Board:
 		RETURN: None
 		'''	
      
-		for id_poly in polygons: self.polygon_list[id_poly].cover = True
+		for id_poly in polygons: self.__polygon_list[id_poly].cover = True
   
   
   
@@ -223,7 +229,7 @@ class Board:
 		for poly in reshaped_clockwise:
 			# Obtain the external point distance between the approximated board centroid and each approximated polygon vertex
 			external_points_dict = dict(enumerate(
-				list(map(lambda x: find_distance_between_points(x, self.centroid), poly))
+				list(map(lambda x: find_distance_between_points(x, self.__centroid), poly))
 			))
 
 			# Obtain the id of the two farthest point from the board centre
@@ -244,7 +250,7 @@ class Board:
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
 
 				if(index < 24):# and len(pixel_info[pixel_info[:, 0] == index]) == 0):
-					self.polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
+					self.__polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
 					covered_polys[index] = 0
 
 					# Get the X, Y and Z marker reference 2D coordinates for the polygon with given index
@@ -269,13 +275,13 @@ class Board:
 			- (np.NDArray[np.uint8]): modified frame
 		'''	
 
-		cv.arrowedLine(img, self.centroid, tuple(imgpts[0].ravel()), (255,0,0), 4, cv.LINE_AA)
+		cv.arrowedLine(img, self.__centroid, tuple(imgpts[0].ravel()), (255,0,0), 4, cv.LINE_AA)
 		cv.putText(img, 'Y', tuple(imgpts[0].ravel()), cv.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2, cv.LINE_AA)
 	
-		cv.arrowedLine(img, self.centroid, tuple(imgpts[1].ravel()), (0,255,0), 4, cv.LINE_AA)
+		cv.arrowedLine(img, self.__centroid, tuple(imgpts[1].ravel()), (0,255,0), 4, cv.LINE_AA)
 		cv.putText(img, 'X', tuple(imgpts[1].ravel()), cv.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2, cv.LINE_AA)
 	
-		cv.arrowedLine(img, self.centroid, tuple(imgpts[2].ravel()), (0,0,255), 4, cv.LINE_AA)
+		cv.arrowedLine(img, self.__centroid, tuple(imgpts[2].ravel()), (0,0,255), 4, cv.LINE_AA)
 		cv.putText(img, 'Z', tuple(imgpts[2].ravel()), cv.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2, cv.LINE_AA)
 
 		return img
