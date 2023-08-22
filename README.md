@@ -39,16 +39,48 @@ The additional work is mainly summarize by the immplementation of the .ply file 
 The final project can be examined in the *space_carving* folder
 
 ## Requirements
-```console
+```
 pip install numpy
 pip install opencv-python
 ```
 
 ## Application Start Up
-```console
+```
 cd space_carving
 python space_carving.py
 ```
 
 ## Analyse the Results
 The Mesh result of each object are stored in the *optput_project* folder, I recomend use [MeshLab](https://www.meshlab.net/#download) as software to deeply analyse the object shape.
+
+## Project Console Output
+```
+Marker Detector for obj01.mp4...
+ DONE
+Average FPS is: 0.6086838923118594
+Average RMSE is: 0.9412538925287559
+Saving PLY file...
+ DONE
+
+Marker Detector for obj02.mp4...
+ DONE
+Average FPS is: 0.47182103639343614
+Average RMSE is: 0.896294098953868
+Saving PLY file...
+ DONE
+
+Marker Detector for obj03.mp4...
+ DONE
+Average FPS is: 0.2545594350406094
+Average RMSE is: 0.9178120944262036
+Saving PLY file...
+ DONE
+
+Marker Detector for obj04.mp4...
+ DONE
+Average FPS is: 0.6229241890497109
+Average RMSE is: 0.9080787727231838
+Saving PLY file...
+ DONE
+```
+
