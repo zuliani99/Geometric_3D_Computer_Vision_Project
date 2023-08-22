@@ -25,7 +25,10 @@ The complete algorithm works as follows:
   * Check if the projection of the voxel is inside or outside the silhouette. In the latter case, remove the voxel from V
 
 When all the frames have been processed, the remaining set of voxels define the volume occupied by the object.
-![](screenshot_parrot.png)
+
+## Video Data
+A package containing 4 different video sequences (plus the calibration) can be downloaded  at the following [URL](https://www.dais.unive.it/~bergamasco/teachingfiles/G3DCV2022/data.7z)
+
 
 ## Poject Structure
 The project structure is divided into three subproject:
