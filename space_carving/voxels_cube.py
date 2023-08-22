@@ -2,7 +2,6 @@ import numpy as np
 import cv2 as cv
 
 from typing import Tuple
-import numpy.typing as npt
 
 
 
@@ -26,13 +25,13 @@ class VoxelsCube:
   
 	
 	
-	def get_cube_and_centroids_voxels(self) -> Tuple[npt.NDArray[np.float32], npt.NDArray[np.float32]]:
+	def get_cube_and_centroids_voxels(self) -> Tuple[np.ndarray[int, np.float32], np.ndarray[int, np.float32]]:
 		'''
 		PURPOSE: 
 		ARGUMENTS: None
-		RETURN: Tuple[np.NDArray[np.float32], np.NDArray[np.float32]]
-			- center_voxels (np.NDArray[np.float32]): voxels centroid
-			- cube_coords_voxels (np.NDArray[np.float32]) voxels cube coordinates
+		RETURN: Tuple[np.ndarray[int, np.float32], np.ndarray[int, np.float32]]
+			- center_voxels (np.ndarray[int, np.float32]): voxels centroid
+			- cube_coords_voxels (np.ndarray[int, np.float32]) voxels cube coordinates
 		'''	
 
 		axis_length = (self.__half_axis_len * 2) // self.__voxel_cube_dim
@@ -71,13 +70,13 @@ class VoxelsCube:
 		return center_voxels, cube_coords_voxels
 	
 	
-	def get_undistorted_frame(self, to_edit_frame: npt.NDArray[np.uint8]) -> Tuple[npt.NDArray[np.uint8], cv.typing.MatLike]:
+	def get_undistorted_frame(self, to_edit_frame: np.ndarray[int, np.uint8]) -> Tuple[np.ndarray[int, np.uint8], cv.typing.MatLike]:
 		'''
 		PURPOSE: allpy the projections of voxels centroid, cube and board centroid
 		ARGUMENTS: 
-			- to_edit_frame (npt.NDArray[np.uint8]): frame to edit
-		RETURN: Tuple[npt.NDArray[np.uint8], cv.typing.MatLike]
-			- undist (npt.NDArray[np.uint8]): undistorted edited image
+			- to_edit_frame (np.ndarray[int, np.uint8]): frame to edit
+		RETURN: Tuple[np.ndarray[int, np.uint8], cv.typing.MatLike]
+			- undist (np.ndarray[int, np.uint8]): undistorted edited image
 			- newCameraMatrix (cv.typing.MatLike)
 		'''	
 
@@ -92,14 +91,14 @@ class VoxelsCube:
 
 
 	
-	def apply_projections(self, twoD_points: npt.NDArray[np.float32], threeD_points: npt.NDArray[np.float32]) \
-			-> Tuple[npt.NDArray[np.uint8], cv.typing.MatLike, cv.typing.MatLike, cv.typing.MatLike]:
+	def apply_projections(self, twoD_points: np.ndarray[int, np.float32], threeD_points: np.ndarray[int, np.float32]) \
+			-> Tuple[cv.typing.MatLike, cv.typing.MatLike]:
 		'''
 		PURPOSE: apply the projections of voxels centroid, cube and board centroid
 		ARGUMENTS: 
-			- twoD_points (np.NDArray[np.float32])
-			- threeD_points (np.NDArray[np.float32])
-		RETURN: Tuple[np.NDArray[np.uint8], cv.typing.MatLike, cv.typing.MatLike, cv.typing.MatLike]
+			- twoD_points (np.ndarray[int, np.float32])
+			- threeD_points (np.ndarray[int, np.float32])
+		RETURN: Tuple[cv.typing.MatLike, cv.typing.MatLike]
 			- imgpts_centroid (cv.typing.MatLike): 2D image centroid coordinates
 			- imgpts_cube (cv.typing.MatLike): 2D image cube coordinates
 		'''	
@@ -118,15 +117,15 @@ class VoxelsCube:
 
 
 
-	def set_background_voxels(self, undistorted_resolution: Tuple[int, int], undist_b_f_image: npt.NDArray[np.uint8], undist: npt.NDArray[np.uint8]) -> npt.NDArray[np.uint8]:
+	def set_background_voxels(self, undistorted_resolution: Tuple[int, int], undist_b_f_image: np.ndarray[int, np.uint8], undist: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: apply the projections of voxels centroid, cube and board centroid
 		ARGUMENTS: 
 			- undistorted_resolution (Tuple[int, int]): undistorted image resolution
-			- undist_b_f_image (npt.NDArray[np.uint8]): undistorted segmented frame
-			- undist (npt.NDArray[np.uint8]): undistorted image to edit
+			- undist_b_f_image (np.ndarray[int, np.uint8]): undistorted segmented frame
+			- undist (np.ndarray[int, np.uint8]): undistorted image to edit
 		RETURN:
-			- undist (npt.NDArray[np.uint8]): undistorted edited image
+			- undist (np.ndarray[int, np.uint8]): undistorted edited image
 		'''	
 
 		for idx, centr_coords in enumerate(self.__imgpts_cubes_centroid):
@@ -139,13 +138,13 @@ class VoxelsCube:
 
 
 
-	def get_cubes_coords_and_faces(self) -> Tuple[npt.NDArray[np.float32], npt.NDArray[np.float32]]:
+	def get_cubes_coords_and_faces(self) -> Tuple[np.ndarray[int, np.float32], np.ndarray[int, np.float32]]:
 		'''
 		PURPOSE: get the voxel cube ciooirdinates and faces to write a PLY file
 		ARGUMENTS: None
-		RETURN: Tuple[np.NDArray[npt.float32], npt.NDArray[np.float32]]
-			- voxels_cube_coords (npt.NDArray[np.float32]): voxel centroid coordinates belonging to the foreground
-			- voxel_cube_faces (npt.NDArray[np.float32]): voxel cube faces belonging to the foreground
+		RETURN: Tuple[np.ndarray[int, np.float32], np.ndarray[int, np.float32]]
+			- voxels_cube_coords (np.ndarray[int, np.float32]): voxel centroid coordinates belonging to the foreground
+			- voxel_cube_faces (np.ndarray[int, np.float32]): voxel cube faces belonging to the foreground
 		'''	
 
 		new_shape_bit_centroid = np.asarray(self.__center_voxels.shape[:3])

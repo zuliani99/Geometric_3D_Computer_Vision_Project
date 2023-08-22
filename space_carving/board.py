@@ -5,7 +5,6 @@ from utils import compute_index_and_cc_coords, find_distance_between_points, fin
 from polygon import Polygon
 
 from typing import List, Tuple, Dict
-import numpy.typing as npt
 
 
 
@@ -29,11 +28,11 @@ class Board:
 
 
 
-	def set_centroid(self, centroid: npt.NDArray[np.int32]) -> None:
+	def set_centroid(self, centroid: np.ndarray[int, np.int32]) -> None:
 		'''
 		PURPOSE: update the centroid value
 		ARGUMENTS: 
-			- centroid (npt.NDArray[np.int32])): new centroid value
+			- centroid (np.ndarray[int, np.int32]): new centroid value
 		RETURN: None
 		'''	
 		
@@ -41,14 +40,13 @@ class Board:
   
   
   	
-	def draw_red_polygon(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-    		->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+	def draw_red_polygon(self, image: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: draw the red polygon, the cross in point A and the line crossing the polygon by length
 		ARGUMENTS: 
-			- image (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image to edit
+			- image (np.ndarray[int, np.uint8]): image to edit
 		RETURN:
-			- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resuting image
+			- (np.ndarray[int, np.uint8]): resuting image
 		'''	
   
 		for poly in self.__polygon_list:
@@ -67,14 +65,13 @@ class Board:
             
        
             
-	def draw_green_cross_and_blu_rectangle(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-    		->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+	def draw_green_cross_and_blu_rectangle(self, image: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: draw a green cross and a blu rectangle in each circe centre 
 		ARGUMENTS: 
-			- image (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image to edit
+			- image (np.ndarray[int, np.uint8]): image to edit
 		RETURN:
-			- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resuting image
+			- (np.ndarray[int, np.uint8]): resuting image
 		'''	
         
 		for poly in self.__polygon_list:
@@ -89,14 +86,13 @@ class Board:
   
   
   
-	def draw_index(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-    		->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+	def draw_index(self, image: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: draw the polygon index
 		ARGUMENTS: 
-			- image (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image to edit
+			- image (np.ndarray[int, np.uint8]): image to edit
 		RETURN:
-			- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resuting image
+			- (np.ndarray[int, np.uint8]): resuting image
 		'''	
      		
 		for index, poly in enumerate(self.__polygon_list):
@@ -107,13 +103,13 @@ class Board:
   
   
 
-	def draw_stuff(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) ->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+	def draw_stuff(self, image: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: apply all the drawing function
 		ARGUMENTS: 
-			- image (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image to edit
+			- image (np.ndarray[int, np.uint8]): image to edit
 		RETURN:
-			- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resuting image
+			- (np.ndarray[int, np.uint8]): resuting image
 		'''	
   
 		return self.draw_index(self.draw_green_cross_and_blu_rectangle(self.draw_red_polygon(image)))
@@ -121,12 +117,12 @@ class Board:
   
 
 
-	def find_interesting_points(self, thresh: np.ndarray[np.uint8], imgray: np.ndarray[np.uint8]) -> None:
+	def find_interesting_points(self, thresh: np.ndarray[int, np.uint8], imgray: np.ndarray[int, np.uint8]) -> None:
 		'''
 		PURPOSE: find bood features to track during the frame sequence
 		ARGUMENTS: 
-			- thresh (np.ndarray[np.uint8]): threshold resut
-			- imgray np.ndarray[np.uint8]): gray image
+			- thresh (np.ndarray[int, np.uint8]): threshold resut
+			- imgray (np.ndarray[int, np.uint8]): gray image
 		RETURN: None
 		'''	
 
@@ -155,12 +151,12 @@ class Board:
 
 
 
-	def get_clockwise_vertices_initial(self) -> np.ndarray[np.ndarray[np.ndarray[np.float32]]]:
+	def get_clockwise_vertices_initial(self) -> np.ndarray[int, np.float32]:
 		'''
 		PURPOSE: reshape the obtained features, sort them in clockwise order and remove the last polygon by area
 		ARGUMENTS: None
 		RETURN:
-  			- (np.ndarray[np.ndarray[np.ndarray[np.float32]]]): sorted vertices polygon
+  			- (np.ndarray[int, np.float32]): sorted vertices polygon
 		'''	
      
 		self.__tracked_features = sort_vertices_clockwise(self.__tracked_features, self.__centroid)
@@ -177,12 +173,12 @@ class Board:
 
 
 
-	def apply_LK_OF(self, prev_frameg: np.ndarray[np.uint8], frameg: np.ndarray[np.uint8], winsize_lk: Tuple[int, int]) -> None: 
+	def apply_LK_OF(self, prev_frameg: np.ndarray[int, np.uint8], frameg: np.ndarray[int, np.uint8], winsize_lk: Tuple[int, int]) -> None: 
 		'''
 		PURPOSE: remove the polygon that are convex, order clockwie and remove the alst polygon by area
 		ARGUMENTS: 
-			- prev_frameg (np.ndarray[np.uint8]): previous gray frame
-			- frameg (np.ndarray[np.uint8]): actual gray frame
+			- prev_frameg (np.ndarray[int, np.uint8]): previous gray frame
+			- frameg (np.ndarray[int, np.uint8]): actual gray frame
 			- winsize_lk (Tuple[int, int]): window size
 		RETURN: None
 		'''	
@@ -196,11 +192,11 @@ class Board:
 					
 
 
-	def covered_polygon(self, polygons: np.ndarray[np.int32]) -> None:
+	def covered_polygon(self, polygons: np.ndarray[int, np.int32]) -> None:
 		'''
 		PURPOSE: apply all the drawing function
 		ARGUMENTS: 
-			- polygons (np.ndarray[np.int32]): array of index that express the covered polygons
+			- polygons (np.ndarray[int, np.int32]): array of index that express the covered polygons
 		RETURN: None
 		'''	
      
@@ -208,16 +204,16 @@ class Board:
   
   
   
-	def compute_markers(self, thresh: np.ndarray[np.uint8], reshaped_clockwise: np.ndarray[np.ndarray[np.ndarray[np.float32]]], \
-	     		marker_reference: Dict[int, Tuple[int, int, int]]):
+	def compute_markers(self, thresh: np.ndarray[int, np.uint8], reshaped_clockwise: np.ndarray[int, np.float32], \
+	     		marker_reference: Dict[int, Tuple[int, int, int]]) -> np.ndarray[int, np.flaot32]:
 		'''
 		PURPOSE: remove the polygon that are convex, order clockwie and remove the alst polygon by area
 		ARGUMENTS:
-			- thresh (np.ndarray[np.uint8]):  threshold image
-			- reshaped_clockwise (np.ndarray[np.ndarray[np.ndarray[np.float32]]])
+			- thresh (np.ndarray[int, np.uint8]):  threshold image
+			- reshaped_clockwise (np.ndarray[int, np.float32]) feature reshaped in clockwise order
 			- marker_reference (Dict[int, Tuple[int, int, int]])): dictionary of the marker reference coordinates
 		RETURN:
-			- pixel_info (np.ndarray[np.flaot32]): lis of dictionary containing the information to save in the .csv file
+			- pixel_info (np.ndarray[int, np.flaot32]): lis of dictionary containing the information to save in the .csv file
 		'''	
 	     
 		pixel_info = np.zeros((0,6), dtype=np.float32)
@@ -265,14 +261,14 @@ class Board:
 
 
 
-	def draw_origin(self, img: npt.NDArray[np.uint8], imgpts: npt.NDArray[np.int32]) -> npt.NDArray[np.uint8]:
+	def draw_origin(self, img: np.ndarray[int, np.uint8], imgpts: np.ndarray[int, np.int32]) -> np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: draw the origin with the axis
 		ARGUMENTS:
-			- img (np.NDArray[np.uint8]): image to modify
-			- imgpts (np.NDArray[np.int32]): image points
+			- img (np.ndarray[int, np.uint8]): image to modify
+			- imgpts (np.ndarray[int, np.int32]): image points
 		RETURN:
-			- (np.NDArray[np.uint8]): modified frame
+			- (np.ndarray[int, np.uint8]): modified frame
 		'''	
 
 		cv.arrowedLine(img, self.__centroid, tuple(imgpts[0].ravel()), (255,0,0), 4, cv.LINE_AA)
@@ -288,14 +284,14 @@ class Board:
 
 
 
-	def draw_cube(self, img: npt.NDArray[np.uint8], imgpts: npt.NDArray[np.int32]) -> npt.NDArray[np.uint8]:
+	def draw_cube(self, img: np.ndarray[int, np.uint8], imgpts: np.ndarray[int, np.int32]) -> np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: draw a red cube that inglobe the object
 		ARGUMENTS:
-			- img (np.NDArray[np.uint8]): image to modify
-			- imgpts (np.NDArray[np.int32]): image points
+			- img (np.ndarray[int, np.uint8]): image to modify
+			- imgpts (np.ndarray[int, np.int32]): image points
 		RETURN:
-			- (np.NDArray[np.uint8]): modified frame
+			- (np.ndarray[int, np.uint8]): modified frame
 		'''	
 		
 		imgpts = np.int32(imgpts).reshape(-1,2)

@@ -1,10 +1,8 @@
-import csv
 import math
 from types import NoneType
 import cv2 as cv
 import numpy as np
 import random
-import numpy.typing as npt
 
 from typing import Dict, List, Tuple
 
@@ -36,46 +34,18 @@ def set_marker_reference_coords() -> Dict[int, Tuple[int, int, int]]:
 		)
 	
 	return marker_reference_coords
-  
-  
-
-
-def save_stats(obj_id: str, dict_stats: List[Dict[int, Tuple[int, int, int]]]) -> None:
-	'''
-	PURPOSE: save as .csv file the list dictionaries
-	ARGUMENTS: 
-		- obj_id (str): name of the object that we are studing
-		- dict_stats (List[Dict[int, Tuple[int, int, int]]]): list of dictionaries to save
-	RETURN: None
-	'''
-
-	fields = ['frame', 'mark_id', 'Px', 'Py', 'X', 'Y', 'Z'] 
-	
-	# Name of csv file 
-	filename = f'../../output_part2/{obj_id}/{obj_id}_marker.csv'
-		
-	# Writing to csv file 
-	with open(filename, 'w') as csvfile: 
-		# Creating a csv dict writer object 
-		writer = csv.DictWriter(csvfile, fieldnames = fields) 
-			
-		# Writing headers (field names) 
-		writer.writeheader() 
-			
-		# Writing data rows 
-		writer.writerows(dict_stats) 
-	
 
 
 
-def find_middle_point(Ep1: np.ndarray[np.int32], Ep2: np.ndarray[np.int32]) -> np.ndarray[np.float32]:
+
+def find_middle_point(Ep1: np.ndarray[int, np.int32], Ep2: np.ndarray[int, np.int32]) -> np.ndarray[int, np.float32]:
 	'''
 	PURPOSE: find the middle point between two points
 	ARGUMENTS: 
-		- Ep1 (np.ndarray[np.int32]): X and Y coordinates of the first extrame point
-		- Ep2 (np.ndarray[np.int32]): X and Y coordinates of the second extreme point
+		- Ep1 (np.ndarray[int, np.int32]): X and Y coordinates of the first extrame point
+		- Ep2 (np.ndarray[int, np.int32]): X and Y coordinates of the second extreme point
 	RETURN:
-		- (np.ndarray[np.float32]): X and Y coordiantes of the middle point
+		- (np.ndarray[int, np.float32]): X and Y coordiantes of the middle point
 	'''
 
 	return np.array([(Ep1[0] + Ep2[0]) / 2, (Ep1[1] + Ep2[1]) / 2])
@@ -83,12 +53,12 @@ def find_middle_point(Ep1: np.ndarray[np.int32], Ep2: np.ndarray[np.int32]) -> n
 
 
 
-def find_distance_between_points(p1: np.ndarray[np.int32], p2: np.ndarray[np.int32]) -> np.float64:
+def find_distance_between_points(p1: np.ndarray[int, np.int32], p2: np.ndarray[int, np.int32]) -> np.float64:
 	'''
 	PURPOSE: find the middle point between two points
 	ARGUMENTS: 
-		- p1 (np.ndarray[np.int32]): X and Y coordinates of the first point
-		- p2 (np.ndarray[np.int32]): X and Y coordinates of the second point
+		- p1 (np.ndarray[int, np.int32]): X and Y coordinates of the first point
+		- p2 (np.ndarray[int, np.int32]): X and Y coordinates of the second point
 	RETURN:
 		- (np.float64): float distance between the two points
 	'''
@@ -99,14 +69,14 @@ def find_distance_between_points(p1: np.ndarray[np.int32], p2: np.ndarray[np.int
 
 
 def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid: np.float64,
-								   middle_point: np.ndarray[np.float64], A: np.ndarray[np.int32]) -> List[Tuple[np.float64, np.float64]]:
+								   middle_point: np.ndarray[int, np.float64], A: np.ndarray[int, np.int32]) -> List[Tuple[np.float64, np.float64]]:
 	'''
 	PURPOSE: find the coordinates of the 5 circles centre
 	ARGUMENTS: 
 		- dist_A_Cir_Ctr (List[np.float64]): list of distance between the point A and each circle center
 		- dist_A_Ext_Mid (np.float64): distance between the point A and the point between the two extreme points of a polygon
-		- middle_point (np.ndarray[np.float64]): X and Y cordinates of the middle point between the two extreme points
-		- A (np.ndarray[np.int32]): X and Y cordinates of the A point of a polygon
+		- middle_point (np.ndarray[int, np.float64]): X and Y cordinates of the middle point between the two extreme points
+		- A (np.ndarray[int, np.int32]): X and Y cordinates of the A point of a polygon
 	RETURN:
 		- circles_ctr_coords (List[Tuple[np.float64, np.float64]]): list of coordinates of each circle centre
 	'''
@@ -132,14 +102,14 @@ def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid:
 
 
 
-def compute_index_and_cc_coords(A: np.ndarray[np.int32], middle_point: np.ndarray[np.float64],
-								thresh: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) -> Tuple[int, List[Tuple[np.float64, np.float64]]]:
+def compute_index_and_cc_coords(A: np.ndarray[int, np.int32], middle_point: np.ndarray[int, np.float64],
+								thresh: np.ndarray[int, np.uint8]) -> Tuple[int, List[Tuple[np.float64, np.float64]]]:
 	'''
 	PURPOSE: computing the polygon index and the circles centre coordinates of a polygon
 	ARGUMENTS: 
-		- A (np.ndarray[np.int32]): X and Y cordinates of the A point of a polygon
-		- middle_point (np.ndarray[np.float64]): X and Y cordinates of the middle point between the two extreme points
-		- thresh (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): thresholded image
+		- A (np.ndarray[int, np.int32]): X and Y cordinates of the A point of a polygon
+		- middle_point (np.ndarray[int, np.float64]): X and Y cordinates of the middle point between the two extreme points
+		- thresh (np.ndarray[int, np.uint8]): thresholded image
 	RETURN:
 		- index (int): index of the polygon
 		- circles_ctr_coords (List[Tuple[np.float64, np.float64]]): list of coordinates of each circle centre
@@ -165,15 +135,15 @@ def compute_index_and_cc_coords(A: np.ndarray[np.int32], middle_point: np.ndarra
 
 
 
-def sort_vertices_clockwise(vertices: np.ndarray[np.float32] | np.ndarray[np.ndarray[np.ndarray[np.float32]]], centroid: NoneType | np.ndarray[np.int32] = None) \
-		-> np.ndarray[np.float32] | np.ndarray[np.ndarray[np.ndarray[np.float32]]]:
+def sort_vertices_clockwise(vertices: np.ndarray[int, np.float32], centroid: NoneType | np.ndarray[int, np.int32] = None) \
+		-> np.ndarray[int, np.float32] :
 	'''
 	PURPOSE: sort vertices clockwise respect a centroid 
 	ARGUMENTS: 
-		- vertices (np.ndarray[np.float32] | np.ndarray[np.ndarray[np.ndarray[np.float32]]]): numpy array of vertices to sort
+		- vertices (np.ndarray[int, np.float32]): numpy array of vertices to sort
 		- centroid (NoneType | np.ndarray[np.int32]): X and Y cordinates of the centroid
 	RETURN:
-		- (np.ndarray[np.float32] | np.ndarray[np.ndarray[np.ndarray[np.float32]]]) sorted vertices
+		- (np.ndarray[int, np.float32]) sorted vertices
 	'''	
 	
 	if centroid is None:
@@ -203,15 +173,14 @@ def random_bgr_color() -> Tuple[int, int, int]:
 
 
 
-def resize_for_laptop(using_laptop: bool, frame: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-	-> np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+def resize_for_laptop(using_laptop: bool, frame: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 	'''
 	PURPOSE: resize the image if using_laptop is True
 	ARGUMENTS:
 		- using_laptop (bool)
-		- frame (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): frame to resize
+		- frame (np.ndarray[int, np.uint8]): frame to resize
 	RETURN:
-		- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resized frmae
+		- (np.ndarray[int, np.uint8]): resized frmae
 	'''	
 				
 	if using_laptop:
@@ -221,13 +190,13 @@ def resize_for_laptop(using_laptop: bool, frame: np.ndarray[np.ndarray[np.ndarra
 
 
 
-def write_ply_file(obj_id: str, voxels_cube_coords: npt.NDArray[np.float32], voxel_cube_faces: npt.NDArray[np.float32]) -> None:
+def write_ply_file(obj_id: str, voxels_cube_coords: np.ndarray[int, np.float32], voxel_cube_faces: np.ndarray[int, np.float32]) -> None:
 	'''
 	PURPOSE: resize the image if using_laptop is True
 	ARGUMENTS:
 		- obj_id (str)
-		- voxels_cube_coords (np.NDArray[np.float32]): array of voxels cube coordinates
-		- voxel_cube_faces (np.NDArray[np.float32]): array of voxels faces
+		- voxels_cube_coords (np.ndarray[int, np.float32]): array of voxels cube coordinates
+		- voxel_cube_faces (np.ndarray[int, np.float32]): array of voxels faces
 	RETURN: None
 	'''	
 
