@@ -22,8 +22,7 @@ class VoxelsCube:
 											[half_axis_len, half_axis_len, 70 + half_axis_len * 2],[half_axis_len, -half_axis_len, 70 + half_axis_len * 2]
 										])
 		self.__center_voxels, self.__cube_coords_centroid = self.get_cube_and_centroids_voxels()
-		#self.__binary_centroid_fore_back = np.ones((np.power(self.__center_voxels.shape[0], 3), 1), dtype=np.int32)
-		self.__binary_centroid_fore_back = np.zeros((np.power(self.__center_voxels.shape[0], 3), 1), dtype=np.int32)
+		self.__binary_centroid_fore_back = np.ones((np.power(self.__center_voxels.shape[0], 3), 1), dtype=np.int32)
   
 	
 	
@@ -132,10 +131,9 @@ class VoxelsCube:
 
 		for idx, centr_coords in enumerate(self.__imgpts_cubes_centroid):
 			if centr_coords[0] < undistorted_resolution[1] and centr_coords[1] < undistorted_resolution[0] and \
-					centr_coords[0] >= 0  and centr_coords[1] >= 0 and undist_b_f_image[int(centr_coords[1]), int(centr_coords[0])] == 255:
-				self.__binary_centroid_fore_back[idx] = 1 #0
-				#cv.circle(undist, (int(centr_coords[0]), int(centr_coords[1])), 1, (255,255,255), -1)
-			else: cv.circle(undist, (int(centr_coords[0]), int(centr_coords[1])), 1, (255,255,255), -1)
+					centr_coords[0] >= 0  and centr_coords[1] >= 0 and undist_b_f_image[int(centr_coords[1]), int(centr_coords[0])] == 0:
+				self.__binary_centroid_fore_back[idx] = 0
+				cv.circle(undist, (int(centr_coords[0]), int(centr_coords[1])), 1, (255,255,255), -1)
 
 		return undist
 
