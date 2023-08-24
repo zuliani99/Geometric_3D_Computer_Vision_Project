@@ -13,10 +13,12 @@ zeroZone_sub = (-1, -1)
 criteria_sub = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 100, 0.001)
 
 
-# se the Lucas Kanade parameters
+# Set the Lucas Kanade parameters
 criteria_lk = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 100, 0.01)
 maxlevel_lk = 4
 
+
+# Board class to manage the board information
 
 class Board:
     
@@ -28,22 +30,28 @@ class Board:
 
 
 
-	def set_centroid(self, centroid):
-		if self.centroid is None: self.centroid = centroid
-  
+	def set_centroid(self, centroid: np.ndarray[int, np.int32]) -> None:
+		'''
+		PURPOSE: update the centroid value
+		ARGUMENTS: 
+			- centroid (np.ndarray[int, np.int32]): new centroid value
+		RETURN: None
+		'''	
+		
+		if self.__centroid is None: self.__centroid = centroid
   
   	
    
-	def draw_red_polygon(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-    		->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+	def draw_red_polygon(self, image: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: draw the red polygon, the cross in point A and the line crossing the polygon by length
 		ARGUMENTS: 
-			- image (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image to edit
+			- image (np.ndarray[int, np.uint8]): image to edit
 		RETURN:
-			- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resuting image
+			- (np.ndarray[int, np.uint8]): resuting image
 		'''	
-		for poly in self.polygon_list:
+  
+		for poly in self.__polygon_list:
 			if poly.cover == False:
 				cv.drawContours(image, [np.int32(poly.vertex_coords)], 0, (0, 0, 255), 1, cv.LINE_AA)
 
@@ -53,26 +61,23 @@ class Board:
 				
 				for x, y in poly.vertex_coords:
 					cv.circle(image, (int(x), int(y)), 4, poly.color, -1)
-					cv.line(image, (int(x), int(y)), self.centroid, poly.color, 1, cv.LINE_AA)
+					cv.line(image, (int(x), int(y)), self.__centroid, poly.color, 1, cv.LINE_AA)
      
-		cv.drawMarker(image, self.centroid, color=(255,255,255), markerType=cv.MARKER_CROSS, thickness=2)
-
 		return image
             
             
        
             
-	def draw_green_cross_and_blu_rectangle(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-    		->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+	def draw_green_cross_and_blu_rectangle(self, image: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: draw a green cross and a blu rectangle in each circe centre 
 		ARGUMENTS: 
-			- image (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image to edit
+			- image (np.ndarray[int, np.uint8]): image to edit
 		RETURN:
-			- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resuting image
+			- (np.ndarray[int, np.uint8]): resuting image
 		'''	
         
-		for poly in self.polygon_list:
+		for poly in self.__polygon_list:
 			if poly.cover == False:
 				for idx, coords in enumerate(reversed(poly.circles_ctr_coords), start=1): 
 					start = np.int32(coords[1])
@@ -80,22 +85,21 @@ class Board:
 					cv.drawMarker(image, (start, end), (0,255,0), cv.MARKER_CROSS, 10 * idx, 1, cv.LINE_AA)
 					cv.drawMarker(image, (start, end), (255,0,0), cv.MARKER_SQUARE, 10, 1, cv.LINE_AA)
 					
-		return image		
+		return image	
   
   
   
   
-	def draw_index(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-    		->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+	def draw_index(self, image: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: draw the polygon index
 		ARGUMENTS: 
-			- image (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image to edit
+			- image (np.ndarray[int, np.uint8]): image to edit
 		RETURN:
-			- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resuting image
+			- (np.ndarray[int, np.uint8]): resuting image
 		'''	
      		
-		for index, poly in enumerate(self.polygon_list):
+		for index, poly in enumerate(self.__polygon_list):
 			if poly.cover == False:
 				cv.putText(image, str(index), np.int32(poly.point_A), cv.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 8, cv.LINE_AA)
 				cv.putText(image, str(index), np.int32(poly.point_A), cv.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv.LINE_AA)
@@ -104,41 +108,39 @@ class Board:
 
 
 
-	def draw_stuff(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) ->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+	def draw_stuff(self, image: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: apply all the drawing function
 		ARGUMENTS: 
-			- image (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image to edit
+			- image (np.ndarray[int, np.uint8]): image to edit
 		RETURN:
-			- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resuting image
+			- (np.ndarray[int, np.uint8]): resuting image
 		'''	
   
 		return self.draw_index(self.draw_green_cross_and_blu_rectangle(self.draw_red_polygon(image)))
 
 
 
-
-	def find_interesting_points(self, thresh: np.ndarray[np.uint8], imgray: np.ndarray[np.uint8]) -> None:
+	def find_interesting_points(self, thresh: np.ndarray[int, np.uint8], imgray: np.ndarray[int, np.uint8]) -> None:
 		'''
-		PURPOSE: find bood features to track during the frame sequence
+		PURPOSE: find good features to track
 		ARGUMENTS: 
-			- thresh (np.ndarray[np.uint8]): threshold resut
-			- imgray np.ndarray[np.uint8]): gray image
-			- mask np.ndarray[np.uint8]) mask to edit
+			- thresh (np.ndarray[int, np.uint8]): threshold resut
+			- imgray (np.ndarray[int, np.uint8]): gray image
 		RETURN: None
 		'''	
 
-		# Recompute the features
+		# Reset the tracked features
 		self.tracked_features = np.zeros((0,2), dtype=np.float32)
 		
-		# Consider only the board exluding all the object area that could be included erroneously
+		# Consider only the board exluding the area that could introduce some noise in the process
 		mask_thresh = np.zeros_like(thresh, dtype=np.uint8)
 		mask_thresh[:, 1140:1570] = thresh[:, 1140:1570]
 
 		# Finding the contourns
 		contours, _ = cv.findContours(mask_thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE) # [[[X Y]] [[X Y]] ... [[X Y]]]
 	
-		# Searching through every region selected to find the required polygon.
+		# Searching through every region selected to find the required polygon
 		for cnt in contours:
 			
 			# Shortlisting the regions based on there area
@@ -146,7 +148,7 @@ class Board:
 
 				approx_cnt = cv.approxPolyDP(cnt, 0.015 * cv.arcLength(cnt, True), True) # [[[X Y]] [[X Y]] ... [[X Y]]]
 				
-				# Checking if the number of sides of the selected region is 5.
+				# Checking if the number of sides of the selected region is 5
 				if (len(approx_cnt)) == 5:
 					ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(approx_cnt), winSize_sub, zeroZone_sub, criteria_sub)
 					self.tracked_features = np.vstack((self.tracked_features, np.squeeze(ref_approx_cnt)))
@@ -154,21 +156,21 @@ class Board:
      
      
      
-	def get_clockwise_vertices_initial(self) -> np.ndarray[np.ndarray[np.ndarray[np.float32]]]:
+	def get_clockwise_vertices_initial(self) -> np.ndarray[int, np.float32]:
 		'''
 		PURPOSE: reshape the obtained features, sort them in clockwise order and remove the last polygon by area
 		ARGUMENTS: None
 		RETURN:
-  			- (np.ndarray[np.ndarray[np.ndarray[np.float32]]]): sorted vertices polygon
+  			- (np.ndarray[int, np.float32]): sorted vertices polygon
 		'''	
      
-		self.tracked_features = sort_vertices_clockwise(self.tracked_features, self.centroid)
+		self.__tracked_features = sort_vertices_clockwise(self.__tracked_features, self.__centroid)
 		
-		self.tracked_features = self.tracked_features[:int(self.tracked_features.shape[0] // 5) * 5, :]
+		self.__tracked_features = self.__tracked_features[:int(self.__tracked_features.shape[0] // 5) * 5, :]
 			
-		reshaped_clockwise = np.reshape(self.tracked_features, (int(self.tracked_features.shape[0] // 5), 5, 2))
+		reshaped_clockwise = np.reshape(self.__tracked_features, (int(self.__tracked_features.shape[0] // 5), 5, 2))
   
-		# I have to sort clockwise the alst polygon in order to compute correctly the contourArea
+		# I have to sort clockwise the last polygon in order to compute correctly the contourArea
 		if(cv.contourArea(sort_vertices_clockwise(reshaped_clockwise[-1,:,:])) <= 1500.0):
 			reshaped_clockwise = reshaped_clockwise[:reshaped_clockwise.shape[0] - 1, :, :]
 		
@@ -177,52 +179,53 @@ class Board:
 
 
 
-	def apply_LK_OF(self, prev_frameg: np.ndarray[np.uint8], frameg: np.ndarray[np.uint8], winsize_lk: Tuple[int, int]) -> None: 
+	def apply_LK_OF(self, prev_frameg: np.ndarray[int, np.uint8], frameg: np.ndarray[int, np.uint8], winsize_lk: Tuple[int, int]) -> None: 
 		'''
-		PURPOSE: remove the polygon that are convex, order clockwie and remove the alst polygon by area
+		PURPOSE: apply Lucas Kanade Optical Flow to predict the position of the features based on its algorithm parameters
 		ARGUMENTS: 
-			- prev_frameg (np.ndarray[np.uint8]): previous gray frame
-			- frameg (np.ndarray[np.uint8]): actual gray frame
+			- prev_frameg (np.ndarray[int, np.uint8]): previous gray frame
+			- frameg (np.ndarray[int, np.uint8]): actual gray frame
 			- winsize_lk (Tuple[int, int]): window size
 		RETURN: None
 		'''	
      
 		# Forward Optical Flow
-		p1, st, _ = cv.calcOpticalFlowPyrLK(prev_frameg, frameg, self.tracked_features, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)#, flags=cv.OPTFLOW_LK_GET_MIN_EIGENVALS, minEigThreshold=0.01)
+		p1, st, _ = cv.calcOpticalFlowPyrLK(prev_frameg, frameg, self.__tracked_features, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)#, flags=cv.OPTFLOW_LK_GET_MIN_EIGENVALS, minEigThreshold=0.01)
 		
 		fb_good = p1[np.where(st == 1)[0]]
   
-		self.tracked_features = fb_good
+		self.__tracked_features = fb_good
 
 
 					
 
-	def covered_polygon(self, polygons: np.ndarray[np.int32]) -> None:
+	def covered_polygon(self, polygons: np.ndarray[int, np.int32]) -> None:
 		'''
-		PURPOSE: apply all the drawing function
+		PURPOSE: set the polygon attribute cover to True for the polygons that are behind the glass
 		ARGUMENTS: 
-			- polygons (np.ndarray[np.int32]): array of index that express the covered polygons
+			- polygons (np.ndarray[int, np.int32]): array of index that express the covered polygons
 		RETURN: None
 		'''	
      
-		for id_poly in polygons: self.polygon_list[id_poly].cover = True
+		for id_poly in polygons: self.__polygon_list[id_poly].cover = True
   
 
   
   
-	def compute_markers(self, thresh: np.ndarray[np.uint8], reshaped_clockwise: np.ndarray[np.ndarray[np.ndarray[np.float32]]], \
+	def compute_markers(self, thresh: np.ndarray[int, np.uint8], reshaped_clockwise: np.ndarray[int, np.float32], \
      		actual_fps: int, marker_reference: Dict[int, Tuple[int, int, int]]):
 		'''
 		PURPOSE: remove the polygon that are convex, order clockwie and remove the alst polygon by area
 		ARGUMENTS:
-			- thresh (np.ndarray[np.uint8]):  threshold image
-			- reshaped_clockwise (np.ndarray[np.ndarray[np.ndarray[np.float32]]])
-			- actual_fps (int): index frmae 
+			- thresh (np.ndarray[int, np.uint8]):  threshold image
+			- reshaped_clockwise (np.ndarray[int, np.float32]): reshaped features in clockwise order
+			- actual_fps (int): index frame 
 			- marker_reference (Dict[int, Tuple[int, int, int]])): dictionary of the marker reference coordinates
 		RETURN:
 			- dict_stats_to_return (List[Dict[int, int, np.float64, np.float64, int, int, int]]): lis of dictionary containing the information to save in the .csv file
 		'''	
-     
+
+		# Dictionary to store all the markers informations
 		dict_stats_to_return = []		
   
 		# np.array of ones in which at the end of the computation will store only the covered polygons
@@ -249,7 +252,7 @@ class Board:
 
 			# Get the coordinate of the point A by getting the missing index
 			A = np.squeeze(poly[np.squeeze(np.setdiff1d(np.arange(5), hull))])
-			#print(A.shape, A)
+
 			if(len(A.shape) == 1):
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
 

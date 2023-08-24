@@ -1,6 +1,7 @@
 from utils import random_bgr_color
 
-# Polygon calss that store useful information
+# Polygon class that store useful information for later use
+
 
 class Polygon:
 	def __init__(self) -> None:

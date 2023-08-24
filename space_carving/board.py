@@ -14,7 +14,7 @@ zeroZone_sub = (-1, -1)
 criteria_sub = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 100, 0.001)
 
 
-# se the Lucas Kanade parameters
+# Set the Lucas Kanade parameters
 criteria_lk = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 100, 0.01)
 maxlevel_lk = 4
 
@@ -84,7 +84,7 @@ class Board:
 					cv.drawMarker(image, (start, end), (0,255,0), cv.MARKER_CROSS, 10 * idx, 1, cv.LINE_AA)
 					cv.drawMarker(image, (start, end), (255,0,0), cv.MARKER_SQUARE, 10, 1, cv.LINE_AA)
 					
-		return image		
+		return image
   
   
   
@@ -153,6 +153,7 @@ class Board:
 
 
 
+
 	def get_clockwise_vertices_initial(self) -> np.ndarray[int, np.float32]:
 		'''
 		PURPOSE: reshape the obtained features, sort them in clockwise order and remove the last polygon by area
@@ -175,6 +176,7 @@ class Board:
 
 
 
+
 	def apply_LK_OF(self, prev_frameg: np.ndarray[int, np.uint8], frameg: np.ndarray[int, np.uint8], winsize_lk: Tuple[int, int]) -> None: 
 		'''
 		PURPOSE: apply Lucas Kanade Optical Flow to predict the position of the features based on its algorithm parameters
@@ -194,6 +196,7 @@ class Board:
 					
 
 
+
 	def covered_polygon(self, polygons: np.ndarray[int, np.int32]) -> None:
 		'''
 		PURPOSE: set the polygon attribute cover to True for the polygons that are behind the glass
@@ -203,6 +206,7 @@ class Board:
 		'''	
      
 		for id_poly in polygons: self.__polygon_list[id_poly].cover = True
+  
   
   
   
@@ -265,6 +269,7 @@ class Board:
 
 
 
+
 	def draw_origin(self, img: np.ndarray[int, np.uint8], imgpts: np.ndarray[int, np.int32]) -> np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: draw the origin with the axis
@@ -285,32 +290,5 @@ class Board:
 		cv.putText(img, 'Z', tuple(imgpts[2].ravel()), cv.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 2, cv.LINE_AA)
 
 		return img
-
-
-
-	def draw_cube(self, img: np.ndarray[int, np.uint8], imgpts: np.ndarray[int, np.int32]) -> np.ndarray[int, np.uint8]:
-		'''
-		PURPOSE: draw a red cube that inglobe the object
-		ARGUMENTS:
-			- img (np.ndarray[int, np.uint8]): image to modify
-			- imgpts (np.ndarray[int, np.int32]): image points
-		RETURN:
-			- (np.ndarray[int, np.uint8]): modified frame
-		'''	
-		
-		imgpts = np.int32(imgpts).reshape(-1,2)
-
-		# draw ground floor in green
-		cv.drawContours(img, [imgpts[:4]], -1, (0,0,255), 3, cv.LINE_AA)
-
-		# draw pillars in blue color
-		for i,j in zip(range(4), range(4,8)):
-			cv.line(img, tuple(imgpts[i]), tuple(imgpts[j]), (0,0,255), 3, cv.LINE_AA)
-
-		# draw top layer in red color
-		cv.drawContours(img, [imgpts[4:]], -1, (0,0,255), 3)
-
-		return img
-
 
 	

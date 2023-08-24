@@ -1,9 +1,11 @@
 
+import argparse
 from typing import Tuple
 import cv2 as cv
 import numpy as np
 import time
 import copy
+import os
 
 
 # Objects Morphological Operations Hyperparameters
@@ -37,15 +39,30 @@ hyperparameters = {
 }
 
 
-def change_contrast(img: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], clipLimit: int) \
-    	-> np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+def resize_for_laptop(using_laptop: bool, frame: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
+	'''
+	PURPOSE: resize the image if using_laptop is True
+	ARGUMENTS:
+		- using_laptop (bool)
+		- frame (np.ndarray[int, np.uint8]): frame to resize
+	RETURN:
+		- (np.ndarray[int, np.uint8]): resized frmae
+	'''	
+				
+	if using_laptop:
+		frame = cv.resize(frame, (1080, 600), interpolation=cv.INTER_AREA)
+	return frame
+
+
+
+def change_contrast(img: np.ndarray[int, np.uint8], clipLimit: int) -> np.ndarray[int, np.uint8]:
 	'''
 	PURPOSE: change the contrast of the image 
 	ARGUMENTS:
-		- img (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image where apply the contrast changing
+		- img (np.ndarray[int, np.uint8]): image where apply the contrast changing
 		- clipLimit
 	RETURN:
-		- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) updated image
+		- (np.ndarray[int, np.uint8]) updated image
 	'''
     
 	lab = cv.cvtColor(img, cv.COLOR_RGB2LAB)
@@ -63,15 +80,15 @@ def change_contrast(img: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], clipLimit
 
 
 
-def apply_foreground_background(mask: np.ndarray[np.ndarray[np.uint8]], img: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-    	-> np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+
+def apply_foreground_background(mask: np.ndarray[int, np.uint8], img: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
     '''
 	PURPOSE: apply the foreground and background segmentation
 	ARGUMENTS:
-		- mask (np.ndarray[np.ndarray[np.uint8]])
-		- img (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]]): image where apply the segmentation 
+		- mask (np.ndarray[int, np.uint8])
+		- img (np.ndarray[int, np.uint8]): image where apply the segmentation 
 	RETURN:
-		- segmented (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]]): black and white segmented image
+		- segmented (np.ndarray[int, np.uint8]): black and white segmented image
 	'''
     
     segmented = img
@@ -86,19 +103,18 @@ def apply_foreground_background(mask: np.ndarray[np.ndarray[np.uint8]], img: np.
     
 
 
-def apply_segmentation(obj: str, frame: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-    	-> Tuple[np.ndarray[np.ndarray[np.uint8]], np.ndarray[np.ndarray[np.ndarray[np.uint8]]]]:
+def apply_segmentation(obj: str, frame: np.ndarray[int, np.uint8]) -> Tuple[np.ndarray[int, np.uint8], np.ndarray[int, np.uint8]]:
 	'''
 	PURPOSE: apply the segmentation with all the color conversions and morphological operations
 	ARGUMENTS:
 		- obj (str): object name string
-		- frame (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image video frame
+		- frame (np.ndarray[int, np.uint8]): image video frame
 	RETURN:
-		- morph_op_2 (np.ndarray[np.ndarray[np.uint8]]): final mask
-		- apply_foreground_background return (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]])
+		- morph_op_2 (np.ndarray[int, np.uint8]): final mask
+		- apply_foreground_background return (np.ndarray[int, np.uint8])
 	'''
  
-    # Convert the imahe into RGB format
+    # Convert the image into RGB format
 	rgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
  
 	# Change the image contast and confvert it into HSV format
@@ -141,12 +157,18 @@ def apply_segmentation(obj: str, frame: np.ndarray[np.ndarray[np.ndarray[np.uint
 
 
 
-def main() -> None:
+def main(using_laptop: bool) -> None:
 	'''
-	PURPOSE: main function
-	ARGUMENTS: None
+	PURPOSE: function that start the whole computation
+	ARGUMENTS:
+		- using_laptop (bool): boolean variable to indicate the usage of a laptop or not
 	RETURN: None
 	'''
+ 
+	# Check if the user run the camera calibration program before
+	if not os.path.exists('../../space_carving/calibration_info/cameraMatrix.npy') or not os.path.exists('../../space_carving/calibration_info/dist.npy'):
+		print('Please, before running the project, execute the camera calibration program to obtatain the camera extrinsic parameters.')
+		return
 
 	camera_matrix = np.load('../space_carving/calibration_info/cameraMatrix.npy')
 	dist = np.load('../space_carving/calibration_info/dist.npy')
@@ -154,13 +176,20 @@ def main() -> None:
 	for obj in list(hyperparameters.keys()):
 		print(f'Segmentation of {obj} video...')		
   
+		obj_id = obj.split('.')[0]
+  
+		# Create the VideoCapture object
 		input_video = cv.VideoCapture(f"../data/{obj}")
+  
+  		# Create output video writer
+		output_video = None
 
 		# Get video properties
 		frame_width = int(input_video.get(cv.CAP_PROP_FRAME_WIDTH))
 		frame_height = int(input_video.get(cv.CAP_PROP_FRAME_HEIGHT))
 		fps = input_video.get(cv.CAP_PROP_FPS)
 
+		# Get the new camera matrix
 		newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(camera_matrix, dist, (frame_width, frame_height), 1, (frame_width, frame_height))
 
 		while True:
@@ -171,9 +200,15 @@ def main() -> None:
 
 			if not ret:	break
 
+			# Get the undistorted frame
 			frame = cv.undistort(frame, camera_matrix, dist, None, newCameraMatrix)	
 			x, y, w, h = roi
 			frame = frame[y:y+h, x:x+w]
+   
+			# Update the output_video and the centroid
+			if output_video is None:
+				frame_width, frame_height = frame.shape[1], frame.shape[0] 
+				output_video = cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
 
 			# Apply the segmentation
 			resulting_mask, segmented_frame = apply_segmentation(obj, frame)
@@ -190,9 +225,16 @@ def main() -> None:
 			contours_obj, _ = cv.findContours(resulting_mask, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 			cv.drawContours(frame, contours_obj, -1, (0,255,0), 3)
    
+   			# Get the resized frames
+			resized_segmented_frame_with_fps = resize_for_laptop(using_laptop, copy.deepcopy(segmented_frame_with_fps))
+			resized_frame = resize_for_laptop(using_laptop, copy.deepcopy(frame))
+   
 			# Display the segmented frame and the contourns
-			cv.imshow(f"Segmented Video of {obj}", segmented_frame_with_fps)
-			cv.imshow(f"Countourns Segmentation of {obj}", frame)
+			cv.imshow(f"Segmented Video of {obj}", resized_segmented_frame_with_fps)
+			cv.imshow(f"Countourns Segmentation of {obj}", resized_frame)
+   
+			# Save the frame without the FPS count
+			output_video.write(segmented_frame)
    
 			key = cv.waitKey(1)
 			if key == ord('p'):
@@ -204,9 +246,16 @@ def main() -> None:
 			
 		print(' DONE\n')
 		input_video.release()
+		output_video.release()
 		cv.destroyAllWindows()
 
 
 
 if __name__ == "__main__":
-	main()
+    
+    # Get the console arguments
+	parser = argparse.ArgumentParser(prog='Assignment3', description="Pose Estimation")
+	parser.add_argument('--hd_laptop', dest='hd_laptop', default=False, action='store_true', help="Using a 720p resolution")
+	args = parser.parse_args()
+ 
+	main(args.hd_laptop)

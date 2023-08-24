@@ -2,13 +2,13 @@ import numpy as np
 import cv2 as cv
 
 
-sampled_frames = 30
+sampled_frames = 40
 chessboard_size = (9,6)
 
-# termination criteria
+# Termination criteria
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
-# prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
+# Prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
 objp = np.zeros((chessboard_size[0] * chessboard_size[1], 3), np.float32)
 objp[:,:2] = np.mgrid[0:chessboard_size[0], 0:chessboard_size[1]].T.reshape(-1,2)
 
@@ -31,7 +31,8 @@ def main() -> None:
 	count_frame = 0
 
 	while count_frame < video_length:
-
+		
+		# Set the frame to study
 		calibration_video.set(cv.CAP_PROP_POS_FRAMES, count_frame)
 
 		ret, frame = calibration_video.read()
@@ -63,6 +64,7 @@ def main() -> None:
 	ret, cameraMatrix, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, (frame_width, frame_height), None, None)
 	print(' DONE\n')
 
+	# Compute the arithmetic mean error of the reprojection points 
 	mean_error = 0
 	for i in range(len(objpoints)):
 		imgpoints2, _ = cv.projectPoints(objpoints[i], rvecs[i], tvecs[i], cameraMatrix, dist)

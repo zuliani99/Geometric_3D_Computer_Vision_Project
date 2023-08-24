@@ -197,3 +197,29 @@ class VoxelsCube:
 			voxel_cube_faces = np.vstack((voxel_cube_faces, np.array([4, idx + 2, idx + 6, idx + 7, idx + 3])))
    
 		return voxels_cube_coords, voxel_cube_faces
+
+
+
+	def draw_cube(self, img: np.ndarray[int, np.uint8], imgpts: np.ndarray[int, np.int32]) -> np.ndarray[int, np.uint8]:
+		'''
+		PURPOSE: draw a red cube that inglobe the object
+		ARGUMENTS:
+			- img (np.ndarray[int, np.uint8]): image to modify
+			- imgpts (np.ndarray[int, np.int32]): image points
+		RETURN:
+			- (np.ndarray[int, np.uint8]): modified frame
+		'''	
+		
+		imgpts = np.int32(imgpts).reshape(-1,2)
+
+		# Draw ground floor
+		cv.drawContours(img, [imgpts[:4]], -1, (0,0,255), 3, cv.LINE_AA)
+
+		# Draw pillars
+		for i,j in zip(range(4), range(4,8)):
+			cv.line(img, tuple(imgpts[i]), tuple(imgpts[j]), (0,0,255), 3, cv.LINE_AA)
+
+		# Draw top layer
+		cv.drawContours(img, [imgpts[4:]], -1, (0,0,255), 3)
+
+		return img

@@ -1,4 +1,5 @@
 
+import argparse
 from typing import Tuple
 import cv2 as cv
 import numpy as np
@@ -7,11 +8,11 @@ import copy
 
 
 # Objects Morphological Operations Hyperparameters
-'''hyperparameters = {
+hyperparameters = {
 	'obj01.mp4': {
 		'clipLimit': 8,
      	'first': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (4,4)), 11),
-      	'second': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 9), #10?
+      	'second': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 9),
 		'additional_mask_space': (300, 900, 270, 900),
        	'correction': (np.array([105,65,5]), np.array([140,255,255]))
     },
@@ -34,28 +35,32 @@ import copy
      	'second': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (2,2)), 6),
       	'correction': (np.array([105,55,0]), np.array([120,255,255]))
     }
-}'''
-
-hyperparameters = {
-	'obj01.mp4': {
-		'clipLimit': 8,
-     	'first': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (4,4)), 11),
-      	'second': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 9), #10?
-		'additional_mask_space': (300, 900, 270, 900),
-       	'correction': (np.array([105,65,5]), np.array([140,255,255]))
-    }
 }
 
 
-def change_contrast(img: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], clipLimit: int) \
-    	-> np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+def resize_for_laptop(using_laptop: bool, frame: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
+	'''
+	PURPOSE: resize the image if using_laptop is True
+	ARGUMENTS:
+		- using_laptop (bool)
+		- frame (np.ndarray[int, np.uint8]): frame to resize
+	RETURN:
+		- (np.ndarray[int, np.uint8]): resized frmae
+	'''	
+				
+	if using_laptop:
+		frame = cv.resize(frame, (1080, 600), interpolation=cv.INTER_AREA)
+	return frame
+
+
+def change_contrast(img: np.ndarray[int, np.uint8], clipLimit: int) -> np.ndarray[int, np.uint8]:
 	'''
 	PURPOSE: change the contrast of the image 
 	ARGUMENTS:
-		- img (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image where apply the contrast changing
+		- img (np.ndarray[int, np.uint8]): image where apply the contrast changing
 		- clipLimit
 	RETURN:
-		- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) updated image
+		- (np.ndarray[int, np.uint8]) updated image
 	'''
     
 	lab = cv.cvtColor(img, cv.COLOR_RGB2LAB)
@@ -73,15 +78,14 @@ def change_contrast(img: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], clipLimit
 
 
 
-def apply_foreground_background(mask: np.ndarray[np.ndarray[np.uint8]], img: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-    	-> np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+def apply_foreground_background(mask: np.ndarray[int, np.uint8], img: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
     '''
 	PURPOSE: apply the foreground and background segmentation
 	ARGUMENTS:
-		- mask (np.ndarray[np.ndarray[np.uint8]])
-		- img (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]]): image where apply the segmentation 
+		- mask (np.ndarray[int, np.uint8])
+		- img (np.ndarray[int, np.uint8]): image where apply the segmentation 
 	RETURN:
-		- segmented (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]]): black and white segmented image
+		- segmented (np.ndarray[int, np.uint8]): black and white segmented image
 	'''
     
     segmented = img
@@ -96,19 +100,18 @@ def apply_foreground_background(mask: np.ndarray[np.ndarray[np.uint8]], img: np.
     
 
 
-def apply_segmentation(obj: str, frame: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-    	-> Tuple[np.ndarray[np.ndarray[np.uint8]], np.ndarray[np.ndarray[np.ndarray[np.uint8]]]]:
+def apply_segmentation(obj: str, frame: np.ndarray[int, np.uint8]) -> Tuple[np.ndarray[int, np.uint8], np.ndarray[int, np.uint8]]:
 	'''
 	PURPOSE: apply the segmentation with all the color conversions and morphological operations
 	ARGUMENTS:
 		- obj (str): object name string
-		- frame (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image video frame
+		- frame (np.ndarray[int, np.uint8]): image video frame
 	RETURN:
-		- morph_op_2 (np.ndarray[np.ndarray[np.uint8]]): final mask
-		- apply_foreground_background return (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]])
+		- morph_op_2 (np.ndarray[int, np.uint8]): final mask
+		- apply_foreground_background return (np.ndarray[int, np.uint8])
 	'''
  
-    # Convert the imahe into RGB format
+    # Convert the image into RGB format
 	rgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
  
 	# Change the image contast and confvert it into HSV format
@@ -151,10 +154,11 @@ def apply_segmentation(obj: str, frame: np.ndarray[np.ndarray[np.ndarray[np.uint
 
 
 
-def main() -> None:
+def main(using_laptop: bool) -> None:
 	'''
-	PURPOSE: main function
-	ARGUMENTS: None
+	PURPOSE: function that start the whole computation
+	ARGUMENTS:
+		- using_laptop (bool): boolean variable to indicate the usage of a laptop or not
 	RETURN: None
 	'''
  
@@ -194,16 +198,24 @@ def main() -> None:
 			contours_obj, _ = cv.findContours(resulting_mask, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 			cv.drawContours(frame, contours_obj, -1, (0,255,0), 3)
    
-			# Display the segmented frame and the contourns
-			cv.imshow(f"Segmented Video of {obj}", segmented_frame_with_fps)
-			cv.imshow(f"Countourns Segmentation of {obj}", frame)
+   			# Get the resized frames
+			resized_segmented_frame_with_fps = resize_for_laptop(using_laptop, copy.deepcopy(segmented_frame_with_fps))
+			resized_frame = resize_for_laptop(using_laptop, copy.deepcopy(frame))
    
-			if cv.waitKey(1) == ord('q'):
-				break
-
-			# Save the frame without the FPS count
+			# Display the segmented frame and the contourns
+			cv.imshow(f"Segmented Video of {obj}", resized_segmented_frame_with_fps)
+			cv.imshow(f"Countourns Segmentation of {obj}", resized_frame)
+   
+   			# Save the frame without the FPS count
 			output_video.write(segmented_frame)
-			
+   
+			key = cv.waitKey(1)
+			if key == ord('p'):
+				cv.waitKey(-1) 
+   
+			if key == ord('q'):
+				return
+
 			
 		print(' DONE\n')
 		input_video.release()
@@ -213,4 +225,10 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-	main()
+    
+    # Get the console arguments
+	parser = argparse.ArgumentParser(prog='Assignment3', description="Pose Estimation")
+	parser.add_argument('--hd_laptop', dest='hd_laptop', default=False, action='store_true', help="Using a 720p resolution")
+	args = parser.parse_args()
+ 
+	main(args.hd_laptop)

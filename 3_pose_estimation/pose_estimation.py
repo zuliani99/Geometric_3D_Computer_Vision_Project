@@ -2,10 +2,13 @@ import numpy as np
 import cv2 as cv
 import time
 import copy
+import os
+import argparse
+
 
 from utils import resize_for_laptop, draw_origin, draw_cube
 
-
+# Objects undist_axis
 parameters = {
 	'obj01.mp4': {'undist_axis': 55},
 	'obj02.mp4': {'undist_axis': 60},
@@ -14,11 +17,20 @@ parameters = {
 }
 
 
-using_laptop = False
 
+def main(using_laptop: bool) -> None:
+	'''
+	PURPOSE: function that start the whole computation
+	ARGUMENTS:
+		- using_laptop (bool): boolean variable to indicate the usage of a laptop or not
+	RETURN: None
+	'''
+ 
+	# Check if the user run the camera calibration program before
+	if not os.path.exists('./calibration_info/cameraMatrix.npy') or not os.path.exists('./calibration_info/dist.npy'):
+		print('Please, before running the project, execute the camera calibration program to obtatain the camera extrinsic parameters.')
+		return
 
-def main():
-	
 	camera_matrix = np.load('./calibration_info/cameraMatrix.npy')
 	dist = np.load('./calibration_info/dist.npy')
  
@@ -28,6 +40,8 @@ def main():
 	for obj, hyper_param in parameters.items():
 	  
 		print(f'Marker Detector for {obj}...')
+  
+		# Create the VideoCapture object
 		input_video = cv.VideoCapture(f"../data/{obj}")
 		  
 		# Get video properties
@@ -40,7 +54,6 @@ def main():
 		
 		edited_frame = None
 		undistorted_resolution = None
-  
   
 		unidst_axis = hyper_param['undist_axis']
   
@@ -55,7 +68,7 @@ def main():
 		# Create output video writer initialized at None since we do not know the undistorted resolution
 		output_video = None
   
-		pixel_info = np.loadtxt(f'../output_part2/{obj_id}/{obj_id}_marker.csv', delimiter=',', dtype=str)[1:,:].astype(np.float32)
+		markers_info = np.loadtxt(f'../output_part2/{obj_id}/{obj_id}_marker.csv', delimiter=',', dtype=str)[1:,:].astype(np.float32)
 
 		while True:
 			start = time.time()
@@ -65,23 +78,23 @@ def main():
 
 			if not ret:	break
 
-			# Get the actual pixel information from the csv file
-			csv_frame_index = np.where(pixel_info[:,0] == actual_fps)[0]
+			# Get the actual markers informations from the csv file
+			csv_frame_index = np.where(markers_info[:,0] == actual_fps)[0]
       
-      
+
 			if csv_frame_index.shape[0] >= 6:
        
-				twoD_points = pixel_info[csv_frame_index,2:4]
-				threeD_points = pixel_info[csv_frame_index,4:7]
+				twoD_points = markers_info[csv_frame_index,2:4]
+				threeD_points = markers_info[csv_frame_index,4:7]
 
 				# Find the rotation and translation vectors
 				ret, rvecs, tvecs = cv.solvePnP(objectPoints=threeD_points, imagePoints=twoD_points, cameraMatrix=camera_matrix, distCoeffs=dist, flags=cv.SOLVEPNP_IPPE)
 
-	 
+	 			# Get the projection points
 				imgpts_centroid, _ = cv.projectPoints(objectPoints=axis_centroid, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
 				imgpts_cube, _ = cv.projectPoints(objectPoints=axis_vertical_edges, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
 			   		  	 
-		  
+		  		# Get the new camera matrix
 				newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(camera_matrix, dist, (frame_width, frame_height), 1, (frame_width, frame_height))
 		  
 				# Undistort the image
@@ -89,17 +102,15 @@ def main():
 				x, y, w, h = roi
 				undist = undist[y:y+h, x:x+w] # Adjust the image resolution
     
+				# Update the undistorted_resolution and output_video
 				if undistorted_resolution is None: 
 					undistorted_resolution = undist.shape[:2]
 					output_video = cv.VideoWriter(f'../output_part3/{obj_id}_cube.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), np.flip(undistorted_resolution))
     
-
-				undist = draw_origin(undist, (128, undistorted_resolution[0] // 2), np.int32(imgpts_centroid))
-				undist = draw_cube(undist, np.int32(imgpts_cube))
-      
-
-				edited_frame = undist
-					
+				# Draw the projected cube and centroid
+				edited_frame = draw_origin(undist, (1280, undistorted_resolution[0] // 2), np.int32(imgpts_centroid))
+				edited_frame = draw_cube(edited_frame, np.int32(imgpts_cube))
+      					
 
 			end = time.time()
 			fps = 1 / (end-start)
@@ -109,18 +120,15 @@ def main():
 			# Get the resized frame
 			frame_with_fps_resized = resize_for_laptop(using_laptop, copy.deepcopy(edited_frame))
   
-			
-			if pixel_info.shape[0] >= 6:
        
-				# Output the frame with the FPS   			
-				cv.putText(frame_with_fps_resized, f"{fps:.2f} FPS", (30, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-				cv.imshow(f'Pose Estiamtion of {obj}', frame_with_fps_resized)
+			# Output the frame with the FPS   			
+			cv.putText(frame_with_fps_resized, f"{fps:.2f} FPS", (30, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+			cv.imshow(f'Pose Estiamtion of {obj}', frame_with_fps_resized)
 			   
-				# Save the frame without the FPS count in case of no error
-				output_video.write(edited_frame)
+			# Save the frame without the FPS count in case of no error
+			output_video.write(edited_frame)
    
 	 
-   
 			actual_fps += 1
 
 			key = cv.waitKey(1)
@@ -143,5 +151,11 @@ def main():
 
 
 if __name__ == "__main__":
-	main()
+    
+    # Get the console arguments
+	parser = argparse.ArgumentParser(prog='Assignment3', description="Pose Estimation")
+	parser.add_argument('--hd_laptop', dest='hd_laptop', default=False, action='store_true', help="Using a 720p resolution")
+	args = parser.parse_args()
+ 
+	main(args.hd_laptop)
  

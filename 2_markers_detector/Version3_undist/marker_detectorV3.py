@@ -2,20 +2,30 @@ import cv2 as cv
 import numpy as np
 import time
 import copy
+import argparse
+import os
 
 from board import Board
 from utils import save_stats, set_marker_reference_coords, resize_for_laptop
 
-
-using_laptop = False
-
 objs = ['obj01.mp4', 'obj02.mp4', 'obj03.mp4', 'obj04.mp4']
 
 
-def main():
+def main(using_laptop: bool) -> None:
+	'''
+	PURPOSE: function that start the whole computation
+	ARGUMENTS:
+		- using_laptop (bool): boolean variable to indicate the usage of a laptop or not
+	RETURN: None
+	'''
 	
 	# Set the marker reference coordinates for the 24 polygonls
 	marker_reference = set_marker_reference_coords()
+ 
+	# Check if the user run the camera calibration program before
+	if not os.path.exists('../../space_carving/calibration_info/cameraMatrix.npy') or not os.path.exists('../../space_carving/calibration_info/dist.npy'):
+		print('Please, before running the project, execute the camera calibration program to obtatain the camera extrinsic parameters.')
+		return
 
 	camera_matrix = np.load('../../space_carving/calibration_info/cameraMatrix.npy')
 	dist = np.load('../../space_carving/calibration_info/dist.npy')
@@ -24,18 +34,22 @@ def main():
 	for obj in objs:
 	 
 		print(f'Marker Detector for {obj}...')
+  
+		# Create the VideoCapture object
 		input_video = cv.VideoCapture(f"../../data/{obj}")
 		
 		# Get video properties
 		frame_width = int(input_video.get(cv.CAP_PROP_FRAME_WIDTH))
 		frame_height = int(input_video.get(cv.CAP_PROP_FRAME_HEIGHT))
-
+  
+		# Get the new camera matrix
 		newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(camera_matrix, dist, (frame_width, frame_height), 1, (frame_width, frame_height))
 
 		actual_fps = 0
 		avg_fps = 0.0
 		obj_id = obj.split('.')[0]
 
+		# Create the Board object
 		board = Board(n_polygons=24)
   
 		dict_stats = [] # Initialize the list of dictionary that we will save as .csv file
@@ -54,10 +68,12 @@ def main():
 
 			if not ret:	break
 
+			# Get the undistorted frame
 			frame = cv.undistort(frame, camera_matrix, dist, None, newCameraMatrix)	
 			x, y, w, h = roi
 			frame = frame[y:y+h, x:x+w]
 
+			# Update the output_video and the centroid
 			if output_video is None:
 				frame_width, frame_height = frame.shape[1], frame.shape[0] 
 				output_video = cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
@@ -75,12 +91,13 @@ def main():
 				# The other frame use the Lucaks Kanade Optical Flow to estimate the postition of the traked features based on the previous frame
 				board.apply_LK_OF(prev_frameg, frameg, (20, 20))
 	
-			
+			# Order the detected features in clockwise order to be able to print correctly
 			reshaped_clockwise = board.get_clockwise_vertices_initial()
 
 			# Obtain the dictionary of statistics
 			dict_stats_to_extend = board.compute_markers(thresh, reshaped_clockwise, actual_fps, marker_reference)
 
+			# Draw the marker detector stuff
 			edited_frame = board.draw_stuff(frame)
 
 			end = time.time()
@@ -130,4 +147,10 @@ def main():
 
 
 if __name__ == "__main__":
-	main()
+	    
+    # Get the console arguments
+	parser = argparse.ArgumentParser(prog='Assignment3', description="Pose Estimation")
+	parser.add_argument('--hd_laptop', dest='hd_laptop', default=False, action='store_true', help="Using a 720p resolution")
+	args = parser.parse_args()
+ 
+	main(args.hd_laptop)

@@ -11,7 +11,7 @@ from board import Board
 from voxels_cube import VoxelsCube
 
 
-# Objects parameter
+# Objects undist_axis
 parameters = {
 	'obj01.mp4': {'undist_axis': 55},
 	'obj02.mp4': {'undist_axis': 60},
@@ -135,7 +135,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 
 				# Draw the projected cube and centroid
 				edited_frame = board.draw_origin(edited_frame, np.int32(imgpts_centroid))
-				edited_frame = board.draw_cube(edited_frame, np.int32(imgpts_cube))
+				edited_frame = voxels_cube.draw_cube(edited_frame, np.int32(imgpts_cube))
     
 				# Undistorting the segmented frame to analyze the voxels centre
 				undist_b_f_image = cv.undistort(undist_mask, camera_matrix, dist, None, newCameraMatrix)
