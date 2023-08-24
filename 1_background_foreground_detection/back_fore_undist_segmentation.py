@@ -167,7 +167,7 @@ def main(using_laptop: bool) -> None:
  
 	# Check if the user run the camera calibration program before
 	if not os.path.exists('../3_pose_estimation/calibration_info/cameraMatrix.npy') or not os.path.exists('../3_pose_estimation/calibration_info/dist.npy'):
-		print('Please, before running the project, execute the camera calibration program to obtatain the camera extrinsic parameters.')
+		print('Please, before running the background & foreground segmentation, execute the camera calibration program to obtatain the camera extrinsic parameters.')
 		return
 
 	camera_matrix = np.load('../3_pose_estimation/calibration_info/cameraMatrix.npy')
