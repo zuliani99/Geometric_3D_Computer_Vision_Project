@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple
 
 def set_marker_reference_coords() -> Dict[int, Tuple[int, int, int]]:
 	'''
-	PURPOSE: set the 2D marker reference coordinates in the 
+	PURPOSE: set the 2D marker reference coordinates
 	ARGUMENTS: None
 	RETURN:
 		- marker_reference_coords (Dict[int, Tuple[int, int, int]])
@@ -42,7 +42,7 @@ def find_middle_point(Ep1: np.ndarray[int, np.int32], Ep2: np.ndarray[int, np.in
 	'''
 	PURPOSE: find the middle point between two points
 	ARGUMENTS: 
-		- Ep1 (np.ndarray[int, np.int32]): X and Y coordinates of the first extrame point
+		- Ep1 (np.ndarray[int, np.int32]): X and Y coordinates of the first extreme point
 		- Ep2 (np.ndarray[int, np.int32]): X and Y coordinates of the second extreme point
 	RETURN:
 		- (np.ndarray[int, np.float32]): X and Y coordiantes of the middle point
@@ -81,7 +81,7 @@ def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid:
 		- circles_ctr_coords (List[Tuple[np.float64, np.float64]]): list of coordinates of each circle centre
 	'''
 	
-	# Rememer that the y increase from the top to the bottom of the image
+	# Remember that the y increase from the top of the image to the bottom
  
 	circles_ctr_coords = []
 
@@ -89,7 +89,7 @@ def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid:
 	dy = A[1] - middle_point[1] # Difference the between Y coordinates of point A and and the middle point between the two extreme points
  
 	for dist in dist_A_Cir_Ctr:
-		# Find the rateo between the distace from A and the circle centre and the distance between A
+		# Find the rateo between the distance from A and the circle centre and the distance between A
 		# and the middle point between the two extreme points 
 		rateo = dist / dist_A_Ext_Mid
  
@@ -115,13 +115,13 @@ def compute_index_and_cc_coords(A: np.ndarray[int, np.int32], middle_point: np.n
 		- circles_ctr_coords (List[Tuple[np.float64, np.float64]]): list of coordinates of each circle centre
 	'''	
 
-	# Computing the distance between the point A and the point between the two extreme points of a polygon
+	# Computing the distance from the point A and the point between the two extreme points of a polygon
 	dist_A_Ext_Mid = find_distance_between_points(A, np.int32(middle_point))
 	  
 	# Computing the distance from the point A and each circle centre
 	dist_A_Cir_Ctr = [(dist_A_Ext_Mid * ((i * 4.5) + 5) / 28) for i in range(5)] 
 	  
-	# Obtaining the coordinates of each chircle centre
+	# Obtaining the coordinates of each circle centre
 	circles_ctr_coords = find_circles_centre_coords(dist_A_Cir_Ctr, dist_A_Ext_Mid, middle_point, A) 
 
 	# Obtain the reversed list of bit describing the polygon index
@@ -192,7 +192,7 @@ def resize_for_laptop(using_laptop: bool, frame: np.ndarray[int, np.uint8]) -> n
 
 def write_ply_file(obj_id: str, voxels_cube_coords: np.ndarray[int, np.float32], voxel_cube_faces: np.ndarray[int, np.float32]) -> None:
 	'''
-	PURPOSE: resize the image if using_laptop is True
+	PURPOSE: write the .ply file that compose the object mesh
 	ARGUMENTS:
 		- obj_id (str)
 		- voxels_cube_coords (np.ndarray[int, np.float32]): array of voxels cube coordinates

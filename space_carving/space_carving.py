@@ -2,6 +2,8 @@ import numpy as np
 import cv2 as cv
 import time
 import copy
+import argparse
+import os
 
 from utils import set_marker_reference_coords, resize_for_laptop, write_ply_file
 from background_foreground_segmentation import apply_segmentation
@@ -31,6 +33,11 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 	# Set the marker reference coordinates for the 24 polygonls
 	marker_reference = set_marker_reference_coords()
 	
+	# Check if the user run the camera calibration program before
+	if not os.path.exists('./calibration_info/cameraMatrix.npy') or not os.path.exists('./calibration_info/dist.npy'):
+		print('Please, before running the project, execute the camera calibration program to obtatain the camera extrinsic parameters.')
+		return
+
 	# Load the camera matrix and distorsion
 	camera_matrix = np.load('./calibration_info/cameraMatrix.npy')
 	dist = np.load('./calibration_info/dist.npy')
@@ -76,10 +83,10 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 
 			if not ret:	break
    
-			# Get the undistorted frame and the new camera matrix of the last cited frame
+			# Get the undistorted frame and the new camera matrix
 			undist, newCameraMatrix = voxels_cube.get_undistorted_frame(frame)
 
-			# Update the undistorted_resolution, output_video and the centroid the first time that the undistorted image resutn a valid shape
+			# Update the undistorted_resolution, output_video and the centroid
 			if undistorted_resolution is None: 
 				undistorted_resolution = undist.shape[:2]
 				output_video = cv.VideoWriter(f'../output_project/{obj_id}/{obj_id}.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), np.flip(undistorted_resolution))
@@ -100,25 +107,25 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			# Order the detected features in clockwise order to be able to print correctly
 			reshaped_clockwise = board.get_clockwise_vertices_initial()   
 
-			# Obtain the dictionary of statistics
-			pixels_info = board.compute_markers(thresh, reshaped_clockwise, marker_reference)
+			# Obtain the np.array of markers information
+			markers_info = board.compute_markers(thresh, reshaped_clockwise, marker_reference)
    
 			edited_frame = undist
    
 
-			if pixels_info.shape[0] >= 6:
+			if markers_info.shape[0] >= 6:
 
 				# Draw the marker detector stuff
 				edited_frame = board.draw_stuff(edited_frame)
 				
 				# Extract the indices ID, the 2D and 3D points
-				indices_ID = pixels_info[:,0]
-				twoD_points = pixels_info[:,1:3]
-				threeD_points = pixels_info[:,3:6]
+				indices_ID = markers_info[:,0]
+				twoD_points = markers_info[:,1:3]
+				threeD_points = markers_info[:,3:6]
     
     
 				# Find the rotation and translation vectors
-				imgpts_centroid, imgpts_cube = voxels_cube.apply_projections(indices_ID, twoD_points, threeD_points, marker_reference)
+				imgpts_centroid, imgpts_cube = voxels_cube.apply_projections(twoD_points, threeD_points)
 
 				# Get the RMSE for the actual frame
 				avg_rmse += voxels_cube.compute_RMSE(indices_ID, marker_reference, twoD_points)
@@ -149,7 +156,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			cv.putText(frame_with_fps_resized, f"{fps:.2f} FPS", (30, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 			cv.imshow(f'Pose Estiamtion of {obj}', frame_with_fps_resized)
 			   
-			# Save the frame without the FPS count in case of no error
+			# Save the frame without the FPS count
 			output_video.write(edited_frame)
    
 	 		# Update the previous gray frame
@@ -178,7 +185,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 
 		print('Saving PLY file...')
   
-		# Get the voxel cube ciooirdinates and faces to write a PLY file
+		# Get the voxel cube coordinates and faces to write a PLY file
 		voxels_cube_coords, voxel_cube_faces = voxels_cube.get_cubes_coords_and_faces()
 		# Save in a .ply file
 		write_ply_file(obj_id, voxels_cube_coords, voxel_cube_faces)
@@ -187,5 +194,12 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 
 
 if __name__ == "__main__":
-	main(False, 2)
+    
+    # Get the console arguments
+	parser = argparse.ArgumentParser(prog='SpaceCarving', description="Space Carving Project")
+	parser.add_argument('--hd_laptop', dest='hd_laptop', default=False, action='store_true', help="Using a 720p resolution")
+	parser.add_argument("voxel_cube_dim", type=int, help="Dimension of a voxel cube edge")
+	args = parser.parse_args()
+	
+	main(args.hd_laptop, args.voxel_cube_dim)
  

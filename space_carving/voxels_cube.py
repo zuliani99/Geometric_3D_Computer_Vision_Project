@@ -3,6 +3,7 @@ import cv2 as cv
 
 from typing import Dict, Tuple
 
+# VoxelsCube class that manege projection of marker reference points into the image
 
 class VoxelsCube:
 	def __init__(self, half_axis_len, voxel_cube_dim, camera_matrix, dist, frame_width, frame_height) -> None:
@@ -26,7 +27,7 @@ class VoxelsCube:
 	
 	def get_cube_and_centroids_voxels(self) -> Tuple[np.ndarray[int, np.float32], np.ndarray[int, np.float32]]:
 		'''
-		PURPOSE: 
+		PURPOSE: obtain the centre voxels centroid coordinate and their respective corners coordinates that form the voxel cube
 		ARGUMENTS: None
 		RETURN: Tuple[np.ndarray[int, np.float32], np.ndarray[int, np.float32]]
 			- center_voxels (np.ndarray[int, np.float32]): voxels centroid
@@ -72,7 +73,7 @@ class VoxelsCube:
  
 	def get_undistorted_frame(self, to_edit_frame: np.ndarray[int, np.uint8]) -> Tuple[np.ndarray[int, np.uint8], cv.typing.MatLike]:
 		'''
-		PURPOSE: allpy the projections of voxels centroid, cube and board centroid
+		PURPOSE: obtain the undistorted image
 		ARGUMENTS: 
 			- to_edit_frame (np.ndarray[int, np.uint8]): frame to edit
 		RETURN: Tuple[np.ndarray[int, np.uint8], cv.typing.MatLike]
@@ -145,7 +146,7 @@ class VoxelsCube:
 
 	def set_background_voxels(self, undistorted_resolution: Tuple[int, int], undist_b_f_image: np.ndarray[int, np.uint8], undist: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
-		PURPOSE: apply the projections of voxels centroid, cube and board centroid
+		PURPOSE: update the binary voxels centroid analysing their position on the segmented image
 		ARGUMENTS: 
 			- undistorted_resolution (Tuple[int, int]): undistorted image resolution
 			- undist_b_f_image (np.ndarray[int, np.uint8]): undistorted segmented frame
@@ -166,7 +167,7 @@ class VoxelsCube:
 
 	def get_cubes_coords_and_faces(self) -> Tuple[np.ndarray[int, np.float32], np.ndarray[int, np.float32]]:
 		'''
-		PURPOSE: get the voxel cube ciooirdinates and faces to write a PLY file
+		PURPOSE: get the voxel cube coordinates and faces to write a PLY file
 		ARGUMENTS: None
 		RETURN: Tuple[np.ndarray[int, np.float32], np.ndarray[int, np.float32]]
 			- voxels_cube_coords (np.ndarray[int, np.float32]): voxel centroid coordinates belonging to the foreground

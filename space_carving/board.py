@@ -19,6 +19,8 @@ criteria_lk = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 100, 0.01)
 maxlevel_lk = 4
 
 
+# Board class to manage the board information
+
 class Board:
     
 	def __init__(self, n_polygons: int) -> None:
@@ -119,32 +121,32 @@ class Board:
 
 	def find_interesting_points(self, thresh: np.ndarray[int, np.uint8], imgray: np.ndarray[int, np.uint8]) -> None:
 		'''
-		PURPOSE: find bood features to track during the frame sequence
+		PURPOSE: find good features to track
 		ARGUMENTS: 
 			- thresh (np.ndarray[int, np.uint8]): threshold resut
 			- imgray (np.ndarray[int, np.uint8]): gray image
 		RETURN: None
 		'''	
 
-		# Recompute the features
+		# Reset the tracked features
 		self.__tracked_features = np.zeros((0,2), dtype=np.float32)
 		
-		# Consider only the board exluding all the object area that could be included erroneously
+		# Consider only the board exluding the area that could introduce some noise in the process
 		mask_thresh = np.zeros_like(thresh, dtype=np.uint8)
 		mask_thresh[:, 1140:1570] = thresh[:, 1140:1570]
 
 		# Finding the contourns
 		contours, _ = cv.findContours(mask_thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE) # [[[X Y]] [[X Y]] ... [[X Y]]]
 	
-		# Searching through every region selected to find the required polygon.
+		# Searching through every region selected to find the required polygon
 		for cnt in contours:
 			
-			# Shortlisting the regions based on there area
+			# Shortlisting the regions based on there area sorted clockwise
 			if(cv.contourArea(sort_vertices_clockwise(np.squeeze(cnt, axis=1)))) > 1550.0:
 
 				approx_cnt = cv.approxPolyDP(cnt, 0.015 * cv.arcLength(cnt, True), True) # [[[X Y]] [[X Y]] ... [[X Y]]]
 				
-				# Checking if the number of sides of the selected region is 5.
+				# Checking if the number of sides of the selected region is 5
 				if (len(approx_cnt)) == 5:
 					ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(approx_cnt), winSize_sub, zeroZone_sub, criteria_sub)
 					self.__tracked_features = np.vstack((self.__tracked_features, np.squeeze(ref_approx_cnt)))
@@ -165,7 +167,7 @@ class Board:
 			
 		reshaped_clockwise = np.reshape(self.__tracked_features, (int(self.__tracked_features.shape[0] // 5), 5, 2))
   
-		# I have to sort clockwise the alst polygon in order to compute correctly the contourArea
+		# I have to sort clockwise the last polygon in order to compute correctly the contourArea
 		if(cv.contourArea(sort_vertices_clockwise(reshaped_clockwise[-1,:,:])) <= 1500.0):
 			reshaped_clockwise = reshaped_clockwise[:reshaped_clockwise.shape[0] - 1, :, :]
 		
@@ -175,7 +177,7 @@ class Board:
 
 	def apply_LK_OF(self, prev_frameg: np.ndarray[int, np.uint8], frameg: np.ndarray[int, np.uint8], winsize_lk: Tuple[int, int]) -> None: 
 		'''
-		PURPOSE: remove the polygon that are convex, order clockwie and remove the alst polygon by area
+		PURPOSE: apply Lucas Kanade Optical Flow to predict the position of the features based on its algorithm parameters
 		ARGUMENTS: 
 			- prev_frameg (np.ndarray[int, np.uint8]): previous gray frame
 			- frameg (np.ndarray[int, np.uint8]): actual gray frame
@@ -194,7 +196,7 @@ class Board:
 
 	def covered_polygon(self, polygons: np.ndarray[int, np.int32]) -> None:
 		'''
-		PURPOSE: apply all the drawing function
+		PURPOSE: set the polygon attribute cover to True for the polygons that are behind the glass
 		ARGUMENTS: 
 			- polygons (np.ndarray[int, np.int32]): array of index that express the covered polygons
 		RETURN: None
@@ -207,15 +209,16 @@ class Board:
 	def compute_markers(self, thresh: np.ndarray[int, np.uint8], reshaped_clockwise: np.ndarray[int, np.float32], \
 	     		marker_reference: Dict[int, Tuple[int, int, int]]) -> np.ndarray[int, np.float32]:
 		'''
-		PURPOSE: remove the polygon that are convex, order clockwie and remove the alst polygon by area
+		PURPOSE: compute the markers informations for later use
 		ARGUMENTS:
-			- thresh (np.ndarray[int, np.uint8]):  threshold image
-			- reshaped_clockwise (np.ndarray[int, np.float32]) feature reshaped in clockwise order
-			- marker_reference (Dict[int, Tuple[int, int, int]])): dictionary of the marker reference coordinates
+			- thresh (np.ndarray[int, np.uint8]): threshold image
+			- reshaped_clockwise (np.ndarray[int, np.float32]): reshaped feature in clockwise order
+			- marker_reference (Dict[int, Tuple[int, int, int]])): dictionary of the markers reference coordinates
 		RETURN:
-			- pixel_info (np.ndarray[int, np.float32]): lis of dictionary containing the information to save in the .csv file
+			- pixel_info (np.ndarray[int, np.float32]): marker informations array
 		'''	
-	     
+	    
+		# np.array where to store the markers informations
 		pixel_info = np.zeros((0,6), dtype=np.float32)
 
 		# np.array of ones in which at the end of the computation will store only the covered polygons
@@ -245,13 +248,14 @@ class Board:
 			if(len(A.shape) == 1):
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
 
-				if(index < 24):# and len(pixel_info[pixel_info[:, 0] == index]) == 0):
+				if(index < 24):
 					self.__polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
 					covered_polys[index] = 0
 
 					# Get the X, Y and Z marker reference 2D coordinates for the polygon with given index
 					X, Y, Z = marker_reference[index] 
-   
+
+					# Updating the array stackng the polygon index, the position of the A point in the image and in the marker reference coordinates 
 					pixel_info = np.vstack((pixel_info, np.array([index, A[0], A[1], X, Y, Z], dtype=np.float32)))
 		
   		# Set the cover cover attributo to true on all cover polygons

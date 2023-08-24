@@ -27,7 +27,7 @@ The complete algorithm works as follows:
 When all the frames have been processed, the remaining set of voxels define the volume occupied by the object.
 
 ## Video Data
-A package containing 4 different video sequences (plus the calibration) can be downloaded  at the following [URL](https://www.dais.unive.it/~bergamasco/teachingfiles/G3DCV2022/data.7z)
+A package containing 4 different video sequences (plus the calibration) can be downloaded  at the following [URL](https://www.dais.unive.it/~bergamasco/teachingfiles/G3DCV2022/data.7z). After having download the compressed folder extract it to the *data* directory.
 
 
 ## Poject Structure
@@ -50,6 +50,7 @@ pip install opencv-python
 ## Application Start Up
 ```
 cd space_carving
+python camera_calibration.py
 python space_carving.py
 ```
 
