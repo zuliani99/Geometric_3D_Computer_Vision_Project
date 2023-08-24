@@ -166,17 +166,18 @@ def main(using_laptop: bool) -> None:
 	'''
  
 	# Check if the user run the camera calibration program before
-	if not os.path.exists('../../space_carving/calibration_info/cameraMatrix.npy') or not os.path.exists('../../space_carving/calibration_info/dist.npy'):
+	if not os.path.exists('../3_pose_estimation/calibration_info/cameraMatrix.npy') or not os.path.exists('../3_pose_estimation/calibration_info/dist.npy'):
 		print('Please, before running the project, execute the camera calibration program to obtatain the camera extrinsic parameters.')
 		return
 
-	camera_matrix = np.load('../space_carving/calibration_info/cameraMatrix.npy')
-	dist = np.load('../space_carving/calibration_info/dist.npy')
+	camera_matrix = np.load('../3_pose_estimation/calibration_info/cameraMatrix.npy')
+	dist = np.load('../3_pose_estimation/calibration_info/dist.npy')
  
 	for obj in list(hyperparameters.keys()):
 		print(f'Segmentation of {obj} video...')		
   
 		obj_id = obj.split('.')[0]
+		avg_fps = 0
   
 		# Create the VideoCapture object
 		input_video = cv.VideoCapture(f"../data/{obj}")
@@ -215,6 +216,8 @@ def main(using_laptop: bool) -> None:
    
 			end = time.time()
 			fps = 1 / (end-start) # Compute the FPS
+
+			avg_fps += fps
    
 			segmented_frame_with_fps = copy.deepcopy(segmented_frame) 
    
@@ -244,7 +247,8 @@ def main(using_laptop: bool) -> None:
 				return
 			
 			
-		print(' DONE\n')
+		print(' DONE')
+		print(f'Average FPS is: {str(avg_fps / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}\n')
 		input_video.release()
 		output_video.release()
 		cv.destroyAllWindows()
@@ -254,7 +258,7 @@ def main(using_laptop: bool) -> None:
 if __name__ == "__main__":
     
     # Get the console arguments
-	parser = argparse.ArgumentParser(prog='Assignment3', description="Pose Estimation")
+	parser = argparse.ArgumentParser(prog='Assignment1-Back_Fore_Segmentation', description="BAckground & Foreground Segmentation")
 	parser.add_argument('--hd_laptop', dest='hd_laptop', default=False, action='store_true', help="Using a 720p resolution")
 	args = parser.parse_args()
  

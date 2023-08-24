@@ -23,12 +23,12 @@ def main(using_laptop: bool) -> None:
 	marker_reference = set_marker_reference_coords()
  
 	# Check if the user run the camera calibration program before
-	if not os.path.exists('../../space_carving/calibration_info/cameraMatrix.npy') or not os.path.exists('../../space_carving/calibration_info/dist.npy'):
+	if not os.path.exists('../../3_pose_estimation/calibration_info/cameraMatrix.npy') or not os.path.exists('../../3_pose_estimation/calibration_info/dist.npy'):
 		print('Please, before running the project, execute the camera calibration program to obtatain the camera extrinsic parameters.')
 		return
 
-	camera_matrix = np.load('../../space_carving/calibration_info/cameraMatrix.npy')
-	dist = np.load('../../space_carving/calibration_info/dist.npy')
+	camera_matrix = np.load('../../3_pose_estimation/calibration_info/cameraMatrix.npy')
+	dist = np.load('../../3_pose_estimation/calibration_info/dist.npy')
 
 	# Iterate for each object
 	for obj in objs:
@@ -149,7 +149,7 @@ def main(using_laptop: bool) -> None:
 if __name__ == "__main__":
 	    
     # Get the console arguments
-	parser = argparse.ArgumentParser(prog='Assignment3', description="Pose Estimation")
+	parser = argparse.ArgumentParser(prog='Assignment2-Marker_Detector', description="Marker Detector")
 	parser.add_argument('--hd_laptop', dest='hd_laptop', default=False, action='store_true', help="Using a 720p resolution")
 	args = parser.parse_args()
  

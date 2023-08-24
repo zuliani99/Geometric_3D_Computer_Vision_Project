@@ -23,9 +23,9 @@ maxlevel_lk = 4
 class Board:
     
 	def __init__(self, n_polygons: int) -> None:
-		self.polygon_list: List[Polygon] = [Polygon() for _ in range(n_polygons)]
-		self.tracked_features = np.zeros((0,2), dtype=np.float32)
-		self.centroid = None
+		self.__polygon_list: List[Polygon] = [Polygon() for _ in range(n_polygons)]
+		self.__tracked_features = np.zeros((0,2), dtype=np.float32)
+		self.__centroid = None
 
 
 
@@ -131,7 +131,7 @@ class Board:
 		'''	
 
 		# Reset the tracked features
-		self.tracked_features = np.zeros((0,2), dtype=np.float32)
+		self.__tracked_features = np.zeros((0,2), dtype=np.float32)
 		
 		# Consider only the board exluding the area that could introduce some noise in the process
 		mask_thresh = np.zeros_like(thresh, dtype=np.uint8)
@@ -151,7 +151,7 @@ class Board:
 				# Checking if the number of sides of the selected region is 5
 				if (len(approx_cnt)) == 5:
 					ref_approx_cnt = cv.cornerSubPix(imgray, np.float32(approx_cnt), winSize_sub, zeroZone_sub, criteria_sub)
-					self.tracked_features = np.vstack((self.tracked_features, np.squeeze(ref_approx_cnt)))
+					self.__tracked_features = np.vstack((self.__tracked_features, np.squeeze(ref_approx_cnt)))
      
      
      
@@ -236,7 +236,7 @@ class Board:
 
 			# Obtain the external point distance between the approximated board centroid and each approximated polygon vertex
 			external_points_dict = dict(enumerate(
-				list(map(lambda x: find_distance_between_points(x, self.centroid), poly))
+				list(map(lambda x: find_distance_between_points(x, self.__centroid), poly))
 			))
 		   
 			# Obtain the id of the two farthest point from the board centre
@@ -257,7 +257,7 @@ class Board:
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
 
 				if(index < 24):
-					self.polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
+					self.__polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
 					covered_polys[index] = 0
 
 					# Get the X, Y and Z marker reference 2D coordinates for the polygon with given index

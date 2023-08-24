@@ -172,6 +172,8 @@ def main(using_laptop: bool) -> None:
 		frame_height = int(input_video.get(cv.CAP_PROP_FRAME_HEIGHT))
 		fps = input_video.get(cv.CAP_PROP_FPS)
 
+		avg_fps = 0
+
 		# Create output video writer
 		output_video = cv.VideoWriter(f"../output_part1/{obj.split('.')[0]}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), fps, (frame_width, frame_height))
 
@@ -188,6 +190,8 @@ def main(using_laptop: bool) -> None:
    
 			end = time.time()
 			fps = 1 / (end-start) # Compute the FPS
+
+			avg_fps += fps
    
 			segmented_frame_with_fps = copy.deepcopy(segmented_frame) 
    
@@ -217,7 +221,8 @@ def main(using_laptop: bool) -> None:
 				return
 
 			
-		print(' DONE\n')
+		print(' DONE')
+		print(f'Average FPS is: {str(avg_fps / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}\n')
 		input_video.release()
 		output_video.release()
 		cv.destroyAllWindows()
@@ -227,7 +232,7 @@ def main(using_laptop: bool) -> None:
 if __name__ == "__main__":
     
     # Get the console arguments
-	parser = argparse.ArgumentParser(prog='Assignment3', description="Pose Estimation")
+	parser = argparse.ArgumentParser(prog='Assignment1-Back_Fore_Segmentation', description="BAckground & Foreground Segmentation")
 	parser.add_argument('--hd_laptop', dest='hd_laptop', default=False, action='store_true', help="Using a 720p resolution")
 	args = parser.parse_args()
  

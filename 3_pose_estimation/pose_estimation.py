@@ -153,7 +153,7 @@ def main(using_laptop: bool) -> None:
 if __name__ == "__main__":
     
     # Get the console arguments
-	parser = argparse.ArgumentParser(prog='Assignment3', description="Pose Estimation")
+	parser = argparse.ArgumentParser(prog='Assignment3_Pose_Estimation', description="Pose Estimation")
 	parser.add_argument('--hd_laptop', dest='hd_laptop', default=False, action='store_true', help="Using a 720p resolution")
 	args = parser.parse_args()
  
