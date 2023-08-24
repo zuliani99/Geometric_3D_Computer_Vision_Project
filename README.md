@@ -47,11 +47,26 @@ pip install numpy
 pip install opencv-python
 ```
 
-## Application Start Up
+## Project Application Start Up
 ```
 cd space_carving
 python camera_calibration.py
 python space_carving.py
+```
+
+## Final Assignments Version Start Up
+```
+cd pose_estimation
+python camera_calibration.py
+cd ..
+cd 1_background_foreground_detection
+python back_fore_undist_segmentation.py
+
+cd 2_marker_detector/Version3_undist
+python marker_detectorV3.py
+
+cd 3_pose_estimation
+python pose_estimation.py
 ```
 
 ## Analyse the Results
