@@ -78,7 +78,7 @@ def apply_segmentation(obj: str, frame: np.ndarray[int, np.uint8]) -> np.ndarray
 
 	# Add a constant rectangle to mask the left part of the image
 	rectangular_mask = np.full(rgb.shape[:2], 0, np.uint8)
-	rectangular_mask[:,1210:rgb.shape[1]] = 255
+	rectangular_mask[:,1180:rgb.shape[1]] = 255
 
 	mask = cv.bitwise_or(cv.ellipse(color_mask,(1370,540),(670,250),89,0,180,255,-1), rectangular_mask)
 

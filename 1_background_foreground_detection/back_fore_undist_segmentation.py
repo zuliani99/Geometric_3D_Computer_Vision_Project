@@ -12,7 +12,7 @@ import os
 hyperparameters = {
 	'obj01.mp4': {
 		'clipLimit': 8,
-     	'first': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5)), 9),
+     	'first': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5)), 10),
       	'second': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 11),
 		'additional_mask_space': (300, 900, 270, 900),
        	'correction': (np.array([105,65,5]), np.array([140,255,255]))
@@ -176,7 +176,6 @@ def main(using_laptop: bool) -> None:
 	for obj in list(hyperparameters.keys()):
 		print(f'Segmentation of {obj} video...')		
   
-		obj_id = obj.split('.')[0]
 		avg_fps = 0
   
 		# Create the VideoCapture object
@@ -209,7 +208,7 @@ def main(using_laptop: bool) -> None:
 			# Update the output_video and the centroid
 			if output_video is None:
 				frame_width, frame_height = frame.shape[1], frame.shape[0] 
-				output_video = cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
+				output_video = cv.VideoWriter(f"../output_part1/{obj.split('.')[0]}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), fps, (frame_width, frame_height))
 
 			# Apply the segmentation
 			resulting_mask, segmented_frame = apply_segmentation(obj, frame)

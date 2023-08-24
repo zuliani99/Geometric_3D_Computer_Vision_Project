@@ -76,7 +76,7 @@ def main(using_laptop: bool) -> None:
 			# Update the output_video and the centroid
 			if output_video is None:
 				frame_width, frame_height = frame.shape[1], frame.shape[0] 
-				output_video = cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
+				output_video = cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_marker.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
 				board.set_centroid(np.array([1280, int(frame_height // 2)]))
 				
 		 
