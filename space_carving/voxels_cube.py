@@ -39,25 +39,25 @@ class VoxelsCube:
 		center_voxels = np.zeros((0, axis_length, axis_length, 3), dtype=np.float32)
 		cube_coords_voxels = np.zeros((0, axis_length, axis_length, 8, 3), dtype=np.float32)
 	
-		for z in range (70 + (self.__voxel_cube_dim // 2), 70 + (self.__half_edge_len * 2) - self.__voxel_cube_dim // 2 + 1, self.__voxel_cube_dim):
+		for z in np.arange(70 + (self.__voxel_cube_dim / 2), 70 + (self.__half_edge_len * 2) - self.__voxel_cube_dim / 2 + 1, self.__voxel_cube_dim):
 			center_voxels_at_z = np.zeros((0, axis_length, 3), dtype=np.float32)
 			cube_coords_voxels_at_z = np.zeros((0, axis_length, 8, 3), dtype=np.float32)
 			
-			for y in range (-self.__half_edge_len + self.__voxel_cube_dim // 2, self.__half_edge_len - self.__voxel_cube_dim // 2 + 1, self.__voxel_cube_dim):
+			for y in np.arange(-self.__half_edge_len + self.__voxel_cube_dim / 2, self.__half_edge_len - self.__voxel_cube_dim / 2 + 1, self.__voxel_cube_dim):
 				rows = np.zeros((0,3), dtype=np.float32)
 				cubes = np.zeros((0,8,3), dtype=np.float32)
 				
-				for x in range (-self.__half_edge_len + self.__voxel_cube_dim // 2, self.__half_edge_len - self.__voxel_cube_dim // 2 + 1, self.__voxel_cube_dim):
+				for x in np.arange(-self.__half_edge_len + self.__voxel_cube_dim / 2, self.__half_edge_len - self.__voxel_cube_dim / 2 + 1, self.__voxel_cube_dim):
 					rows = np.vstack((rows, np.array([x, y, z], dtype=np.float32)))
 					cube = np.array([
-						np.array([y + self.__voxel_cube_dim // 2, x + self.__voxel_cube_dim // 2, z + self.__voxel_cube_dim // 2]),
-						np.array([y + self.__voxel_cube_dim // 2, x + self.__voxel_cube_dim // 2, z - self.__voxel_cube_dim // 2]),
-						np.array([y + self.__voxel_cube_dim // 2, x - self.__voxel_cube_dim // 2, z + self.__voxel_cube_dim // 2]),
-						np.array([y + self.__voxel_cube_dim // 2, x - self.__voxel_cube_dim // 2, z - self.__voxel_cube_dim // 2]),
-						np.array([y - self.__voxel_cube_dim // 2, x + self.__voxel_cube_dim // 2, z + self.__voxel_cube_dim // 2]),
-						np.array([y - self.__voxel_cube_dim // 2, x + self.__voxel_cube_dim // 2, z - self.__voxel_cube_dim // 2]),
-						np.array([y - self.__voxel_cube_dim // 2, x - self.__voxel_cube_dim // 2, z + self.__voxel_cube_dim // 2]),
-						np.array([y - self.__voxel_cube_dim // 2, x - self.__voxel_cube_dim // 2, z - self.__voxel_cube_dim // 2]),
+						np.array([y + self.__voxel_cube_dim / 2, x + self.__voxel_cube_dim / 2, z + self.__voxel_cube_dim / 2]),
+						np.array([y + self.__voxel_cube_dim / 2, x + self.__voxel_cube_dim / 2, z - self.__voxel_cube_dim / 2]),
+						np.array([y + self.__voxel_cube_dim / 2, x - self.__voxel_cube_dim / 2, z + self.__voxel_cube_dim / 2]),
+						np.array([y + self.__voxel_cube_dim / 2, x - self.__voxel_cube_dim / 2, z - self.__voxel_cube_dim / 2]),
+						np.array([y - self.__voxel_cube_dim / 2, x + self.__voxel_cube_dim / 2, z + self.__voxel_cube_dim / 2]),
+						np.array([y - self.__voxel_cube_dim / 2, x + self.__voxel_cube_dim / 2, z - self.__voxel_cube_dim / 2]),
+						np.array([y - self.__voxel_cube_dim / 2, x - self.__voxel_cube_dim / 2, z + self.__voxel_cube_dim / 2]),
+						np.array([y - self.__voxel_cube_dim / 2, x - self.__voxel_cube_dim / 2, z - self.__voxel_cube_dim / 2]),
 					], dtype=np.float32)
 					cubes = np.vstack((cubes, np.expand_dims(cube, axis=0)))
 				
@@ -70,6 +70,7 @@ class VoxelsCube:
 		return center_voxels, cube_coords_voxels
 	
 	
+
 	def get_newCameraMatrix(self) -> None:
 		'''
 		PURPOSE: get the nre camera matrix and new resolution
@@ -80,6 +81,7 @@ class VoxelsCube:
 		newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(self.__camera_matrix, self.__dist, (self.__frame_width, self.__frame_height), 1, (self.__frame_width, self.__frame_height))
 		self.__newCameraMatrix = newCameraMatrix
 		self.__roi = roi
+
 
  
 	def get_undistorted_frame(self, to_edit_frame: np.ndarray[int, np.uint8]) -> Tuple[np.ndarray[int, np.uint8], cv.typing.MatLike]:
@@ -100,7 +102,6 @@ class VoxelsCube:
 		
 
 
-	
 	def apply_projections(self, twoD_points: np.ndarray[int, np.float32], threeD_points: np.ndarray[int, np.float32]) \
 			-> Tuple[cv.typing.MatLike, cv.typing.MatLike]:
 		'''
