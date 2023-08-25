@@ -60,7 +60,6 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 		avg_rmse = 0.0
 		obj_id = obj.split('.')[0]
 
-		undistorted_resolution = None
 		prev_frameg = None
   
 		half_axis_len = hyper_param['undist_axis']
@@ -74,6 +73,9 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 		# Create output video writer initialized at None since we do not know the undistorted resolution
 		output_video = None
 
+		# Get the new camera matrix
+		voxels_cube.get_newCameraMatrix()
+
 		while True:
       
 			start = time.time()
@@ -84,16 +86,15 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			if not ret:	break
    
 			# Get the undistorted frame and the new camera matrix
-			undist, newCameraMatrix = voxels_cube.get_undistorted_frame(frame)
+			undist_frame = voxels_cube.get_undistorted_frame(frame)
 
 			# Update the undistorted_resolution, output_video and the centroid
-			if undistorted_resolution is None: 
-				undistorted_resolution = undist.shape[:2]
-				output_video = cv.VideoWriter(f'../output_project/{obj_id}/{obj_id}.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), np.flip(undistorted_resolution))
-				board.set_centroid(np.array([1280, int(undistorted_resolution[0] // 2)]))
+			if output_video is None: 
+				frame_width, frame_height = undist_frame.shape[1], undist_frame.shape[0] 
+				output_video = cv.VideoWriter(f'../output_project/{obj_id}/{obj_id}.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
 			
 		   
-			frameg = cv.cvtColor(undist, cv.COLOR_BGR2GRAY)
+			frameg = cv.cvtColor(undist_frame, cv.COLOR_BGR2GRAY)
 			_, thresh = cv.threshold(frameg, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
    
 			   
@@ -110,7 +111,8 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			# Obtain the np.array of markers information
 			markers_info = board.compute_markers(thresh, reshaped_clockwise, marker_reference)
    
-			edited_frame = undist
+
+			edited_frame = undist_frame
    
 
 			if markers_info.shape[0] >= 6:
@@ -130,18 +132,15 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 				# Get the RMSE for the actual frame
 				avg_rmse += voxels_cube.compute_RMSE(indices_ID, marker_reference, twoD_points)
     
-				# Apply the segmentation
-				undist_mask = apply_segmentation(obj, edited_frame)
+				# Apply the segmentation on the undistorted frame
+				undist_mask = apply_segmentation(obj, undist_frame)
 
 				# Draw the projected cube and centroid
 				edited_frame = board.draw_origin(edited_frame, np.int32(imgpts_centroid))
 				edited_frame = voxels_cube.draw_cube(edited_frame, np.int32(imgpts_cube))
     
-				# Undistorting the segmented frame to analyze the voxels centre
-				undist_b_f_image = cv.undistort(undist_mask, camera_matrix, dist, None, newCameraMatrix)
-    
 				# Update the binary array of foreground voxels and draw the background
-				edited_frame = voxels_cube.set_background_voxels(undistorted_resolution, undist_b_f_image, edited_frame)
+				edited_frame = voxels_cube.set_background_voxels((frame_width, frame_height), undist_mask, edited_frame)
     
 				
 			end = time.time()
@@ -172,10 +171,9 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 				return
 		  
 
-
 		print(' DONE')
 		print(f'Average FPS is: {str(avg_fps / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')
-		print(f'Average RMSE is: {str(avg_rmse / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')
+		print(f'Average RMS pixel error is: {str(avg_rmse / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')
 
 
 		# Release the input and output streams

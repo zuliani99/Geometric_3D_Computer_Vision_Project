@@ -2,18 +2,19 @@ import cv2 as cv
 import numpy as np
 
 
+
 hyperparameters = {
 	'obj01.mp4': {
 		'clipLimit': 8,
      	'first': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5)), 10),
-      	'second': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 11),
+      	'second': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 12),
 		'additional_mask_space': (300, 900, 270, 900),
        	'correction': (np.array([105,65,5]), np.array([140,255,255]))
     },
 	'obj02.mp4': {
 		'clipLimit': 8,
-    	'first': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (2,2)), 3),
-    	'second': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 5),
+    	'first': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 2),
+    	'second': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 3),
      	'correction': (np.array([105,65,5]), np.array([140,255,255]))
     },
 	'obj03.mp4': {
@@ -80,7 +81,7 @@ def apply_segmentation(obj: str, frame: np.ndarray[int, np.uint8]) -> np.ndarray
 	rectangular_mask = np.full(rgb.shape[:2], 0, np.uint8)
 	rectangular_mask[:,1180:rgb.shape[1]] = 255
 
-	mask = cv.bitwise_or(cv.ellipse(color_mask,(1370,540),(670,250),89,0,180,255,-1), rectangular_mask)
+	mask = cv.bitwise_or(cv.ellipse(color_mask,(1380,540),(700,300),89,0,180,255,-1), rectangular_mask)
 
 	# Parse useful hyperparameters
 	morph_op_1 = None

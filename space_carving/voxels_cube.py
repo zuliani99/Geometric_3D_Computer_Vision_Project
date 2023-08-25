@@ -70,6 +70,17 @@ class VoxelsCube:
 		return center_voxels, cube_coords_voxels
 	
 	
+	def get_newCameraMatrix(self) -> None:
+		'''
+		PURPOSE: get the nre camera matrix and new resolution
+		ARGUMENTS: None
+		RETURN: None
+		'''	
+
+		newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(self.__camera_matrix, self.__dist, (self.__frame_width, self.__frame_height), 1, (self.__frame_width, self.__frame_height))
+		self.__newCameraMatrix = newCameraMatrix
+		self.__roi = roi
+
  
 	def get_undistorted_frame(self, to_edit_frame: np.ndarray[int, np.uint8]) -> Tuple[np.ndarray[int, np.uint8], cv.typing.MatLike]:
 		'''
@@ -78,17 +89,15 @@ class VoxelsCube:
 			- to_edit_frame (np.ndarray[int, np.uint8]): frame to edit
 		RETURN: Tuple[np.ndarray[int, np.uint8], cv.typing.MatLike]
 			- undist (np.ndarray[int, np.uint8]): undistorted edited image
-			- newCameraMatrix (cv.typing.MatLike)
 		'''	
-
-		newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(self.__camera_matrix, self.__dist, (self.__frame_width, self.__frame_height), 1, (self.__frame_width, self.__frame_height))
 		  
 		# Undistort the image
-		undist = cv.undistort(to_edit_frame, self.__camera_matrix, self.__dist, None, newCameraMatrix)	
-		x, y, w, h = roi
+		undist = cv.undistort(to_edit_frame, self.__camera_matrix, self.__dist, None, self.__newCameraMatrix)	
+		x, y, w, h = self.__roi
 		undist = undist[y:y+h, x:x+w] # Adjust the image resolution
 
-		return undist, newCameraMatrix
+		return undist
+		
 
 
 	
@@ -106,16 +115,16 @@ class VoxelsCube:
 
 		# Find the rotation and translation vectors
 		_, rvecs, tvecs = cv.solvePnP(objectPoints=threeD_points.astype('float32'), imagePoints=twoD_points.astype('float32'), cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist, flags=cv.SOLVEPNP_IPPE)
-  
-		imgpts_cubes_centroid, _ = cv.projectPoints(objectPoints=np.reshape(self.__center_voxels, (np.power(self.__center_voxels.shape[0], 3), 3)), rvec=rvecs, tvec=tvecs, cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist)
-		
 		self.__rvecs = rvecs
 		self.__tvecs = tvecs
+
+		imgpts_cubes_centroid, _ = cv.projectPoints(objectPoints=np.reshape(self.__center_voxels, (np.power(self.__center_voxels.shape[0], 3), 3)), rvec=self.__rvecs, tvec=self.__tvecs, cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist)
+		
 		self.__imgpts_cubes_centroid = np.squeeze(imgpts_cubes_centroid)
 
-		imgpts_centroid, _ = cv.projectPoints(objectPoints=self.__axis_centroid, rvec=rvecs, tvec=tvecs, cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist)
-		imgpts_cube, _ = cv.projectPoints(objectPoints=self.__axis_vertical_edges, rvec=rvecs, tvec=tvecs, cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist)
-		
+		imgpts_centroid, _ = cv.projectPoints(objectPoints=self.__axis_centroid, rvec=self.__rvecs, tvec=self.__tvecs, cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist)
+		imgpts_cube, _ = cv.projectPoints(objectPoints=self.__axis_vertical_edges, rvec=self.__rvecs, tvec=self.__tvecs, cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist)
+	
 		return imgpts_centroid, imgpts_cube
 
 
@@ -156,7 +165,7 @@ class VoxelsCube:
 		'''	
 
 		for idx, centr_coords in enumerate(self.__imgpts_cubes_centroid):
-			if centr_coords[0] < undistorted_resolution[1] and centr_coords[1] < undistorted_resolution[0] and \
+			if centr_coords[0] < undistorted_resolution[0] and centr_coords[1] < undistorted_resolution[1] and \
 					centr_coords[0] >= 0  and centr_coords[1] >= 0 and undist_b_f_image[int(centr_coords[1]), int(centr_coords[0])] == 0:
 				self.__binary_centroid_fore_back[idx] = 0
 				cv.circle(undist, (int(centr_coords[0]), int(centr_coords[1])), 1, (255,255,255), -1)

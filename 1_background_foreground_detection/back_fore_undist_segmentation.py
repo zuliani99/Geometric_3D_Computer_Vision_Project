@@ -9,37 +9,6 @@ import os
 
 
 # Objects Morphological Operations Hyperparameters
-'''hyperparameters = {
-	'obj01.mp4': {
-		'clipLimit': 8,
-     	'first': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5)), 10),
-      	'second': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 11),
-		'additional_mask_space': (300, 900, 270, 900),
-       	'correction': (np.array([105,65,5]), np.array([140,255,255]))
-    },
-	'obj02.mp4': {
-		'clipLimit': 8,
-    	'first': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (2,2)), 3),
-    	'second': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 5),
-     	'correction': (np.array([105,65,5]), np.array([140,255,255]))
-    },
-	'obj03.mp4': {
-		'clipLimit': 6,
-    	'first': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5)), 12),
-     	'second': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 10),
-		'additional_mask_space': (100, 1000, 500, 1000),
-    	'correction': (np.array([105,55,0]), np.array([120,255,255]))
-    },
-	'obj04.mp4': {
-		'clipLimit': 3,
-    	'first': (cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3)), 4),
-     	'second': (cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (2,2)), 3),
-      	'correction': (np.array([105,55,0]), np.array([120,255,255]))
-    }
-}'''
-
-
-# TEST IF THERE ARE SOME IMPROVEMENTS IN SPACECARVING, PARROT AND DINOSOURS
 hyperparameters = {
 	'obj01.mp4': {
 		'clipLimit': 8,
@@ -68,6 +37,7 @@ hyperparameters = {
       	'correction': (np.array([105,55,0]), np.array([120,255,255]))
     }
 }
+
 
 
 def resize_for_laptop(using_laptop: bool, frame: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
@@ -257,7 +227,7 @@ def main(using_laptop: bool) -> None:
 
 			# Draw the contours of the mask in the original frame
 			contours_obj, _ = cv.findContours(resulting_mask, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-			cv.drawContours(frame, contours_obj, -1, (0,255,0), 3)
+			cv.drawContours(frame, contours_obj, -1, (0,255,0), 2)
    
    			# Get the resized frames
 			resized_segmented_frame_with_fps = resize_for_laptop(using_laptop, copy.deepcopy(segmented_frame_with_fps))
