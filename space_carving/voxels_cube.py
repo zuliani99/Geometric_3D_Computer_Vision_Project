@@ -6,19 +6,19 @@ from typing import Dict, Tuple
 # VoxelsCube class that manege projection of marker reference points into the image
 
 class VoxelsCube:
-	def __init__(self, half_axis_len, voxel_cube_dim, camera_matrix, dist, frame_width, frame_height) -> None:
+	def __init__(self, half_edge_len, voxel_cube_dim, camera_matrix, dist, frame_width, frame_height) -> None:
 		self.__frame_width = frame_width
 		self.__frame_height = frame_height
 		self.__camera_matrix = camera_matrix
 		self.__dist = dist
 		self.__voxel_cube_dim = voxel_cube_dim
-		self.__half_axis_len = half_axis_len
+		self.__half_edge_len = half_edge_len
 		self.__axis_centroid = np.float32([[20,0,0], [0,20,0], [0,0,30]]).reshape(-1,3)
 		self.__axis_vertical_edges = np.float32([
-											[-half_axis_len, -half_axis_len, 70], [-half_axis_len, half_axis_len, 70],
-											[half_axis_len ,half_axis_len, 70], [half_axis_len, -half_axis_len, 70],
-											[-half_axis_len, -half_axis_len, 70 + half_axis_len * 2],[-half_axis_len, half_axis_len, 70 + half_axis_len * 2],
-											[half_axis_len, half_axis_len, 70 + half_axis_len * 2],[half_axis_len, -half_axis_len, 70 + half_axis_len * 2]
+											[-half_edge_len, -half_edge_len, 70], [-half_edge_len, half_edge_len, 70],
+											[half_edge_len ,half_edge_len, 70], [half_edge_len, -half_edge_len, 70],
+											[-half_edge_len, -half_edge_len, 70 + half_edge_len * 2],[-half_edge_len, half_edge_len, 70 + half_edge_len * 2],
+											[half_edge_len, half_edge_len, 70 + half_edge_len * 2],[half_edge_len, -half_edge_len, 70 + half_edge_len * 2]
 										])
 		self.__center_voxels, self.__cube_coords_centroid = self.get_cube_and_centroids_voxels()
 		self.__binary_centroid_fore_back = np.ones((np.power(self.__center_voxels.shape[0], 3), 1), dtype=np.int32)
@@ -34,20 +34,20 @@ class VoxelsCube:
 			- cube_coords_voxels (np.ndarray[int, np.float32]) voxels cube coordinates
 		'''	
 
-		axis_length = (self.__half_axis_len * 2) // self.__voxel_cube_dim
+		axis_length = (self.__half_edge_len * 2) // self.__voxel_cube_dim
 		
 		center_voxels = np.zeros((0, axis_length, axis_length, 3), dtype=np.float32)
 		cube_coords_voxels = np.zeros((0, axis_length, axis_length, 8, 3), dtype=np.float32)
 	
-		for z in range (70 + (self.__voxel_cube_dim // 2), 70 + (self.__half_axis_len * 2) - self.__voxel_cube_dim // 2 + 1, self.__voxel_cube_dim):
+		for z in range (70 + (self.__voxel_cube_dim // 2), 70 + (self.__half_edge_len * 2) - self.__voxel_cube_dim // 2 + 1, self.__voxel_cube_dim):
 			center_voxels_at_z = np.zeros((0, axis_length, 3), dtype=np.float32)
 			cube_coords_voxels_at_z = np.zeros((0, axis_length, 8, 3), dtype=np.float32)
 			
-			for y in range (-self.__half_axis_len + self.__voxel_cube_dim // 2, self.__half_axis_len - self.__voxel_cube_dim // 2 + 1, self.__voxel_cube_dim):
+			for y in range (-self.__half_edge_len + self.__voxel_cube_dim // 2, self.__half_edge_len - self.__voxel_cube_dim // 2 + 1, self.__voxel_cube_dim):
 				rows = np.zeros((0,3), dtype=np.float32)
 				cubes = np.zeros((0,8,3), dtype=np.float32)
 				
-				for x in range (-self.__half_axis_len + self.__voxel_cube_dim // 2, self.__half_axis_len - self.__voxel_cube_dim // 2 + 1, self.__voxel_cube_dim):
+				for x in range (-self.__half_edge_len + self.__voxel_cube_dim // 2, self.__half_edge_len - self.__voxel_cube_dim // 2 + 1, self.__voxel_cube_dim):
 					rows = np.vstack((rows, np.array([x, y, z], dtype=np.float32)))
 					cube = np.array([
 						np.array([y + self.__voxel_cube_dim // 2, x + self.__voxel_cube_dim // 2, z + self.__voxel_cube_dim // 2]),

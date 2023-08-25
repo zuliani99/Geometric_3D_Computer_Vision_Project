@@ -35,7 +35,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 	
 	# Check if the user run the camera calibration program before
 	if not os.path.exists('./calibration_info/cameraMatrix.npy') or not os.path.exists('./calibration_info/dist.npy'):
-		print('Please, before running the project, execute the camera calibration program to obtatain the camera extrinsic parameters.')
+		print('Please, before running the project, execute the camera calibration program.')
 		return
 
 	# Load the camera matrix and distorsion
@@ -62,13 +62,13 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 
 		prev_frameg = None
   
-		half_axis_len = hyper_param['undist_axis']
+		half_edge_len = hyper_param['undist_axis']
 
 		# Create the Board object
 		board = Board(n_polygons=24)
 
 		# Create the VoxelsCube object
-		voxels_cube = VoxelsCube(half_axis_len=half_axis_len, voxel_cube_dim=voxel_cube_dim, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
+		voxels_cube = VoxelsCube(half_edge_len=half_edge_len, voxel_cube_dim=voxel_cube_dim, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
   
 		# Create output video writer initialized at None since we do not know the undistorted resolution
 		output_video = None
@@ -153,7 +153,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
   
 			# Output the frame with the FPS   			
 			cv.putText(frame_with_fps_resized, f"{fps:.2f} FPS", (30, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-			cv.imshow(f'Pose Estiamtion of {obj}', frame_with_fps_resized)
+			cv.imshow(f'Space Carving result of {obj}', frame_with_fps_resized)
 			   
 			# Save the frame without the FPS count
 			output_video.write(edited_frame)
@@ -164,16 +164,14 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			actual_fps += 1
 
 			key = cv.waitKey(1)
-			if key == ord('p'):
-				cv.waitKey(-1) 
+			if key == ord('p'): cv.waitKey(-1) 
    
-			if key == ord('q'):
-				return
-		  
+			if key == ord('q'): return
+
 
 		print(' DONE')
 		print(f'Average FPS is: {str(avg_fps / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')
-		print(f'Average RMS pixel error is: {str(avg_rmse / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')
+		print(f'Average RMS pixel Error is: {str(avg_rmse / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')
 
 
 		# Release the input and output streams
