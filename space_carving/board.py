@@ -169,7 +169,7 @@ class Board:
 		reshaped_clockwise = np.reshape(self.__tracked_features, (int(self.__tracked_features.shape[0] // 5), 5, 2))
   
 		# I have to sort clockwise the last polygon in order to compute correctly the contourArea
-		if(cv.contourArea(sort_vertices_clockwise(reshaped_clockwise[-1,:,:])) <= 1500.0):
+		if(cv.contourArea(sort_vertices_clockwise(reshaped_clockwise[-1,:,:])) <= 1550.0):
 			reshaped_clockwise = reshaped_clockwise[:reshaped_clockwise.shape[0] - 1, :, :]
 		
 		return np.array([sort_vertices_clockwise(poly) for poly in reshaped_clockwise])
