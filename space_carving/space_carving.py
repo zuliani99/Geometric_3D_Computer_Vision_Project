@@ -192,10 +192,10 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 if __name__ == "__main__":
     
     # Get the console arguments
-	parser = argparse.ArgumentParser(prog='SpaceCarving', description="Space Carving Project")
-	parser.add_argument('--hd_laptop', dest='hd_laptop', default=False, action='store_true', help="Using a 720p resolution")
-	parser.add_argument("voxel_cube_dim", type=int, help="Dimension of a voxel cube edge")
+	parser = argparse.ArgumentParser(prog='SpaceCarving', description='Space Carving Project')
+	parser.add_argument('--hd_laptop', dest='hd_laptop', default=False, action='store_true', help='Using a 720p resolution')
+	parser.add_argument('voxel_cube_edge_dim', type=int, help='Dimension of a voxel cube edge')
 	args = parser.parse_args()
 	
-	main(args.hd_laptop, args.voxel_cube_dim)
+	main(args.hd_laptop, args.voxel_cube_edge_dim)
  
