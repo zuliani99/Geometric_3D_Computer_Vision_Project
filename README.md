@@ -63,7 +63,7 @@ python space_carving.py 2
 ```
 cd pose_estimation
 python camera_calibration.py
-cd ..
+
 cd 1_background_foreground_detection
 python back_fore_undist_segmentation.py
 
