@@ -18,6 +18,7 @@ criteria_lk = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 100, 0.01)
 maxlevel_lk = 4
 
 
+
 # Board class to manage the board information
 
 class Board:
@@ -41,6 +42,7 @@ class Board:
 		if self.__centroid is None: self.__centroid = centroid
   
   	
+
    
 	def draw_red_polygon(self, image: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
@@ -118,6 +120,7 @@ class Board:
 		'''	
   
 		return self.draw_index(self.draw_green_cross_and_blu_rectangle(self.draw_red_polygon(image)))
+
 
 
 

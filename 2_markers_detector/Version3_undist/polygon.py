@@ -2,7 +2,6 @@ from utils import random_bgr_color
 
 # Polygon class that store useful information for later use
 
-
 class Polygon:
 	def __init__(self) -> None:
 		self.cover = True

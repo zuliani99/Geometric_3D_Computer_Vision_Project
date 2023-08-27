@@ -55,7 +55,7 @@ def find_middle_point(Ep1: np.ndarray[int, np.int32], Ep2: np.ndarray[int, np.in
 
 def find_distance_between_points(p1: np.ndarray[int, np.int32], p2: np.ndarray[int, np.int32]) -> np.float64:
 	'''
-	PURPOSE: find the middle point between two points
+	PURPOSE: find the euclidean distance between two points
 	ARGUMENTS: 
 		- p1 (np.ndarray[int, np.int32]): X and Y coordinates of the first point
 		- p2 (np.ndarray[int, np.int32]): X and Y coordinates of the second point

@@ -2,7 +2,7 @@ import cv2 as cv
 import numpy as np
 
 
-
+# Objects Morphological Operations Hyperparameters
 hyperparameters = {
 	'obj01.mp4': {
 		'clipLimit': 8,

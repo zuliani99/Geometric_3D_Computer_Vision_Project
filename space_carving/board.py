@@ -250,7 +250,7 @@ class Board:
 					# Updating the array stackng the polygon index, the position of the A point in the image and in the marker reference coordinates 
 					pixel_info = np.vstack((pixel_info, np.array([index, A[0], A[1], X, Y, Z], dtype=np.float32)))
 		
-  		# Set the cover cover attributo to true on all cover polygons
+  		# Set the cover cover attribute to True on all covered polygons
 		self.covered_polygon(np.where(covered_polys == 1)[0])		
 
 		return pixel_info

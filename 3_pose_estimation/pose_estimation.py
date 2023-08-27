@@ -8,12 +8,12 @@ import argparse
 
 from utils import resize_for_laptop, draw_origin, draw_cube
 
-# Objects undist_axis
+# Objects undist_half_edge
 parameters = {
-	'obj01.mp4': {'undist_axis': 55},
-	'obj02.mp4': {'undist_axis': 60},
-	'obj03.mp4': {'undist_axis': 75},
-	'obj04.mp4': {'undist_axis': 55},
+	'obj01.mp4': {'undist_half_edge': 55},
+	'obj02.mp4': {'undist_half_edge': 60},
+	'obj03.mp4': {'undist_half_edge': 75},
+	'obj04.mp4': {'undist_half_edge': 55},
 }
 
 
@@ -55,7 +55,7 @@ def main(using_laptop: bool) -> None:
 		edited_frame = None
 		undistorted_resolution = None
   
-		unidst_axis = hyper_param['undist_axis']
+		unidst_axis = hyper_param['undist_half_edge']
   
 		axis_vertical_edges = np.float32([
 											[-unidst_axis, -unidst_axis, 70], [-unidst_axis, unidst_axis, 70],

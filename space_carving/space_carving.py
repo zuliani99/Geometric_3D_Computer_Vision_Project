@@ -11,12 +11,12 @@ from board import Board
 from voxels_cube import VoxelsCube
 
 
-# Objects undist_axis
+# Objects undist_half_edge
 parameters = {
-	'obj01.mp4': {'undist_axis': 55},
-	'obj02.mp4': {'undist_axis': 60},
-	'obj03.mp4': {'undist_axis': 75},
-	'obj04.mp4': {'undist_axis': 55},
+	'obj01.mp4': {'undist_half_edge': 55},
+	'obj02.mp4': {'undiundist_half_edgest_axis': 60},
+	'obj03.mp4': {'undist_half_edge': 75},
+	'obj04.mp4': {'undist_half_edge': 55},
 }
 
 
@@ -62,7 +62,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 
 		prev_frameg = None
   
-		half_edge_len = hyper_param['undist_axis']
+		half_edge_len = hyper_param['undist_half_edge']
 
 		# Create the Board object
 		board = Board(n_polygons=24)
