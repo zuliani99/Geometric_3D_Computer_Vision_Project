@@ -73,12 +73,12 @@ def save_stats(obj_id: str, dict_stats: List[Dict[int, Tuple[int, int, int]]]) -
 	
 
 
-def find_middle_point(Ep1: np.ndarray[np.int32], Ep2: np.ndarray[np.int32]) -> np.ndarray[np.float32]:
+def find_middle_point(Ep1: np.ndarray[int, np.int32], Ep2: np.ndarray[int, np.int32]) -> np.ndarray[int, np.float32]:
 	'''
 	PURPOSE: find the middle point between two points
 	ARGUMENTS: 
-		- Ep1 (np.ndarray[np.int32]): X and Y coordinates of the first extrame point
-		- Ep2 (np.ndarray[np.int32]): X and Y coordinates of the second extreme point
+		- Ep1 (np.ndarray[int, np.int32]): X and Y coordinates of the first extrame point
+		- Ep2 (np.ndarray[int, np.int32]): X and Y coordinates of the second extreme point
 	RETURN:
 		- (np.ndarray[np.float32]): X and Y coordiantes of the middle point
 	'''
@@ -87,12 +87,12 @@ def find_middle_point(Ep1: np.ndarray[np.int32], Ep2: np.ndarray[np.int32]) -> n
 
 
 
-def find_distance_between_points(p1: np.ndarray[np.int32], p2: np.ndarray[np.int32]) -> np.float64:
+def find_distance_between_points(p1: np.ndarray[int, np.int32], p2: np.ndarray[int, np.int32]) -> np.float64:
 	'''
-	PURPOSE: find the middle point between two points
+	PURPOSE: find the euclidean distance between two points
 	ARGUMENTS: 
-		- p1 (np.ndarray[np.int32]): X and Y coordinates of the first point
-		- p2 (np.ndarray[np.int32]): X and Y coordinates of the second point
+		- p1 (np.ndarray[int, np.int32]): X and Y coordinates of the first point
+		- p2 (np.ndarray[int, np.int32]): X and Y coordinates of the second point
 	RETURN:
 		- (np.float64): float distance between the two points
 	'''
@@ -101,15 +101,15 @@ def find_distance_between_points(p1: np.ndarray[np.int32], p2: np.ndarray[np.int
 
 
 
-def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid: np.float64,
-                               	middle_point: np.ndarray[np.float64], A: np.ndarray[np.int32]) -> List[Tuple[np.float64, np.float64]]:
+def find_circles_centre_coords(dist_A_Cir_Ctr: List[int, np.float64], dist_A_Ext_Mid: np.float64,
+                               	middle_point: np.ndarray[int, np.float64], A: np.ndarray[int, np.int32]) -> List[Tuple[np.float64, np.float64]]:
 	'''
 	PURPOSE: find the coordinates of the 5 circles centre
 	ARGUMENTS: 
 		- dist_A_Cir_Ctr (List[np.float64]): list of distance between the point A and each circle center
 		- dist_A_Ext_Mid (np.float64): distance between the point A and the point between the two extreme points of a polygon
-		- middle_point (np.ndarray[np.float64]): X and Y cordinates of the middle point between the two extreme points
-		- A (np.ndarray[np.int32]): X and Y cordinates of the A point of a polygon
+		- middle_point (np.ndarray[int, np.float64]): X and Y cordinates of the middle point between the two extreme points
+		- A (np.ndarray[int, np.int32]): X and Y cordinates of the A point of a polygon
 	RETURN:
 		- circles_ctr_coords (List[Tuple[np.float64, np.float64]]): list of coordinates of each circle centre
 	'''
@@ -134,19 +134,19 @@ def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid:
 
 
 
-def draw_stuff(image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], A: np.ndarray[np.int32], approx_cnt: np.ndarray[np.ndarray[np.ndarray[np.int32]]],
-               middle_point: np.ndarray[np.float64], index: int, circles_ctr_coords: List[Tuple[np.float64, np.float64]]) -> np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+def draw_stuff(image: np.ndarray[int, np.uint8], A: np.ndarray[int, np.int32], approx_cnt: np.ndarray[int, np.int32],
+               middle_point: np.ndarray[int, np.float64], index: int, circles_ctr_coords: List[Tuple[np.float64, np.float64]]) -> np.ndarray[int, np.uint8]:
 	'''
 	PURPOSE: Draw contours, lines, circles an index of a specific polygon
 	ARGUMENTS: 
-		- image (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): original frame to modify
-		- A (np.ndarray[np.int32]): X and Y cordinates of the A point of a polygon
-		- approx_cnt (np.ndarray[np.ndarray[np.ndarray[np.int32]]]): array of coordinates of each approximate vertex position
-		- middle_point (np.ndarray[np.float64]): X and Y cordinates of the middle point between the two extreme points
+		- image (np.ndarray[int, np.uint8]): original frame to modify
+		- A (np.ndarray[int, np.int32]): X and Y cordinates of the A point of a polygon
+		- approx_cnt (np.ndarray[int, np.int32]): array of coordinates of each approximate vertex position
+		- middle_point (np.ndarray[int, np.float64]): X and Y cordinates of the middle point between the two extreme points
 		- index (int): index of a polygon
 		- circles_ctr_coords (List[Tuple[np.float64, np.float64]]): list of coordinates of each circle centre
 	RETURN:
-		- image (List[Tuple[np.float64, np.float64]]): modified image
+		- image (np.ndarray[int, np.uint8]): modified image
 	'''	
 
  	# Drwaing the contourn of the polygon
@@ -176,14 +176,14 @@ def draw_stuff(image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], A: np.ndarra
 
 
 
-def compute_index_and_cc_coords(A: np.ndarray[np.int32], middle_point: np.ndarray[np.float64],
-                                thresh: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) -> Tuple[int, List[Tuple[np.float64, np.float64]]]:
+def compute_index_and_cc_coords(A: np.ndarray[int, np.int32], middle_point: np.ndarray[int, np.float64],
+                                thresh: np.ndarray[int, np.uint8]) -> Tuple[int, List[Tuple[np.float64, np.float64]]]:
 	'''
 	PURPOSE: computing the polygon index and the circles centre coordinates of a polygon
 	ARGUMENTS: 
-		- A (np.ndarray[np.int32]): X and Y cordinates of the A point of a polygon
-		- middle_point (np.ndarray[np.float64]): X and Y cordinates of the middle point between the two extreme points
-		- thresh (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): thresholded image
+		- A (np.ndarray[int, np.int32]): X and Y cordinates of the A point of a polygon
+		- middle_point (np.ndarray[int, np.float64]): X and Y cordinates of the middle point between the two extreme points
+		- thresh (np.ndarray[int, np.uint8]): thresholded image
 	RETURN:
 		- index (int): index of the polygon
 		- circles_ctr_coords (List[Tuple[np.float64, np.float64]]): list of coordinates of each circle centre
@@ -208,16 +208,16 @@ def compute_index_and_cc_coords(A: np.ndarray[np.int32], middle_point: np.ndarra
 
 
 
-def find_markers(image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], frame_cnt: int, marker_reference: Dict[int, Tuple[int, int, int]]) \
-    -> Tuple[np.ndarray[np.ndarray[np.ndarray[np.uint8]]], List[Dict[str, Union[int, int, np.float64, np.float64, int, int, int]]]]:
+def find_markers(image: np.ndarray[int, np.uint8], frame_cnt: int, marker_reference: Dict[int, Tuple[int, int, int]]) \
+    -> Tuple[np.ndarray[int, np.uint8], List[Dict[str, Union[int, int, np.float64, np.float64, int, int, int]]]]:
 	'''
 	PURPOSE: computing the polygon index and the circles centre coordinates of a polygon
 	ARGUMENTS: 
-		- image (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): video frame
+		- image (np.ndarray[int, np.uint8]): video frame
 		- frame_cnt (int): index frmae 
 		- marker_reference (Dict[int, Tuple[int, int, int]])): dictionary of the marker reference coordinates
 	RETURN:
-		- image (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): modified image
+		- image (np.ndarray[int, np.uint8]): modified image
 		- dict_stats_to_return (List[Dict[int, int, np.float64, np.float64, int, int, int]]): lis of dictionary containing the information to save in the .csv file
 	'''	
 	

@@ -68,12 +68,12 @@ def save_stats(obj_id: str, dict_stats: List[Dict[int, Tuple[int, int, int]]]) -
 	
 
 
-def find_middle_point(Ep1: np.ndarray[np.int32], Ep2: np.ndarray[np.int32]) -> np.ndarray[np.float32]:
+def find_middle_point(Ep1: np.ndarray[int, np.int32], Ep2: np.ndarray[int, np.int32]) -> np.ndarray[int, np.float32]:
 	'''
 	PURPOSE: find the middle point between two points
 	ARGUMENTS: 
-		- Ep1 (np.ndarray[np.int32]): X and Y coordinates of the first extrame point
-		- Ep2 (np.ndarray[np.int32]): X and Y coordinates of the second extreme point
+		- Ep1 (np.ndarray[int, np.int32]): X and Y coordinates of the first extrame point
+		- Ep2 (np.ndarray[int, np.int32]): X and Y coordinates of the second extreme point
 	RETURN:
 		- (np.ndarray[np.float32]): X and Y coordiantes of the middle point
 	'''
@@ -82,12 +82,12 @@ def find_middle_point(Ep1: np.ndarray[np.int32], Ep2: np.ndarray[np.int32]) -> n
 
 
 
-def find_distance_between_points(p1: np.ndarray[np.int32], p2: np.ndarray[np.int32]) -> np.float64:
+def find_distance_between_points(p1: np.ndarray[int, np.int32], p2: np.ndarray[int, np.int32]) -> np.float64:
 	'''
-	PURPOSE: find the middle point between two points
+	PURPOSE: find the euclidean distance between two points
 	ARGUMENTS: 
-		- p1 (np.ndarray[np.int32]): X and Y coordinates of the first point
-		- p2 (np.ndarray[np.int32]): X and Y coordinates of the second point
+		- p1 (np.ndarray[int, np.int32]): X and Y coordinates of the first point
+		- p2 (np.ndarray[int, np.int32]): X and Y coordinates of the second point
 	RETURN:
 		- (np.float64): float distance between the two points
 	'''
@@ -97,14 +97,14 @@ def find_distance_between_points(p1: np.ndarray[np.int32], p2: np.ndarray[np.int
 
 
 def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid: np.float64,
-                               	middle_point: np.ndarray[np.float64], A: np.ndarray[np.int32]) -> List[Tuple[np.float64, np.float64]]:
+                               	middle_point: np.ndarray[int, np.float64], A: np.ndarray[int, np.int32]) -> List[Tuple[np.float64, np.float64]]:
 	'''
 	PURPOSE: find the coordinates of the 5 circles centre
 	ARGUMENTS: 
 		- dist_A_Cir_Ctr (List[np.float64]): list of distance between the point A and each circle center
 		- dist_A_Ext_Mid (np.float64): distance between the point A and the point between the two extreme points of a polygon
-		- middle_point (np.ndarray[np.float64]): X and Y cordinates of the middle point between the two extreme points
-		- A (np.ndarray[np.int32]): X and Y cordinates of the A point of a polygon
+		- middle_point (np.ndarray[int, np.float64]): X and Y cordinates of the middle point between the two extreme points
+		- A (np.ndarray[int, np.int32]): X and Y cordinates of the A point of a polygon
 	RETURN:
 		- circles_ctr_coords (List[Tuple[np.float64, np.float64]]): list of coordinates of each circle centre
 	'''
@@ -130,14 +130,14 @@ def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid:
 
 
 
-def compute_index_and_cc_coords(A: np.ndarray[np.int32], middle_point: np.ndarray[np.float64],
-                                thresh: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) -> Tuple[int, List[Tuple[np.float64, np.float64]]]:
+def compute_index_and_cc_coords(A: np.ndarray[int, np.int32], middle_point: np.ndarray[int, np.float64],
+                                thresh: np.ndarray[int, np.uint8]) -> Tuple[int, List[Tuple[np.float64, np.float64]]]:
 	'''
 	PURPOSE: computing the polygon index and the circles centre coordinates of a polygon
 	ARGUMENTS: 
-		- A (np.ndarray[np.int32]): X and Y cordinates of the A point of a polygon
-		- middle_point (np.ndarray[np.float64]): X and Y cordinates of the middle point between the two extreme points
-		- thresh (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): thresholded image
+		- A (np.ndarray[int, np.int32]): X and Y cordinates of the A point of a polygon
+		- middle_point (np.ndarray[int, np.float64]): X and Y cordinates of the middle point between the two extreme points
+		- thresh (np.ndarray[int, np.uint8]): thresholded image
 	RETURN:
 		- index (int): index of the polygon
 		- circles_ctr_coords (List[Tuple[np.float64, np.float64]]): list of coordinates of each circle centre
@@ -162,23 +162,37 @@ def compute_index_and_cc_coords(A: np.ndarray[np.int32], middle_point: np.ndarra
 
 
 
-def sort_vertices_clockwise(vertices, x_centroid=None, y_centroid=None):
-    new_centroid = np.mean(vertices, axis=0)
-    if x_centroid is None and y_centroid is None:
-        centroid = new_centroid
-    elif x_centroid is None:
-        centroid = [new_centroid[0], y_centroid]
-    elif y_centroid is None:
-        centroid = [x_centroid, new_centroid[1]]
-    else:
-        centroid = [x_centroid, y_centroid]
-        
-    angles = np.arctan2(vertices[:, 1] - centroid[1], vertices[:, 0] - centroid[0])
-    sorted_indices = np.argsort(angles)
-    return vertices[sorted_indices]
+def sort_vertices_clockwise(vertices: np.ndarray[int, np.float32], centroid: NoneType | np.ndarray[int, np.int32] = None) \
+		-> np.ndarray[int, np.float32] :
+	'''
+	PURPOSE: sort vertices clockwise respect a centroid 
+	ARGUMENTS: 
+		- vertices (np.ndarray[int, np.float32]): numpy array of vertices to sort
+		- centroid (NoneType | np.ndarray[np.int32]): X and Y cordinates of the centroid
+	RETURN:
+		- (np.ndarray[int, np.float32]) sorted vertices
+	'''	
+	
+	if centroid is None:
+		centroid = np.mean(vertices, axis=0)     
+	   
+	angles = np.arctan2(vertices[:, 1] - centroid[1], vertices[:, 0] - centroid[0])
+	sorted_indices = np.argsort(angles)
+
+	return vertices[sorted_indices]
 
 
-def resize_for_laptop(using_laptop, frame):
+
+def resize_for_laptop(using_laptop: bool, frame: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
+	'''
+	PURPOSE: resize the image if using_laptop is True
+	ARGUMENTS:
+		- using_laptop (bool)
+		- frame (np.ndarray[int, np.uint8]): frame to resize
+	RETURN:
+		- (np.ndarray[int, np.uint8]): resized frmae
+	'''	
+				
 	if using_laptop:
-		frame = cv.resize(frame, (1080, 600))
+		frame = cv.resize(frame, (1080, 600), interpolation=cv.INTER_AREA)
 	return frame

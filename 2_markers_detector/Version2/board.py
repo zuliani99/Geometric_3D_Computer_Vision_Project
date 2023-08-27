@@ -13,7 +13,6 @@ criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 100, 0.001)
 
 
 
-
 class Board:
     
 	def __init__(self, n_polygons: int) -> None:
@@ -21,14 +20,13 @@ class Board:
     
     
     
-	def draw_red_polygon(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-    		->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+	def draw_red_polygon(self, image: np.ndarray[int, np.uint8]) ->  np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: draw the red polygon, the cross in point A and the line crossing the polygon by length
 		ARGUMENTS: 
-			- image (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image to edit
+			- image (np.ndarray[int, np.uint8]): image to edit
 		RETURN:
-			- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resuting image
+			- (np.ndarray[int, np.uint8]): resuting image
 		'''	
         
 		for poly in self.polygon_list:
@@ -42,14 +40,13 @@ class Board:
             
        
             
-	def draw_green_cross_and_blu_rectangle(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-    		->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+	def draw_green_cross_and_blu_rectangle(self, image: np.ndarray[int, np.uint8]) ->  np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: draw a green cross and a blu rectangle in each circe centre 
 		ARGUMENTS: 
-			- image (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image to edit
+			- image (np.ndarray[int, np.uint8]): image to edit
 		RETURN:
-			- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resuting image
+			- (np.ndarray[int, np.uint8]): resuting image
 		'''	
         
 		for poly in self.polygon_list:
@@ -64,14 +61,13 @@ class Board:
   
   
   
-	def draw_index(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-    		->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+	def draw_index(self, image: np.ndarray[int, np.uint8]) ->  np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: draw the polygon index
 		ARGUMENTS: 
-			- image (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image to edit
+			- image (np.ndarray[int, np.uint8]): image to edit
 		RETURN:
-			- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resuting image
+			- (np.ndarray[int, np.uint8]): resuting image
 		'''	
      		
 		for index, poly in enumerate(self.polygon_list):
@@ -82,25 +78,24 @@ class Board:
   
   
   
-	def draw_stuff(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]]) \
-    		->  np.ndarray[np.ndarray[np.ndarray[np.uint8]]]:
+	def draw_stuff(self, image: np.ndarray[int, np.uint8]) ->  np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: apply all the drawing function
 		ARGUMENTS: 
-			- image (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): image to edit
+			- image (np.ndarray[int, np.uint8]): image to edit
 		RETURN:
-			- (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): resuting image
+			- (np.ndarray[int, np.uint8]): resuting image
 		'''	
   
 		return self.draw_index(self.draw_green_cross_and_blu_rectangle(self.draw_red_polygon(image)))
 
 
 
-	def covered_polygon(self, polygons: np.ndarray[np.int32]) -> None:
+	def covered_polygon(self, polygons: np.ndarray[int, np.int32]) -> None:
 		'''
 		PURPOSE: apply all the drawing function
 		ARGUMENTS: 
-			- polygons (np.ndarray[np.int32]): array of index that express the covered polygons
+			- polygons (np.ndarray[int, np.int32]): array of index that express the covered polygons
 		RETURN: None
 		'''	
      
@@ -108,12 +103,12 @@ class Board:
 
 
 
-	def find_markers(self, image: np.ndarray[np.ndarray[np.ndarray[np.uint8]]], frame_cnt: int, marker_reference: Dict[int, Tuple[int, int, int]]) \
+	def find_markers(self, image: np.ndarray[int, np.uint8], frame_cnt: int, marker_reference: Dict[int, Tuple[int, int, int]]) \
 			-> List[Dict[str, Union[int, int, np.float64, np.float64, int, int, int]]]:
 		'''
 		PURPOSE: computing the polygon index and the circles centre coordinates of a polygon
 		ARGUMENTS: 
-			- image (np.ndarray[np.ndarray[np.ndarray[np.uint8]]]): video frame
+			- image (np.ndarray[int, np.uint8]): video frame
 			- frame_cnt (int): index frmae 
 			- marker_reference (Dict[int, Tuple[int, int, int]])): dictionary of the marker reference coordinates
 		RETURN:
@@ -137,9 +132,6 @@ class Board:
 
 		# Searching through every region selected to find the required polygon.
 		for cnt in contours:
-			
-			# Sort the vertices in clockwise order
-			#sorted_vertex = sort_vertices_clockwise(np.squeeze(cnt, axis=1))
    
 			# Shortlisting the regions based on there area.
 			if cv.contourArea(cnt) > 1650.0:  # previously was 1720
