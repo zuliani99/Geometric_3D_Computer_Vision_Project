@@ -82,28 +82,28 @@ The Mesh result of each object are stored in the *optput_project* folder, I reco
 Marker Detector for obj01.mp4...
  DONE
 Average FPS is: 0.6086838923118594
-Average RMS pixel error is: 0.9412538925287559
+Average Reprojection RMS Pixel Error is: 0.9412538925287559
 Saving PLY file...
  DONE
 
 Marker Detector for obj02.mp4...
  DONE
 Average FPS is: 0.47182103639343614
-Average RMS pixel error is: 0.896294098953868
+Average Reprojection RMS Pixel Error is: 0.896294098953868
 Saving PLY file...
  DONE
 
 Marker Detector for obj03.mp4...
  DONE
 Average FPS is: 0.2545594350406094
-Average RMS pixel error is: 0.9178120944262036
+Average Reprojection RMS Pixel Error is: 0.9178120944262036
 Saving PLY file...
  DONE
 
 Marker Detector for obj04.mp4...
  DONE
 Average FPS is: 0.6229241890497109
-Average RMS pixel error is: 0.9080787727231838
+Average Reprojection RMS Pixel Error is: 0.9080787727231838
 Saving PLY file...
  DONE
 ```

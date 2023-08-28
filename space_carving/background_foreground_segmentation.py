@@ -68,7 +68,7 @@ def apply_segmentation(obj: str, frame: np.ndarray[int, np.uint8]) -> np.ndarray
 		- morph_op_2 (np.ndarray[int, np.uint8]): final mask
 	'''
  
-    # Convert the imahe into RGB format
+    # Convert the image into RGB format
 	rgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
 
 	# Change the image contast and confvert it into HSV format
@@ -77,10 +77,11 @@ def apply_segmentation(obj: str, frame: np.ndarray[int, np.uint8]) -> np.ndarray
 	# Define the colored mask obtained from the image
 	color_mask = cv.bitwise_not(cv.inRange(enhanced, hyperparameters[obj]['correction'][0], hyperparameters[obj]['correction'][1]))
 
-	# Add a constant rectangle to mask the left part of the image
+	# Add a constant rectangle to mask the board
 	rectangular_mask = np.full(rgb.shape[:2], 0, np.uint8)
 	rectangular_mask[:,1180:rgb.shape[1]] = 255
 
+	# Cover the remaining part of the board 
 	mask = cv.bitwise_or(cv.ellipse(color_mask,(1380,540),(700,300),89,0,180,255,-1), rectangular_mask)
 
 	# Parse useful hyperparameters
@@ -91,7 +92,8 @@ def apply_segmentation(obj: str, frame: np.ndarray[int, np.uint8]) -> np.ndarray
 	# First Morphological Operation
 	if 'additional_mask_space' in hyperparameters[obj]:
 
-		# Add an additional masking ellipse tot ake into account the board
+		# Create an additional mask that ingolbe the object
+
 		y1, y2, x1, x2 = hyperparameters[obj]['additional_mask_space']
 		additional_mask = np.full(frame.shape[:2], 0, np.uint8)
 		additional_mask[y1:y2, x1:x2] = mask[y1:y2, x1:x2]

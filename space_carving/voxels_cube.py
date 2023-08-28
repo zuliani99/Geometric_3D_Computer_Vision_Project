@@ -34,22 +34,27 @@ class VoxelsCube:
 			- cube_coords_voxels (np.ndarray[int, np.float32]) voxels cube coordinates
 		'''	
 
-		axis_length = (self.__half_edge_len * 2) // self.__voxel_cube_dim
+		# Get the number of voxels in a single dimension 
+		first_dim_voxel = (self.__half_edge_len * 2) // self.__voxel_cube_dim
 		
-		center_voxels = np.zeros((0, axis_length, axis_length, 3), dtype=np.float32)
-		cube_coords_voxels = np.zeros((0, axis_length, axis_length, 8, 3), dtype=np.float32)
+		# Initialize the np.array to store the voxels centre coords and voxels cube vertices coords
+		center_voxels = np.zeros((0, first_dim_voxel, first_dim_voxel, 3), dtype=np.float32)
+		cube_coords_voxels = np.zeros((0, first_dim_voxel, first_dim_voxel, 8, 3), dtype=np.float32)
 	
+		# Iterate through the z axis
 		for z in np.arange(70 + (self.__voxel_cube_dim / 2), 70 + (self.__half_edge_len * 2) - self.__voxel_cube_dim / 2 + 1, self.__voxel_cube_dim):
-			center_voxels_at_z = np.zeros((0, axis_length, 3), dtype=np.float32)
-			cube_coords_voxels_at_z = np.zeros((0, axis_length, 8, 3), dtype=np.float32)
+			center_voxels_at_z = np.zeros((0, first_dim_voxel, 3), dtype=np.float32)
+			cube_coords_voxels_at_z = np.zeros((0, first_dim_voxel, 8, 3), dtype=np.float32)
 			
+			# Iterate through the y axis
 			for y in np.arange(-self.__half_edge_len + self.__voxel_cube_dim / 2, self.__half_edge_len - self.__voxel_cube_dim / 2 + 1, self.__voxel_cube_dim):
 				rows = np.zeros((0,3), dtype=np.float32)
 				cubes = np.zeros((0,8,3), dtype=np.float32)
 				
+				# Iterate through the x axis
 				for x in np.arange(-self.__half_edge_len + self.__voxel_cube_dim / 2, self.__half_edge_len - self.__voxel_cube_dim / 2 + 1, self.__voxel_cube_dim):
-					rows = np.vstack((rows, np.array([x, y, z], dtype=np.float32)))
-					cube = np.array([
+					rows = np.vstack((rows, np.array([x, y, z], dtype=np.float32))) # Voxel centre coords
+					cube = np.array([	# Voxel cube vertices coords
 						np.array([y + self.__voxel_cube_dim / 2, x + self.__voxel_cube_dim / 2, z + self.__voxel_cube_dim / 2]),
 						np.array([y + self.__voxel_cube_dim / 2, x + self.__voxel_cube_dim / 2, z - self.__voxel_cube_dim / 2]),
 						np.array([y + self.__voxel_cube_dim / 2, x - self.__voxel_cube_dim / 2, z + self.__voxel_cube_dim / 2]),
@@ -73,7 +78,7 @@ class VoxelsCube:
 
 	def get_newCameraMatrix(self) -> None:
 		'''
-		PURPOSE: get the nre camera matrix and new resolution
+		PURPOSE: get the new camera intrinsic matrix
 		ARGUMENTS: None
 		RETURN: None
 		'''	
@@ -191,13 +196,16 @@ class VoxelsCube:
 		# Get the ID of the centroid that belong to the foreground
 		mantained_centroids_idx = np.argwhere(binary_centroid_fore_back_reshaped == 1)
 
-		# Get their coordinates
+		# Get their cube coordinates
 		resulting_voxels = self.__cube_coords_centroid[mantained_centroids_idx[:, 0], mantained_centroids_idx[:, 1], mantained_centroids_idx[:, 2]]
-  
+
+		# Reshaping the coordinates
 		voxels_cube_coords = np.reshape(resulting_voxels, (resulting_voxels.shape[0] * 8, 3))
+  
+		# Initialize the np.array to store the faces of each voxel cube
 		voxel_cube_faces = np.zeros((0,5), dtype=np.int32)
 
-		# Full the faces vector with the correct vertices ID
+		# Full the faces vector with the correct voxel cube vertices ID
 		for idx in range(0, voxels_cube_coords.shape[0], 8):
 			voxel_cube_faces = np.vstack((voxel_cube_faces, np.array([4, idx + 2, idx + 0, idx + 1, idx + 3])))
 			voxel_cube_faces = np.vstack((voxel_cube_faces, np.array([4, idx + 6, idx + 4, idx + 5, idx + 7])))

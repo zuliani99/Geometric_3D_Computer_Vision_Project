@@ -11,12 +11,12 @@ from board import Board
 from voxels_cube import VoxelsCube
 
 
-# Objects undist_half_edge
+# Objects half_cube_edge parameters
 parameters = {
-	'obj01.mp4': {'undist_half_edge': 55},
-	'obj02.mp4': {'undiundist_half_edgest_axis': 60},
-	'obj03.mp4': {'undist_half_edge': 75},
-	'obj04.mp4': {'undist_half_edge': 55},
+	'obj01.mp4': {'half_cube_edge': 55},
+	'obj02.mp4': {'half_cube_edge': 60},
+	'obj03.mp4': {'half_cube_edge': 75},
+	'obj04.mp4': {'half_cube_edge': 55},
 }
 
 
@@ -38,7 +38,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 		print('Please, before running the project, execute the camera calibration program.')
 		return
 
-	# Load the camera matrix and distorsion
+	# Load the camera matrix and distorsion coefficients
 	camera_matrix = np.load('./calibration_info/cameraMatrix.npy')
 	dist = np.load('./calibration_info/dist.npy')
   
@@ -62,18 +62,18 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 
 		prev_frameg = None
   
-		half_edge_len = hyper_param['undist_half_edge']
+		half_cube_edge = hyper_param['half_cube_edge']
 
 		# Create the Board object
 		board = Board(n_polygons=24)
 
 		# Create the VoxelsCube object
-		voxels_cube = VoxelsCube(half_edge_len=half_edge_len, voxel_cube_dim=voxel_cube_dim, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
+		voxels_cube = VoxelsCube(half_edge_len=half_cube_edge, voxel_cube_dim=voxel_cube_dim, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
   
 		# Create output video writer initialized at None since we do not know the undistorted resolution
 		output_video = None
 
-		# Get the new camera matrix
+		# Returns the new camera intrinsic matrix based on the free scaling parameter.
 		voxels_cube.get_newCameraMatrix()
 
 		while True:
@@ -93,8 +93,10 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 				frame_width, frame_height = undist_frame.shape[1], undist_frame.shape[0] 
 				output_video = cv.VideoWriter(f'../output_project/{obj_id}/{obj_id}.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
 			
-		   
+			# Get the gray frame
 			frameg = cv.cvtColor(undist_frame, cv.COLOR_BGR2GRAY)
+   
+			# Get the thresholded frame by Otsu Thresholding 
 			_, thresh = cv.threshold(frameg, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
    
 			   
@@ -135,7 +137,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 				# Apply the segmentation on the undistorted frame
 				undist_mask = apply_segmentation(obj, undist_frame)
 
-				# Draw the projected cube and centroid
+				# Draw the projected cube and centroid axis
 				edited_frame = board.draw_origin(edited_frame, np.int32(imgpts_centroid))
 				edited_frame = voxels_cube.draw_cube(edited_frame, np.int32(imgpts_cube))
     
@@ -163,6 +165,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
    
 			actual_fps += 1
 
+
 			key = cv.waitKey(1)
 			if key == ord('p'): cv.waitKey(-1) 
    
@@ -171,7 +174,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 
 		print(' DONE')
 		print(f'Average FPS is: {str(avg_fps / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')
-		print(f'Average RMS pixel Error is: {str(avg_rmse / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')
+		print(f'Average Reprojection RMS Pixel Error is: {str(avg_rmse / int(input_video.get(cv.CAP_PROP_FRAME_COUNT)))}')
 
 
 		# Release the input and output streams

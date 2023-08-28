@@ -71,7 +71,7 @@ def find_distance_between_points(p1: np.ndarray[int, np.int32], p2: np.ndarray[i
 def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid: np.float64,
 								   middle_point: np.ndarray[int, np.float64], A: np.ndarray[int, np.int32]) -> List[Tuple[np.float64, np.float64]]:
 	'''
-	PURPOSE: find the coordinates of the 5 circles centre
+	PURPOSE: find the coordinates of the 5 circles centres
 	ARGUMENTS: 
 		- dist_A_Cir_Ctr (List[np.float64]): list of distance between the point A and each circle center
 		- dist_A_Ext_Mid (np.float64): distance between the point A and the point between the two extreme points of a polygon
@@ -119,12 +119,14 @@ def compute_index_and_cc_coords(A: np.ndarray[int, np.int32], middle_point: np.n
 	dist_A_Ext_Mid = find_distance_between_points(A, np.int32(middle_point))
 	  
 	# Computing the distance from the point A and each circle centre
+	# The distances between the point A and the circle centre up to the middle point are the following one:
+	# 5 - 4.5 - 4.5 - 4.5 - 4.5 - 5		and the sum is equal to 28
 	dist_A_Cir_Ctr = [(dist_A_Ext_Mid * ((i * 4.5) + 5) / 28) for i in range(5)] 
 	  
 	# Obtaining the coordinates of each circle centre
 	circles_ctr_coords = find_circles_centre_coords(dist_A_Cir_Ctr, dist_A_Ext_Mid, middle_point, A) 
 
-	# Obtain the reversed list of bit describing the polygon index
+	# Obtain the list of bits forming the polygon index by checking the cicrcle centre color in the threshold frmae
 	bit_index = [1 if thresh[np.int32(coords[0]), np.int32(coords[1])] == 0 else 0 for coords in circles_ctr_coords] 
 
 	# Obtain the index

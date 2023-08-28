@@ -218,6 +218,7 @@ class Board:
 		
 		# Iterate through the reshaped tracked features in clockwise order
 		for poly in reshaped_clockwise:
+      
 			# Obtain the external point distance between the approximated board centroid and each approximated polygon vertex
 			external_points_dict = dict(enumerate(
 				list(map(lambda x: find_distance_between_points(x, self.__centroid), poly))
