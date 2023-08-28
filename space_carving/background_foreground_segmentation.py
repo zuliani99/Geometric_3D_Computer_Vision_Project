@@ -45,13 +45,16 @@ def change_contrast(img: np.ndarray[int, np.uint8], clipLimit: int) -> np.ndarra
     
 	lab = cv.cvtColor(img, cv.COLOR_RGB2LAB)
 	l_channel, a, b = cv.split(lab)
+	# l-channel: representing lightness in the image
+	# a: representing change in color between red and green
+	# b: representing change in color between yellow and blue
 
-	# Applying CLAHE to L-channel
+	# Applying CLAHE (Contrast Limited Adaptive Histogram Equalization) to L-channel
 	l_clahe = cv.createCLAHE(clipLimit = clipLimit, tileGridSize = (20,20))
 	l_channel = l_clahe.apply(l_channel)
 
 	# Merge the CLAHE enhanced L-channel with the a and b channel
-	limg = cv.merge((l_channel,a,b))
+	limg = cv.merge((l_channel, a, b))
 
 	# Converting image from LAB Color model to BGR color spcae
 	return cv.cvtColor(limg, cv.COLOR_LAB2RGB)
