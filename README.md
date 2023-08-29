@@ -54,7 +54,7 @@ python camera_calibration.py
 ```
 In the final project application you have also to specify the following attribute in the command line:
 1. *--hd_laptop*: if you have HD screen resolution
-2. *voxel_cube_edge_dim*: which is the dimension of one vexel cube edge
+2. *voxel_cube_edge_dim*: which is the dimension of one voxel cube edge
 ```
 python space_carving.py 2
 ```
