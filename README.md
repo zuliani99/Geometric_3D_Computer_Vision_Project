@@ -35,9 +35,9 @@ The project structure is divided into three subproject:
 * Background foreground detection (*1_background_foreground_detection*)
 * Markers Detector (*2_markers_detector*)
 * Pose estimation (*3_pose_estimation*)
-Each mini project is anassignmet which student cna decide to develop during the course or take the final project that require additional work.
+Each mini project is an assignment which students can decide to develop during the course or take the final project that requires additional work.
 
-The additional work is mainly summarize by the immplementation of the .ply file in order to export the object mesh built using the voxel structure.
+The additional work is mainly summarized by the implementation of the .ply file in order to export the object mesh built using the voxel structure.
 
 The final project can be examined in the *space_carving* folder
 
@@ -75,7 +75,7 @@ python pose_estimation.py
 ```
 
 ## Analyse the Results
-The Mesh result of each object are stored in the *optput_project* folder, I recomend use [MeshLab](https://www.meshlab.net/#download) as software to deeply analyse the object shape.
+The Mesh results of each object are stored in the *optput_project* folder, I recommend using [MeshLab](https://www.meshlab.net/#download) as software to deeply analyse the object shape.
 
 ## Project Console Output
 ```
