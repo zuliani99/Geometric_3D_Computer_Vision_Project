@@ -42,7 +42,7 @@ def main(using_laptop: bool) -> None:
 		frame_width = int(input_video.get(cv.CAP_PROP_FRAME_WIDTH))
 		frame_height = int(input_video.get(cv.CAP_PROP_FRAME_HEIGHT))
   
-		# Get the new camera matrix
+		# Get the new camera intrinsic matrix based on the free scaling parameter
 		newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(camera_matrix, dist, (frame_width, frame_height), 1, (frame_width, frame_height))
 
 		actual_fps = 0

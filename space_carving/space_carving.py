@@ -73,7 +73,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 		# Create output video writer initialized at None since we do not know the undistorted resolution
 		output_video = None
 
-		# Returns the new camera intrinsic matrix based on the free scaling parameter.
+		# Get the new camera intrinsic matrix based on the free scaling parameter
 		voxels_cube.get_newCameraMatrix()
 
 		while True:
@@ -85,7 +85,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 
 			if not ret:	break
    
-			# Get the undistorted frame and the new camera matrix
+			# Get the undistorted frame
 			undist_frame = voxels_cube.get_undistorted_frame(frame)
 
 			# Update the undistorted_resolution, output_video and the centroid
