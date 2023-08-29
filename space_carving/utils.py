@@ -83,6 +83,9 @@ def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid:
 	
 	# Remember that the y increase from the top of the image to the bottom
  
+	# x = x_middlepoint + ((dist_A_centre / dist_A_middlepoint) * (x_A - x_middlepoint))
+	# y = y_middlepoint + ((dist_A_centre / dist_A_middlepoint) * (y_A - y_middlepoint))
+ 
 	circles_ctr_coords = []
 
 	dx = A[0] - middle_point[0] # Difference the between X coordinates of point A and and the middle point between the two extreme points
@@ -118,7 +121,7 @@ def compute_index_and_cc_coords(A: np.ndarray[int, np.int32], middle_point: np.n
 	# Computing the distance from the point A and the point between the two extreme points of a polygon
 	dist_A_Ext_Mid = find_distance_between_points(A, np.int32(middle_point))
 	  
-	# Computing the distance from the point A and each circle centre
+	# Computing the 5 proportions to pbtain the distance from the point A and each circle centre
 	# The distances between the point A and the circle centre up to the middle point are the following one:
 	# 5 - 4.5 - 4.5 - 4.5 - 4.5 - 5		and the sum is equal to 28
 	dist_A_Cir_Ctr = [(dist_A_Ext_Mid * ((i * 4.5) + 5) / 28) for i in range(5)] 
