@@ -193,7 +193,7 @@ class Board:
 		'''	
      
 		# Forward Optical Flow
-		p1, st, _ = cv.calcOpticalFlowPyrLK(prev_frameg, frameg, self.__tracked_features, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)#, flags=cv.OPTFLOW_LK_GET_MIN_EIGENVALS, minEigThreshold=0.01)
+		p1, st, _ = cv.calcOpticalFlowPyrLK(prev_frameg, frameg, self.__tracked_features, None, winSize=winsize_lk, maxLevel=maxlevel_lk, criteria=criteria_lk)
 		
 		fb_good = p1[np.where(st == 1)[0]]
   
