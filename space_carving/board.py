@@ -149,17 +149,21 @@ class Board:
 		RETURN:
   			- (np.ndarray[int, np.float32]): sorted vertices polygon
 		'''	
-     
+
+		# Sort the feature to track colckwise respect the centroid to make a good reshaping 
 		self.__tracked_features = sort_vertices_clockwise(self.__tracked_features, self.__centroid)
 		
+		# Exclude outer points
 		self.__tracked_features = self.__tracked_features[:int(self.__tracked_features.shape[0] // 5) * 5, :]
 			
+		# Reshape the array
 		reshaped_clockwise = np.reshape(self.__tracked_features, (int(self.__tracked_features.shape[0] // 5), 5, 2))
   
 		# I have to sort clockwise the last polygon in order to compute correctly the contourArea
 		if(cv.contourArea(sort_vertices_clockwise(reshaped_clockwise[-1,:,:])) <= 1550.0):
 			reshaped_clockwise = reshaped_clockwise[:reshaped_clockwise.shape[0] - 1, :, :]
 		
+		# Back to the clockwise order respect the centroid of each polygons
 		return np.array([sort_vertices_clockwise(poly) for poly in reshaped_clockwise])
 
 
@@ -237,11 +241,15 @@ class Board:
 			# Get the coordinate of the point A by getting the missing index
 			A = np.squeeze(poly[np.squeeze(np.setdiff1d(np.arange(5), hull))])
 
-
+			# In case of no error
 			if(len(A.shape) == 1):
+
+				# Compute the index and circles centre coordinates
 				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
 
 				if(index < 24):
+
+					# Update the infromations
 					self.__polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
 					covered_polys[index] = 0
 
