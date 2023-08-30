@@ -88,7 +88,7 @@ def main(using_laptop: bool) -> None:
 				# Each 5 frames recompute tqhe whole features to track
 				board.find_interesting_points(thresh, frameg)
 			else: 
-				# The other frame use the Lucaks Kanade Optical Flow to estimate the postition of the traked features based on the previous frame
+				# The other frame use the Lucas-Kanade Optical Flow to estimate the postition of the traked features based on the previous frame
 				board.apply_LK_OF(prev_frameg, frameg, (20, 20))
 	
 			# Order the detected features in clockwise order to be able to print correctly

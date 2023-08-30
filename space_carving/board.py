@@ -171,7 +171,7 @@ class Board:
 
 	def apply_LK_OF(self, prev_frameg: np.ndarray[int, np.uint8], frameg: np.ndarray[int, np.uint8], winsize_lk: Tuple[int, int]) -> None: 
 		'''
-		PURPOSE: apply Lucas Kanade Optical Flow to predict the position of the features based on its algorithm parameters
+		PURPOSE: apply Lucas-Kanade Optical Flow to predict the position of the features based on its algorithm parameters
 		ARGUMENTS: 
 			- prev_frameg (np.ndarray[int, np.uint8]): previous gray frame
 			- frameg (np.ndarray[int, np.uint8]): actual gray frame
