@@ -26,24 +26,11 @@ class Board:
 	def __init__(self, n_polygons: int) -> None:
 		self.__polygon_list: List[Polygon] = [Polygon() for _ in range(n_polygons)]
 		self.__tracked_features = np.zeros((0,2), dtype=np.float32)
-		self.__centroid = None
-
-
-
-
-	def set_centroid(self, centroid: np.ndarray[int, np.int32]) -> None:
-		'''
-		PURPOSE: update the centroid value
-		ARGUMENTS: 
-			- centroid (np.ndarray[int, np.int32]): new centroid value
-		RETURN: None
-		'''	
-		
-		if self.__centroid is None: self.__centroid = centroid
+		self.__centroid = np.array([1259, 520], dtype=np.int32)
   
-  	
-
-   
+  
+  
+  
 	def draw_red_polygon(self, image: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: draw the red polygon, the cross in point A and the line crossing the polygon by length

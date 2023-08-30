@@ -108,7 +108,7 @@ def main(using_laptop: bool) -> None:
 					output_video = cv.VideoWriter(f'../output_part3/{obj_id}_cube.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), np.flip(undistorted_resolution))
     
 				# Draw the projected cube and centroid
-				edited_frame = draw_origin(undist, (1280, undistorted_resolution[0] // 2), np.int32(imgpts_centroid))
+				edited_frame = draw_origin(undist, (1259, undistorted_resolution[0] // 2), np.int32(imgpts_centroid))
 				edited_frame = draw_cube(edited_frame, np.int32(imgpts_cube))
       					
 

@@ -73,11 +73,10 @@ def main(using_laptop: bool) -> None:
 			x, y, w, h = roi
 			frame = frame[y:y+h, x:x+w]
 
-			# Update the output_video and the centroid
+			# Update the output_video
 			if output_video is None:
 				frame_width, frame_height = frame.shape[1], frame.shape[0] 
 				output_video = cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_marker.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
-				board.set_centroid(np.array([1280, int(frame_height // 2)]))
 				
 		 
 			frameg = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
