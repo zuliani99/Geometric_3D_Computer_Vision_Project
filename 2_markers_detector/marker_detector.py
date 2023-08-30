@@ -23,12 +23,12 @@ def main(using_laptop: bool) -> None:
 	marker_reference = set_marker_reference_coords()
  
 	# Check if the user run the camera calibration program before
-	if not os.path.exists('../../3_pose_estimation/calibration_info/cameraMatrix.npy') or not os.path.exists('../../3_pose_estimation/calibration_info/dist.npy'):
+	if not os.path.exists('../3_pose_estimation/calibration_info/cameraMatrix.npy') or not os.path.exists('../3_pose_estimation/calibration_info/dist.npy'):
 		print('Please, before running the pose estimation execute the camera calibration program.')
 		return
 
-	camera_matrix = np.load('../../3_pose_estimation/calibration_info/cameraMatrix.npy')
-	dist = np.load('../../3_pose_estimation/calibration_info/dist.npy')
+	camera_matrix = np.load('../3_pose_estimation/calibration_info/cameraMatrix.npy')
+	dist = np.load('../3_pose_estimation/calibration_info/dist.npy')
 
 	# Iterate for each object
 	for obj in objs:
@@ -36,7 +36,7 @@ def main(using_laptop: bool) -> None:
 		print(f'Marker Detector for {obj}...')
   
 		# Create the VideoCapture object
-		input_video = cv.VideoCapture(f"../../data/{obj}")
+		input_video = cv.VideoCapture(f"../data/{obj}")
 		
 		# Get video properties
 		frame_width = int(input_video.get(cv.CAP_PROP_FRAME_WIDTH))
@@ -76,7 +76,7 @@ def main(using_laptop: bool) -> None:
 			# Update the output_video
 			if output_video is None:
 				frame_width, frame_height = frame.shape[1], frame.shape[0] 
-				output_video = cv.VideoWriter(f"../../output_part2/{obj_id}/{obj_id}_marker.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
+				output_video = cv.VideoWriter(f"../output_part2/{obj_id}/{obj_id}_marker.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
 				
 		 
 			frameg = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
