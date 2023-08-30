@@ -117,7 +117,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			edited_frame = undist_frame
    
 
-			if markers_info.shape[0] >= 6:
+			if markers_info.shape[0] > 6:
 
 				# Draw the marker detector stuff
 				edited_frame = board.draw_stuff(edited_frame)

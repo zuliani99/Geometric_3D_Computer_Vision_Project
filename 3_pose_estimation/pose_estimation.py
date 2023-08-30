@@ -82,7 +82,7 @@ def main(using_laptop: bool) -> None:
 			csv_frame_index = np.where(markers_info[:,0] == actual_fps)[0]
       
 
-			if csv_frame_index.shape[0] >= 6:
+			if csv_frame_index.shape[0] > 6:
        
 				twoD_points = markers_info[csv_frame_index,2:4]
 				threeD_points = markers_info[csv_frame_index,4:7]
