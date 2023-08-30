@@ -46,7 +46,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 	# Iterate for each object
 	for obj, hyper_param in parameters.items():
 		
-		print(f'Marker Detector for {obj}...')
+		print(f'Space Carving of {obj}...')
   
 		# Create the VideoCapture object
 		input_video = cv.VideoCapture(f"../data/{obj}")
@@ -155,7 +155,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
   
 			# Output the frame with the FPS   			
 			cv.putText(frame_with_fps_resized, f"{fps:.2f} FPS", (30, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-			cv.imshow(f'Space Carving result of {obj}', frame_with_fps_resized)
+			cv.imshow(f'Space Carving of {obj}', frame_with_fps_resized)
 			   
 			# Save the frame without the FPS count
 			output_video.write(edited_frame)

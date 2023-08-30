@@ -176,7 +176,7 @@ def main(using_laptop: bool) -> None:
 	dist = np.load('../3_pose_estimation/calibration_info/dist.npy')
  
 	for obj in list(hyperparameters.keys()):
-		print(f'Segmentation of {obj} video...')		
+		print(f'Segmentation of {obj}...')		
   
 		avg_fps = 0
   
@@ -234,7 +234,7 @@ def main(using_laptop: bool) -> None:
 			resized_frame = resize_for_laptop(using_laptop, copy.deepcopy(frame))
    
 			# Display the segmented frame and the contourns
-			cv.imshow(f"Segmented Video of {obj}", resized_segmented_frame_with_fps)
+			cv.imshow(f"Segmentation of {obj}", resized_segmented_frame_with_fps)
 			cv.imshow(f"Countourns Segmentation of {obj}", resized_frame)
    
 			# Save the frame without the FPS count

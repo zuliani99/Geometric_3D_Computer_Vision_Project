@@ -39,7 +39,7 @@ def main(using_laptop: bool) -> None:
 	# Iterate for each object
 	for obj, hyper_param in parameters.items():
 	  
-		print(f'Marker Detector for {obj}...')
+		print(f'Pose Estiamtion of {obj}...')
   
 		# Create the VideoCapture object
 		input_video = cv.VideoCapture(f"../data/{obj}")

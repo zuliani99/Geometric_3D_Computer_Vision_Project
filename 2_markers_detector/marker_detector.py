@@ -33,7 +33,7 @@ def main(using_laptop: bool) -> None:
 	# Iterate for each object
 	for obj in objs:
 	 
-		print(f'Marker Detector for {obj}...')
+		print(f'Markers Detector of {obj}...')
   
 		# Create the VideoCapture object
 		input_video = cv.VideoCapture(f"../data/{obj}")
@@ -109,7 +109,7 @@ def main(using_laptop: bool) -> None:
   
 			# Output the frame with the FPS
 			cv.putText(frame_with_fps_resized, f"{fps:.2f} FPS", (20, 20), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-			cv.imshow(f'Marker Detector of {obj}', frame_with_fps_resized)
+			cv.imshow(f'Markers Detector of {obj}', frame_with_fps_resized)
 			
 			# Save the frame without the FPS count
 			output_video.write(edited_frame)
