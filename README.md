@@ -31,15 +31,14 @@ A package containing 4 different video sequences (plus the calibration) can be d
 
 
 ## Poject Structure
-The project structure is divided into three subproject:
+The project structure is divided into three subprojects:
 * Background foreground detection (*1_background_foreground_detection*)
 * Markers Detector (*2_markers_detector*)
 * Pose estimation (*3_pose_estimation*)
-Each mini project is an assignment which students can decide to develop during the course or take the final project that requires additional work.
 
-The additional work is mainly summarized by the implementation of the .ply file in order to export the object mesh built using the voxel structure.
+Each mini project is a task that the students could decide to develop during the course or to carry out the final project as I did. The additional work in the project is mainly summarized in the implementation of the .ply file in order to export the object mesh.
 
-The final project can be examined in the *space_carving* folder
+The final project can be examined in the *space_carving* folder.
 
 ## Requirements
 ```
