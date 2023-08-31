@@ -126,7 +126,7 @@ def compute_index_and_cc_coords(A: np.ndarray[int, np.int32], middle_point: np.n
 	# 5 - 4.5 - 4.5 - 4.5 - 4.5 - 5		and the sum is equal to 28
 	dist_A_Cir_Ctr = [(dist_A_Ext_Mid * ((i * 4.5) + 5) / 28) for i in range(5)] 
 	  
-	# Obtaining the coordinates of each circle centre
+	# Obtaining the coordinates of each circles centre
 	circles_ctr_coords = find_circles_centre_coords(dist_A_Cir_Ctr, dist_A_Ext_Mid, middle_point, A) 
 
 	# Obtain the list of bits forming the polygon index by checking the circles centre color in the threshold frame

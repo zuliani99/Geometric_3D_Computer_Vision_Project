@@ -70,6 +70,9 @@ def change_contrast(img: np.ndarray[int, np.uint8], clipLimit: int) -> np.ndarra
     
 	lab = cv.cvtColor(img, cv.COLOR_RGB2LAB)
 	l_channel, a, b = cv.split(lab)
+ 	# l-channel: representing lightness in the image
+	# a: representing change in color between red and green
+	# b: representing change in color between yellow and blue
 
 	# Applying CLAHE to L-channel
 	l_clahe = cv.createCLAHE(clipLimit = clipLimit, tileGridSize = (20,20))
@@ -131,6 +134,7 @@ def apply_segmentation(obj: str, frame: np.ndarray[int, np.uint8]) -> Tuple[np.n
 	rectangular_mask = np.full(rgb.shape[:2], 0, np.uint8)
 	rectangular_mask[:,1180:rgb.shape[1]] = 255
  
+	# Cover the remaining part of the board 
 	mask = cv.bitwise_or(cv.ellipse(color_mask,(1380,540),(700,300),89,0,180,255,-1), rectangular_mask)
 	
 	# Parse useful hyperparameters
@@ -141,7 +145,8 @@ def apply_segmentation(obj: str, frame: np.ndarray[int, np.uint8]) -> Tuple[np.n
 	# First Morphological Operation
 	if 'additional_mask_space' in hyperparameters[obj]:
 		
-		# Add an additional masking ellipse tot ake into account the board
+		# Create an additional mask that ingolbe the object
+
 		y1, y2, x1, x2 = hyperparameters[obj]['additional_mask_space']
 		additional_mask = np.full(frame.shape[:2], 0, np.uint8)
 		additional_mask[y1:y2, x1:x2] = mask[y1:y2, x1:x2]

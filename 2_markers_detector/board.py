@@ -128,7 +128,7 @@ class Board:
 		mask_thresh[:, 1140:1570] = thresh[:, 1140:1570]
 
 		# Finding the contourns
-		contours, _ = cv.findContours(mask_thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE) # [[[X Y]] [[X Y]] ... [[X Y]]]
+		contours, _ = cv.findContours(mask_thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 	
 		# Searching through every region selected to find the required polygon
 		for cnt in contours:
@@ -136,7 +136,7 @@ class Board:
 			# Shortlisting the regions based on there area
 			if(cv.contourArea(sort_vertices_clockwise(np.squeeze(cnt, axis=1)))) > 1550.0:
 
-				approx_cnt = cv.approxPolyDP(cnt, 0.015 * cv.arcLength(cnt, True), True) # [[[X Y]] [[X Y]] ... [[X Y]]]
+				approx_cnt = cv.approxPolyDP(cnt, 0.015 * cv.arcLength(cnt, True), True)
 				
 				# Checking if the number of sides of the selected region is 5
 				if (len(approx_cnt)) == 5:
@@ -151,7 +151,7 @@ class Board:
 		PURPOSE: reshape the obtained features, sort them in clockwise order and remove the last polygon by area
 		ARGUMENTS: None
 		RETURN:
-  			- (np.ndarray[int, np.float32]): sorted vertices polygon
+  			- (np.ndarray[int, np.float32]): sorted polygons vertices 
 		'''	
 
 		# Sort the feature to track colckwise respect the centroid to make a good reshaping 

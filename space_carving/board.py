@@ -151,7 +151,7 @@ class Board:
 		PURPOSE: reshape the obtained features, sort them in clockwise order and remove the last polygon by area
 		ARGUMENTS: None
 		RETURN:
-  			- (np.ndarray[int, np.float32]): sorted vertices polygon
+  			- (np.ndarray[int, np.float32]): sorted polygons vertices 
 		'''	
 
 		# Sort the feature to track colckwise respect the centroid to make a good reshaping 

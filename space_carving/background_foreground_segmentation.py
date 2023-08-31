@@ -111,4 +111,5 @@ def apply_segmentation(obj: str, frame: np.ndarray[int, np.uint8]) -> np.ndarray
 		# In case we do not have to worry about the mask we just compute the specific morphological operation
 		morph_op_1 = cv.morphologyEx(mask, morph1, kernel1, iterations = iter1)
 
+	# Second Morphological Operation
 	return cv.morphologyEx(morph_op_1, morph2, kernel2, iterations = iter2)
