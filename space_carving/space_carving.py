@@ -200,5 +200,7 @@ if __name__ == "__main__":
 	parser.add_argument('voxel_cube_edge_dim', type=int, help='Dimension of a voxel cube edge')
 	args = parser.parse_args()
 	
+	if(args.voxel_cube_edge_dim < 0): raise ValueError('The voxel_cube_edge_dim must be a positive integer number')
+
 	main(args.hd_laptop, args.voxel_cube_edge_dim)
  
