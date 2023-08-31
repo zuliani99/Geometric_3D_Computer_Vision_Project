@@ -22,14 +22,14 @@ class VoxelsCube:
 											[half_edge_len, half_edge_len, 70 + half_edge_len * 2],[half_edge_len, -half_edge_len, 70 + half_edge_len * 2]
 										])
 		self.__voxels_center, self.__centroids_cubes_coords = self.get_cube_and_centroids_voxels()
-		self.__binary_centroid_fore_back = np.ones((np.power(self.__voxels_center.shape[0], 3), 1), dtype=np.int32)
+		self.__binary_centroids_fore_back = np.ones((np.power(self.__voxels_center.shape[0], 3), 1), dtype=np.int32)
   
 	
  
 	
 	def get_cube_and_centroids_voxels(self) -> Tuple[np.ndarray[int, np.float32], np.ndarray[int, np.float32]]:
 		'''
-		PURPOSE: obtain the centre voxels centroid coordinate and their respective corners coordinates that form the voxel cube
+		PURPOSE: obtain the centre voxels centroid coordinates and their respective corners coordinates that form the voxel cube
 		ARGUMENTS: None
 		RETURN: Tuple[np.ndarray[int, np.float32], np.ndarray[int, np.float32]]
 			- voxels_center (np.ndarray[int, np.float32]): voxels centroid
@@ -181,7 +181,7 @@ class VoxelsCube:
 		for idx, centr_coords in enumerate(self.__imgpts_voxels_cubes_centroid):
 			if centr_coords[0] < undistorted_resolution[0] and centr_coords[1] < undistorted_resolution[1] and \
 					centr_coords[0] >= 0  and centr_coords[1] >= 0 and undist_b_f_image[int(centr_coords[1]), int(centr_coords[0])] == 0:
-				self.__binary_centroid_fore_back[idx] = 0
+				self.__binary_centroids_fore_back[idx] = 0
 				cv.circle(undist, (int(centr_coords[0]), int(centr_coords[1])), 1, (255,255,255), -1)
 
 		return undist
@@ -198,12 +198,12 @@ class VoxelsCube:
 			- voxels_cube_faces (np.ndarray[int, np.float32]): voxel cube faces belonging to the foreground
 		'''	
 
-		new_shape_bit_centroid = np.asarray(self.__voxels_center.shape[:3])
-		new_shape_bit_centroid = np.append(new_shape_bit_centroid, np.array([1]))
+		new_shape_bits_centroids = np.asarray(self.__voxels_center.shape[:3])
+		new_shape_bits_centroids = np.append(new_shape_bits_centroids, np.array([1]))
   
-		binary_centroid_fore_back_reshaped = np.reshape(self.__binary_centroid_fore_back, new_shape_bit_centroid)
+		binary_centroids_fore_back_reshaped = np.reshape(self.__binary_centroids_fore_back, new_shape_bits_centroids)
 		# Get the ID of the centroid that belong to the foreground
-		mantained_centroids_idx = np.argwhere(binary_centroid_fore_back_reshaped == 1)
+		mantained_centroids_idx = np.argwhere(binary_centroids_fore_back_reshaped == 1)
 
 		# Get their cube coordinates
 		resulting_voxels = self.__centroids_cubes_coords[mantained_centroids_idx[:, 0], mantained_centroids_idx[:, 1], mantained_centroids_idx[:, 2]]
