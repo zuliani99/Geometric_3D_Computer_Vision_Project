@@ -19,7 +19,7 @@ def main(using_laptop: bool) -> None:
 	RETURN: None
 	'''
 	
-	# Set the marker reference coordinates for the 24 polygonls
+	# Set the marker reference coordinates of the 24 polygonls
 	marker_reference = set_marker_reference_coords()
  
 	# Check if the user run the camera calibration program before

@@ -30,7 +30,7 @@ def main(using_laptop: bool, voxel_cube_edge_dim: int) -> None:
 	RETURN: None
 	'''
 	 
-	# Set the marker reference coordinates for the 24 polygonls
+	# Set the marker reference coordinates of the 24 polygonls
 	marker_reference = set_marker_reference_coords()
 	
 	# Check if the user run the camera calibration program before
@@ -137,7 +137,7 @@ def main(using_laptop: bool, voxel_cube_edge_dim: int) -> None:
 				# Apply the segmentation on the undistorted frame
 				undist_mask = apply_segmentation(obj, undist_frame)
 
-				# Draw the projected cube and centroid axis
+				# Draw the projected cube and centroid axes
 				edited_frame = board.draw_origin(edited_frame, np.int32(imgpts_centroid))
 				edited_frame = voxels_cube.draw_cube(edited_frame, np.int32(imgpts_cube))
     

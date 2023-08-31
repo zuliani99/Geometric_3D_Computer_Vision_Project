@@ -130,7 +130,7 @@ def apply_segmentation(obj: str, frame: np.ndarray[int, np.uint8]) -> Tuple[np.n
 	# Define the colored mask obtained from the image
 	color_mask = cv.bitwise_not(cv.inRange(enhanced, hyperparameters[obj]['correction'][0], hyperparameters[obj]['correction'][1]))
 
-	# Add a constant rectangle to mask the left part of the image
+	# Add a constant rectangle to mask the board
 	rectangular_mask = np.full(rgb.shape[:2], 0, np.uint8)
 	rectangular_mask[:,1180:rgb.shape[1]] = 255
  

@@ -88,8 +88,8 @@ def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid:
  
 	circles_ctr_coords = []
 
-	dx = A[0] - middle_point[0] # Difference the between X coordinates of point A and and the middle point between the two extreme points
-	dy = A[1] - middle_point[1] # Difference the between Y coordinates of point A and and the middle point between the two extreme points
+	dx = A[0] - middle_point[0] # Difference the between X coordinates of point A and  the middle point between the two extreme points
+	dy = A[1] - middle_point[1] # Difference the between Y coordinates of point A and the middle point between the two extreme points
  
 	for dist in dist_A_Cir_Ctr:
 		# Find the rateo between the distance from A and the circle centre and the distance between A

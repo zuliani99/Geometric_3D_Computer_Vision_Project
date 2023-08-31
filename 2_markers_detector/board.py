@@ -127,7 +127,7 @@ class Board:
 		mask_thresh = np.zeros_like(thresh, dtype=np.uint8)
 		mask_thresh[:, 1140:1570] = thresh[:, 1140:1570]
 
-		# Finding the contourns
+		# Finding the contours
 		contours, _ = cv.findContours(mask_thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 	
 		# Searching through every region selected to find the required polygon
@@ -211,7 +211,7 @@ class Board:
 		'''
 		PURPOSE: compute the polygons index, the position of the A points in the image and in the marker reference coordinates for a given frame
 		ARGUMENTS:
-			- thresh (np.ndarray[int, np.uint8]):  threshold image
+			- thresh (np.ndarray[int, np.uint8]): threshold image
 			- reshaped_clockwise (np.ndarray[int, np.float32]): reshaped features in clockwise order
 			- actual_fps (int): index frame 
 			- marker_reference (Dict[int, Tuple[int, int, int]])): dictionary of markers reference coordinates
@@ -266,7 +266,7 @@ class Board:
 					dict_stats_to_return.append({'frame': actual_fps, 'mark_id': index, 'Px': A[0], 'Py': A[1], 'X': X, 'Y': Y, 'Z': Z})
 
    
-		# Set the cover cover attributo to true on all cover polygons
+  		# Set the cover attribute to True on all covered polygons
 		self.set_covered_polygons(np.where(covered_polys == 1)[0])
    
 		return dict_stats_to_return

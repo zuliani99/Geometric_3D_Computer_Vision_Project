@@ -127,7 +127,7 @@ class Board:
 		mask_thresh = np.zeros_like(thresh, dtype=np.uint8)
 		mask_thresh[:, 1140:1570] = thresh[:, 1140:1570]
 
-		# Finding the contourns
+		# Finding the contours
 		contours, _ = cv.findContours(mask_thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 	
 		# Searching through every region selected to find the required polygon
