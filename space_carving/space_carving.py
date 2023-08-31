@@ -21,12 +21,12 @@ parameters = {
 
 
 
-def main(using_laptop: bool, voxel_cube_dim: int) -> None:
+def main(using_laptop: bool, voxel_cube_edge_dim: int) -> None:
 	'''
 	PURPOSE: function that start the whole computation
 	ARGUMENTS:
 		- using_laptop (bool): boolean variable to indicate the usage of a laptop or not
-		- voxel_cube_dim (int): pixel dimension of a voxel cube edge
+		- voxel_cube_edge_dim (int): pixel dimension of a voxel cube edge
 	RETURN: None
 	'''
 	 
@@ -68,7 +68,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 		board = Board(n_polygons=24)
 
 		# Create the VoxelsCube object
-		voxels_cube = VoxelsCube(half_edge_len=half_cube_edge, voxel_cube_dim=voxel_cube_dim, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
+		voxels_cube = VoxelsCube(half_edge_len=half_cube_edge, voxel_cube_edge_dim=voxel_cube_edge_dim, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
   
 		# Create output video writer initialized at None since we do not know the undistorted resolution
 		output_video = None
@@ -185,9 +185,9 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 		print('Saving PLY file...')
   
 		# Get the voxels cube coordinates and faces to write a PLY file
-		voxels_cube_coords, voxel_cube_faces = voxels_cube.get_cubes_coords_and_faces()
+		voxels_cube_coords, voxels_cube_faces = voxels_cube.get_cubes_coords_and_faces()
 		# Save in a .ply file
-		write_ply_file(obj_id, voxels_cube_coords, voxel_cube_faces)
+		write_ply_file(obj_id, voxels_cube_coords, voxels_cube_faces)
 		print(' DONE\n')
 
 

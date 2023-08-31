@@ -193,7 +193,7 @@ class Board:
 
 					
 
-	def covered_polygon(self, polygons: np.ndarray[int, np.int32]) -> None:
+	def set_covered_polygons(self, polygons: np.ndarray[int, np.int32]) -> None:
 		'''
 		PURPOSE: set the polygon attribute cover to True for the polygons that are behind the yellow glass
 		ARGUMENTS: 
@@ -267,6 +267,6 @@ class Board:
 
    
 		# Set the cover cover attributo to true on all cover polygons
-		self.covered_polygon(np.where(covered_polys == 1)[0])
+		self.set_covered_polygons(np.where(covered_polys == 1)[0])
    
 		return dict_stats_to_return

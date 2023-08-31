@@ -195,13 +195,13 @@ def resize_for_laptop(using_laptop: bool, frame: np.ndarray[int, np.uint8]) -> n
 
 
 
-def write_ply_file(obj_id: str, voxels_cube_coords: np.ndarray[int, np.float32], voxel_cube_faces: np.ndarray[int, np.float32]) -> None:
+def write_ply_file(obj_id: str, voxels_cube_coords: np.ndarray[int, np.float32], voxels_cube_faces: np.ndarray[int, np.float32]) -> None:
 	'''
 	PURPOSE: write the .ply file that compose the object mesh
 	ARGUMENTS:
 		- obj_id (str)
 		- voxels_cube_coords (np.ndarray[int, np.float32]): array of voxels cube coordinates
-		- voxel_cube_faces (np.ndarray[int, np.float32]): array of voxels faces
+		- voxels_cube_faces (np.ndarray[int, np.float32]): array of voxels faces
 	RETURN: None
 	'''	
 
@@ -212,7 +212,7 @@ def write_ply_file(obj_id: str, voxels_cube_coords: np.ndarray[int, np.float32],
 	property float x
 	property float y
 	property float z
- 	element face {voxel_cube_faces.shape[0]}
+ 	element face {voxels_cube_faces.shape[0]}
 	property list uchar int vertex_index
 	end_header
 	"""
@@ -224,4 +224,4 @@ def write_ply_file(obj_id: str, voxels_cube_coords: np.ndarray[int, np.float32],
   
 	# Write face data to the same file
 	with open(f'../output_project/{obj_id}/3d_{obj_id}.ply', 'a') as f:
-		np.savetxt(f, voxel_cube_faces.astype(int), fmt='%i', newline='\n')
+		np.savetxt(f, voxels_cube_faces.astype(int), fmt='%i', newline='\n')
