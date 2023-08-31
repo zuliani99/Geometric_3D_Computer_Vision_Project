@@ -108,7 +108,7 @@ def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid:
 def compute_index_and_cc_coords(A: np.ndarray[int, np.int32], middle_point: np.ndarray[int, np.float64],
 								thresh: np.ndarray[int, np.uint8]) -> Tuple[int, List[Tuple[np.float64, np.float64]]]:
 	'''
-	PURPOSE: computing the polygon index and the circles centre coordinates of a polygon
+	PURPOSE: computing the polygon indexes and the circles centre coordinates
 	ARGUMENTS: 
 		- A (np.ndarray[int, np.int32]): X and Y cordinates of the A point of a polygon
 		- middle_point (np.ndarray[int, np.float64]): X and Y cordinates of the middle point between the two extreme points
@@ -129,7 +129,7 @@ def compute_index_and_cc_coords(A: np.ndarray[int, np.int32], middle_point: np.n
 	# Obtaining the coordinates of each circle centre
 	circles_ctr_coords = find_circles_centre_coords(dist_A_Cir_Ctr, dist_A_Ext_Mid, middle_point, A) 
 
-	# Obtain the list of bits forming the polygon index by checking the cicrcle centre color in the threshold frmae
+	# Obtain the list of bits forming the polygon index by checking the circles centre color in the threshold frame
 	bit_index = [1 if thresh[np.int32(coords[0]), np.int32(coords[1])] == 0 else 0 for coords in circles_ctr_coords] 
 
 	# Obtain the index

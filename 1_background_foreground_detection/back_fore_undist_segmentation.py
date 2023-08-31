@@ -40,6 +40,7 @@ hyperparameters = {
 
 
 
+
 def resize_for_laptop(using_laptop: bool, frame: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 	'''
 	PURPOSE: resize the image if using_laptop is True
@@ -53,6 +54,7 @@ def resize_for_laptop(using_laptop: bool, frame: np.ndarray[int, np.uint8]) -> n
 	if using_laptop:
 		frame = cv.resize(frame, (1080, 600), interpolation=cv.INTER_AREA)
 	return frame
+
 
 
 
@@ -104,6 +106,7 @@ def apply_foreground_background(mask: np.ndarray[int, np.uint8], img: np.ndarray
     
 
 
+
 def apply_segmentation(obj: str, frame: np.ndarray[int, np.uint8]) -> Tuple[np.ndarray[int, np.uint8], np.ndarray[int, np.uint8]]:
 	'''
 	PURPOSE: apply the segmentation with all the color conversions and morphological operations
@@ -128,7 +131,6 @@ def apply_segmentation(obj: str, frame: np.ndarray[int, np.uint8]) -> Tuple[np.n
 	rectangular_mask = np.full(rgb.shape[:2], 0, np.uint8)
 	rectangular_mask[:,1180:rgb.shape[1]] = 255
  
-	#mask = cv.bitwise_or(cv.ellipse(color_mask,(1370,540),(670,250),89,0,180,255,-1), rectangular_mask)
 	mask = cv.bitwise_or(cv.ellipse(color_mask,(1380,540),(700,300),89,0,180,255,-1), rectangular_mask)
 	
 	# Parse useful hyperparameters
@@ -156,6 +158,7 @@ def apply_segmentation(obj: str, frame: np.ndarray[int, np.uint8]) -> Tuple[np.n
 	morph_op_2 = cv.morphologyEx(morph_op_1, morph2, kernel2, iterations = iter2)
  
 	return morph_op_2, apply_foreground_background(morph_op_2, rgb)
+
 
 
 
@@ -191,7 +194,7 @@ def main(using_laptop: bool) -> None:
 		frame_height = int(input_video.get(cv.CAP_PROP_FRAME_HEIGHT))
 		fps = input_video.get(cv.CAP_PROP_FPS)
 
-		# Get the new camera matrix
+		# Get the new camera intrinsic matrix based on the free scaling parameter
 		newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(camera_matrix, dist, (frame_width, frame_height), 1, (frame_width, frame_height))
 
 		while True:
@@ -207,7 +210,7 @@ def main(using_laptop: bool) -> None:
 			x, y, w, h = roi
 			frame = frame[y:y+h, x:x+w]
    
-			# Update the output_video and the centroid
+			# Update the output_video
 			if output_video is None:
 				frame_width, frame_height = frame.shape[1], frame.shape[0] 
 				output_video = cv.VideoWriter(f"../output_part1/{obj.split('.')[0]}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), fps, (frame_width, frame_height))

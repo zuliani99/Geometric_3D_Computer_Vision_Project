@@ -30,6 +30,7 @@ class Board:
 
 
 
+
 	def draw_red_polygon(self, image: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
 		PURPOSE: draw the red polygon, the cross in point A and the line crossing the polygon by length
@@ -52,6 +53,7 @@ class Board:
 					cv.line(image, (int(x), int(y)), self.__centroid, poly.color, 1, cv.LINE_AA)
      
 		return image
+            
             
        
             
@@ -76,9 +78,10 @@ class Board:
   
   
   
+  
 	def draw_index(self, image: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
-		PURPOSE: draw the polygon index
+		PURPOSE: draw the polygon indexes
 		ARGUMENTS: 
 			- image (np.ndarray[int, np.uint8]): image to edit
 		RETURN:
@@ -93,9 +96,10 @@ class Board:
   
   
 
+
 	def draw_stuff(self, image: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
-		PURPOSE: apply all the drawing function
+		PURPOSE: apply all the drawing functions
 		ARGUMENTS: 
 			- image (np.ndarray[int, np.uint8]): image to edit
 		RETURN:
@@ -142,7 +146,7 @@ class Board:
 
 
 
-	def get_clockwise_vertices_initial(self) -> np.ndarray[int, np.float32]:
+	def get_clockwise_vertices(self) -> np.ndarray[int, np.float32]:
 		'''
 		PURPOSE: reshape the obtained features, sort them in clockwise order and remove the last polygon by area
 		ARGUMENTS: None
@@ -191,7 +195,7 @@ class Board:
 
 	def covered_polygon(self, polygons: np.ndarray[int, np.int32]) -> None:
 		'''
-		PURPOSE: set the polygon attribute cover to True for the polygons that are behind the glass
+		PURPOSE: set the polygon attribute cover to True for the polygons that are behind the yellow glass
 		ARGUMENTS: 
 			- polygons (np.ndarray[int, np.int32]): array of index that express the covered polygons
 		RETURN: None
@@ -209,7 +213,7 @@ class Board:
 		ARGUMENTS:
 			- thresh (np.ndarray[int, np.uint8]): threshold image
 			- reshaped_clockwise (np.ndarray[int, np.float32]): reshaped feature in clockwise order
-			- marker_reference (Dict[int, Tuple[int, int, int]])): dictionary of the markers reference coordinates
+			- marker_reference (Dict[int, Tuple[int, int, int]])): dictionary of markers reference coordinates
 		RETURN:
 			- pixel_info (np.ndarray[int, np.float32]): marker informations array
 		'''	

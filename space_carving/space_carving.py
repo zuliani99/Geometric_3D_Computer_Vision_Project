@@ -88,7 +88,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 			# Get the undistorted frame
 			undist_frame = voxels_cube.get_undistorted_frame(frame)
 
-			# Update the undistorted_resolution, output_video and the centroid
+			# Update the undistorted_resolution and output_video
 			if output_video is None: 
 				frame_width, frame_height = undist_frame.shape[1], undist_frame.shape[0] 
 				output_video = cv.VideoWriter(f'../output_project/{obj_id}/{obj_id}.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
@@ -104,11 +104,11 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 				# Each 5 frames recompute the whole features to track
 				board.find_interesting_points(thresh, frameg)
 			else:
-				# The other frame use the Lucas-Kanade Optical Flow to estimate the postition of the traked features based on the previous frame
+				# The other frame use the Lucas-Kanade Optical Flow to estimate the postition of the tracked features based on the previous frame
 				board.apply_LK_OF(prev_frameg, frameg, (20, 20))
 
 			# Order the detected features in clockwise order to be able to print correctly
-			reshaped_clockwise = board.get_clockwise_vertices_initial()   
+			reshaped_clockwise = board.get_clockwise_vertices()   
 
 			# Obtain the np.array of markers information
 			markers_info = board.compute_markers(thresh, reshaped_clockwise, marker_reference)
@@ -128,10 +128,10 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 				threeD_points = markers_info[:,3:6]
     
     
-				# Find the rotation and translation vectors
+				# Get the projection of the cube, the board centroid and the voxels centroid
 				imgpts_centroid, imgpts_cube = voxels_cube.apply_projections(twoD_points, threeD_points)
 
-				# Get the RMSE for the actual frame
+				# Get the RMS pixel error of reprojection points for the actual frame
 				avg_rmse += voxels_cube.compute_RMSE(indices_ID, marker_reference, twoD_points)
     
 				# Apply the segmentation on the undistorted frame
@@ -184,7 +184,7 @@ def main(using_laptop: bool, voxel_cube_dim: int) -> None:
 
 		print('Saving PLY file...')
   
-		# Get the voxel cube coordinates and faces to write a PLY file
+		# Get the voxels cube coordinates and faces to write a PLY file
 		voxels_cube_coords, voxel_cube_faces = voxels_cube.get_cubes_coords_and_faces()
 		# Save in a .ply file
 		write_ply_file(obj_id, voxels_cube_coords, voxel_cube_faces)

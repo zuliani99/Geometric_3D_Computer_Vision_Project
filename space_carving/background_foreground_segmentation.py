@@ -33,6 +33,7 @@ hyperparameters = {
 }
 
 
+
 def change_contrast(img: np.ndarray[int, np.uint8], clipLimit: int) -> np.ndarray[int, np.uint8]:
 	'''
 	PURPOSE: change the contrast of the image 
@@ -59,6 +60,7 @@ def change_contrast(img: np.ndarray[int, np.uint8], clipLimit: int) -> np.ndarra
 	# Converting image from LAB Color model to BGR color spcae
 	return cv.cvtColor(limg, cv.COLOR_LAB2RGB)
     
+
 
 
 def apply_segmentation(obj: str, frame: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:

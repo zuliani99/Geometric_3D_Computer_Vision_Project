@@ -3,9 +3,10 @@ import cv2 as cv
 
 from typing import Dict, Tuple
 
-# VoxelsCube class that manege projection of marker reference points into the image
+# VoxelsCube class that manege projection of markers points into the image
 
 class VoxelsCube:
+    
 	def __init__(self, half_edge_len, voxel_cube_dim, camera_matrix, dist, frame_width, frame_height) -> None:
 		self.__frame_width = frame_width
 		self.__frame_height = frame_height
@@ -24,6 +25,7 @@ class VoxelsCube:
 		self.__binary_centroid_fore_back = np.ones((np.power(self.__center_voxels.shape[0], 3), 1), dtype=np.int32)
   
 	
+ 
 	
 	def get_cube_and_centroids_voxels(self) -> Tuple[np.ndarray[int, np.float32], np.ndarray[int, np.float32]]:
 		'''
@@ -75,6 +77,7 @@ class VoxelsCube:
 		return center_voxels, cube_coords_voxels
 	
 	
+ 
 
 	def get_newCameraMatrix(self) -> None:
 		'''
@@ -86,6 +89,7 @@ class VoxelsCube:
 		newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(self.__camera_matrix, self.__dist, (self.__frame_width, self.__frame_height), 1, (self.__frame_width, self.__frame_height))
 		self.__newCameraMatrix = newCameraMatrix
 		self.__roi = roi
+
 
 
  
@@ -105,6 +109,7 @@ class VoxelsCube:
 
 		return undist
 		
+
 
 
 	def apply_projections(self, twoD_points: np.ndarray[int, np.float32], threeD_points: np.ndarray[int, np.float32]) \
@@ -135,6 +140,7 @@ class VoxelsCube:
 
 
 
+
 	def compute_RMSE(self, IDs_points: np.ndarray[int, np.float32], marker_reference: Dict[int, Tuple[int, int, int]], twoD_points: np.ndarray[int, np.float32]) -> np.float32:
 		'''
 		PURPOSE: compute the RMSE of the reporojection points
@@ -159,9 +165,10 @@ class VoxelsCube:
 
 
 
+
 	def set_background_voxels(self, undistorted_resolution: Tuple[int, int], undist_b_f_image: np.ndarray[int, np.uint8], undist: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
-		PURPOSE: update the binary voxels centroid analysing their position on the segmented image
+		PURPOSE: update the binary array of voxels centroid by analysing their position on the segmented image
 		ARGUMENTS: 
 			- undistorted_resolution (Tuple[int, int]): undistorted image resolution
 			- undist_b_f_image (np.ndarray[int, np.uint8]): undistorted segmented frame
@@ -180,9 +187,10 @@ class VoxelsCube:
 
 
 
+
 	def get_cubes_coords_and_faces(self) -> Tuple[np.ndarray[int, np.float32], np.ndarray[int, np.float32]]:
 		'''
-		PURPOSE: get the voxel cube coordinates and faces to write a PLY file
+		PURPOSE: get the voxels cube coordinates and faces to write a PLY file
 		ARGUMENTS: None
 		RETURN: Tuple[np.ndarray[int, np.float32], np.ndarray[int, np.float32]]
 			- voxels_cube_coords (np.ndarray[int, np.float32]): voxel centroid coordinates belonging to the foreground
@@ -215,6 +223,7 @@ class VoxelsCube:
 			voxel_cube_faces = np.vstack((voxel_cube_faces, np.array([4, idx + 2, idx + 6, idx + 7, idx + 3])))
    
 		return voxels_cube_coords, voxel_cube_faces
+
 
 
 

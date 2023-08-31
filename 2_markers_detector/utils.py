@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple
 
 def set_marker_reference_coords() -> Dict[int, Tuple[int, int, int]]:
 	'''
-	PURPOSE: set the 2D marker reference coordinates in the 
+	PURPOSE: set the 2D marker reference coordinates
 	ARGUMENTS: None
 	RETURN:
 		- marker_reference_coords (Dict[int, Tuple[int, int, int]])
@@ -36,6 +36,7 @@ def set_marker_reference_coords() -> Dict[int, Tuple[int, int, int]]:
 	return marker_reference_coords
   
   
+
 
 def save_stats(obj_id: str, dict_stats: List[Dict[int, Tuple[int, int, int]]]) -> None:
 	'''
@@ -64,6 +65,7 @@ def save_stats(obj_id: str, dict_stats: List[Dict[int, Tuple[int, int, int]]]) -
 	
 
 
+
 def find_middle_point(Ep1: np.ndarray[int, np.int32], Ep2: np.ndarray[int, np.int32]) -> np.ndarray[int, np.float32]:
 	'''
 	PURPOSE: find the middle point between two points
@@ -78,6 +80,7 @@ def find_middle_point(Ep1: np.ndarray[int, np.int32], Ep2: np.ndarray[int, np.in
 
 
 
+
 def find_distance_between_points(p1: np.ndarray[int, np.int32], p2: np.ndarray[int, np.int32]) -> np.float64:
 	'''
 	PURPOSE: find the euclidean distance between two points
@@ -89,6 +92,7 @@ def find_distance_between_points(p1: np.ndarray[int, np.int32], p2: np.ndarray[i
 	'''
 
 	return ((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2) ** 0.5
+
 
 
 
@@ -132,7 +136,7 @@ def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid:
 def compute_index_and_cc_coords(A: np.ndarray[int, np.int32], middle_point: np.ndarray[int, np.float64],
 								thresh: np.ndarray[int, np.uint8]) -> Tuple[int, List[Tuple[np.float64, np.float64]]]:
 	'''
-	PURPOSE: computing the polygon index and the circles centre coordinates of a polygon
+	PURPOSE: computing the polygon indexes and the circles centre coordinates
 	ARGUMENTS: 
 		- A (np.ndarray[int, np.int32]): X and Y cordinates of the A point of a polygon
 		- middle_point (np.ndarray[int, np.float64]): X and Y cordinates of the middle point between the two extreme points
@@ -153,7 +157,7 @@ def compute_index_and_cc_coords(A: np.ndarray[int, np.int32], middle_point: np.n
 	# Obtaining the coordinates of each circle centre
 	circles_ctr_coords = find_circles_centre_coords(dist_A_Cir_Ctr, dist_A_Ext_Mid, middle_point, A) 
 
-	# Obtain the list of bit describing the polygon index
+	# Obtain the list of bits forming the polygon index by checking the circles centre color in the threshold frame
 	bit_index = [1 if thresh[np.int32(coords[0]), np.int32(coords[1])] == 0 else 0 for coords in circles_ctr_coords] 
 
 	# Obtain the index
@@ -198,6 +202,7 @@ def random_bgr_color() -> Tuple[int, int, int]:
 	green = random.randint(0, 255)
 	red = random.randint(0, 255)
 	return (blue, green, red)
+
 
 
 

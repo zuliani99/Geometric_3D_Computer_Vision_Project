@@ -81,7 +81,7 @@ class Board:
   
 	def draw_index(self, image: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
-		PURPOSE: draw the polygon index
+		PURPOSE: draw the polygon indexes
 		ARGUMENTS: 
 			- image (np.ndarray[int, np.uint8]): image to edit
 		RETURN:
@@ -99,7 +99,7 @@ class Board:
 
 	def draw_stuff(self, image: np.ndarray[int, np.uint8]) -> np.ndarray[int, np.uint8]:
 		'''
-		PURPOSE: apply all the drawing function
+		PURPOSE: apply all the drawing functions
 		ARGUMENTS: 
 			- image (np.ndarray[int, np.uint8]): image to edit
 		RETURN:
@@ -146,7 +146,7 @@ class Board:
      
      
      
-	def get_clockwise_vertices_initial(self) -> np.ndarray[int, np.float32]:
+	def get_clockwise_vertices(self) -> np.ndarray[int, np.float32]:
 		'''
 		PURPOSE: reshape the obtained features, sort them in clockwise order and remove the last polygon by area
 		ARGUMENTS: None
@@ -173,7 +173,6 @@ class Board:
 
 
 
-
 	def apply_LK_OF(self, prev_frameg: np.ndarray[int, np.uint8], frameg: np.ndarray[int, np.uint8], winsize_lk: Tuple[int, int]) -> None: 
 		'''
 		PURPOSE: apply Lucas-Kanade Optical Flow to predict the position of the features based on its algorithm parameters
@@ -196,7 +195,7 @@ class Board:
 
 	def covered_polygon(self, polygons: np.ndarray[int, np.int32]) -> None:
 		'''
-		PURPOSE: set the polygon attribute cover to True for the polygons that are behind the glass
+		PURPOSE: set the polygon attribute cover to True for the polygons that are behind the yellow glass
 		ARGUMENTS: 
 			- polygons (np.ndarray[int, np.int32]): array of index that express the covered polygons
 		RETURN: None
@@ -215,7 +214,7 @@ class Board:
 			- thresh (np.ndarray[int, np.uint8]):  threshold image
 			- reshaped_clockwise (np.ndarray[int, np.float32]): reshaped features in clockwise order
 			- actual_fps (int): index frame 
-			- marker_reference (Dict[int, Tuple[int, int, int]])): dictionary of the marker reference coordinates
+			- marker_reference (Dict[int, Tuple[int, int, int]])): dictionary of markers reference coordinates
 		RETURN:
 			- dict_stats_to_return (List[Dict[int, int, np.float64, np.float64, int, int, int]]): lis of dictionary containing the information to save in the .csv file
 		'''	

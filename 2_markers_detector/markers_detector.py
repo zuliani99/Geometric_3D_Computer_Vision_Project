@@ -91,7 +91,7 @@ def main(using_laptop: bool) -> None:
 				board.apply_LK_OF(prev_frameg, frameg, (20, 20))
 	
 			# Order the detected features in clockwise order to be able to print correctly
-			reshaped_clockwise = board.get_clockwise_vertices_initial()
+			reshaped_clockwise = board.get_clockwise_vertices()
 
 			# Obtain the dictionary of statistics
 			dict_stats_to_extend = board.compute_markers(thresh, reshaped_clockwise, actual_fps, marker_reference)
