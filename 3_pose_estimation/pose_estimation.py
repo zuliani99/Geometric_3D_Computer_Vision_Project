@@ -8,12 +8,12 @@ import argparse
 
 from utils import resize_for_laptop, draw_origin, draw_cube
 
-# Objects undist_half_edge
+# Objects half_cube_edge
 parameters = {
-	'obj01.mp4': {'undist_half_edge': 55},
-	'obj02.mp4': {'undist_half_edge': 60},
-	'obj03.mp4': {'undist_half_edge': 75},
-	'obj04.mp4': {'undist_half_edge': 55},
+	'obj01.mp4': {'half_cube_edge': 55},
+	'obj02.mp4': {'half_cube_edge': 60},
+	'obj03.mp4': {'half_cube_edge': 75},
+	'obj04.mp4': {'half_cube_edge': 55},
 }
 
 
@@ -34,7 +34,7 @@ def main(using_laptop: bool) -> None:
 	camera_matrix = np.load('./calibration_info/cameraMatrix.npy')
 	dist = np.load('./calibration_info/dist.npy')
  
-	axis_centroid = np.float32([[20,0,0], [0,20,0], [0,0,30]]).reshape(-1,3)
+	centroid_axes = np.float32([[20,0,0], [0,20,0], [0,0,30]]).reshape(-1,3)
 	 
 	# Iterate for each object
 	for obj, hyper_param in parameters.items():
@@ -55,13 +55,13 @@ def main(using_laptop: bool) -> None:
 		edited_frame = None
 		undistorted_resolution = None
   
-		unidst_axis = hyper_param['undist_half_edge']
+		half_cube_edge = hyper_param['half_cube_edge']
   
-		axis_vertical_edges = np.float32([
-											[-unidst_axis, -unidst_axis, 70], [-unidst_axis, unidst_axis, 70],
-											[unidst_axis ,unidst_axis, 70], [unidst_axis, -unidst_axis, 70],
-											[-unidst_axis, -unidst_axis, 70 + unidst_axis * 2],[-unidst_axis, unidst_axis, 70 + unidst_axis * 2],
-											[unidst_axis, unidst_axis, 70 + unidst_axis * 2],[unidst_axis, -unidst_axis, 70 + unidst_axis * 2]
+		cube_vertices = np.float32([
+											[-half_cube_edge, -half_cube_edge, 70], [-half_cube_edge, half_cube_edge, 70],
+											[half_cube_edge ,half_cube_edge, 70], [half_cube_edge, -half_cube_edge, 70],
+											[-half_cube_edge, -half_cube_edge, 70 + half_cube_edge * 2],[-half_cube_edge, half_cube_edge, 70 + half_cube_edge * 2],
+											[half_cube_edge, half_cube_edge, 70 + half_cube_edge * 2],[half_cube_edge, -half_cube_edge, 70 + half_cube_edge * 2]
 										])
 
   
@@ -91,8 +91,8 @@ def main(using_laptop: bool) -> None:
 				ret, rvecs, tvecs = cv.solvePnP(objectPoints=threeD_points, imagePoints=twoD_points, cameraMatrix=camera_matrix, distCoeffs=dist, flags=cv.SOLVEPNP_IPPE)
 
 	 			# Get the projection points
-				imgpts_centroid, _ = cv.projectPoints(objectPoints=axis_centroid, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
-				imgpts_cube, _ = cv.projectPoints(objectPoints=axis_vertical_edges, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
+				imgpts_centroid, _ = cv.projectPoints(objectPoints=centroid_axes, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
+				imgpts_cube, _ = cv.projectPoints(objectPoints=cube_vertices, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
 			   		  	 
 		  		# Get the new camera matrix
 				newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(camera_matrix, dist, (frame_width, frame_height), 1, (frame_width, frame_height))

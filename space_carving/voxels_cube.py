@@ -14,8 +14,8 @@ class VoxelsCube:
 		self.__dist = dist
 		self.__voxel_cube_edge_dim = voxel_cube_edge_dim
 		self.__half_edge_len = half_edge_len
-		self.__axis_centroid = np.float32([[20,0,0], [0,20,0], [0,0,30]]).reshape(-1,3)
-		self.__axis_vertical_edges = np.float32([
+		self.__centroid_axes = np.float32([[20,0,0], [0,20,0], [0,0,30]]).reshape(-1,3)
+		self.__cube_vertices = np.float32([
 											[-half_edge_len, -half_edge_len, 70], [-half_edge_len, half_edge_len, 70],
 											[half_edge_len ,half_edge_len, 70], [half_edge_len, -half_edge_len, 70],
 											[-half_edge_len, -half_edge_len, 70 + half_edge_len * 2],[-half_edge_len, half_edge_len, 70 + half_edge_len * 2],
@@ -134,8 +134,8 @@ class VoxelsCube:
 		
 		self.__imgpts_voxels_cubes_centroid = np.squeeze(imgpts_voxels_cubes_centroid)
 
-		imgpts_centroid, _ = cv.projectPoints(objectPoints=self.__axis_centroid, rvec=self.__rvecs, tvec=self.__tvecs, cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist)
-		imgpts_cube, _ = cv.projectPoints(objectPoints=self.__axis_vertical_edges, rvec=self.__rvecs, tvec=self.__tvecs, cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist)
+		imgpts_centroid, _ = cv.projectPoints(objectPoints=self.__centroid_axes, rvec=self.__rvecs, tvec=self.__tvecs, cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist)
+		imgpts_cube, _ = cv.projectPoints(objectPoints=self.__cube_vertices, rvec=self.__rvecs, tvec=self.__tvecs, cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist)
 	
 		return imgpts_centroid, imgpts_cube
 
