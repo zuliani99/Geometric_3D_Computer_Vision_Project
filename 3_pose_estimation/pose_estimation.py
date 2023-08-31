@@ -22,7 +22,7 @@ def main(using_laptop: bool) -> None:
 	'''
 	PURPOSE: function that start the whole computation
 	ARGUMENTS:
-		- using_laptop (bool): boolean variable to indicate the usage of a laptop or not
+		- using_laptop (bool): boolean variable to indicate the usage of an HD laptop or not
 	RETURN: None
 	'''
  
@@ -48,12 +48,14 @@ def main(using_laptop: bool) -> None:
 		frame_width = int(input_video.get(cv.CAP_PROP_FRAME_WIDTH))
 		frame_height = int(input_video.get(cv.CAP_PROP_FRAME_HEIGHT))
 
+		# Get the new camera intrinsic matrix based on the free scaling parameter
+		newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(camera_matrix, dist, (frame_width, frame_height), 1, (frame_width, frame_height))
+
 		actual_fps = 0.0
 		avg_fps = 0.0
 		obj_id = obj.split('.')[0]
 		
 		edited_frame = None
-		undistorted_resolution = None
   
 		half_cube_edge = hyper_param['half_cube_edge']
   
@@ -78,9 +80,22 @@ def main(using_laptop: bool) -> None:
 
 			if not ret:	break
 
+			# Undistort the image
+			undist = cv.undistort(frame, camera_matrix, dist, None, newCameraMatrix)	
+			x, y, w, h = roi
+			undist = undist[y:y+h, x:x+w] # Adjust the image resolution
+    
+			# Update width, height and output_video
+			if output_video is None: 
+				frame_width, frame_height = undist.shape[1], undist.shape[0] 
+				output_video = cv.VideoWriter(f'../output_part3/{obj_id}_cube.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
+
 			# Get the actual markers informations from the csv file
 			csv_frame_index = np.where(markers_info[:,0] == actual_fps)[0]
       
+
+			edited_frame = undist
+
 
 			if csv_frame_index.shape[0] > 6:
        
@@ -94,21 +109,8 @@ def main(using_laptop: bool) -> None:
 				imgpts_centroid, _ = cv.projectPoints(objectPoints=centroid_axes, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
 				imgpts_cube, _ = cv.projectPoints(objectPoints=cube_vertices, rvec=rvecs, tvec=tvecs, cameraMatrix=camera_matrix, distCoeffs=dist)
 			   		  	 
-		  		# Get the new camera matrix
-				newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(camera_matrix, dist, (frame_width, frame_height), 1, (frame_width, frame_height))
-		  
-				# Undistort the image
-				undist = cv.undistort(frame, camera_matrix, dist, None, newCameraMatrix)	
-				x, y, w, h = roi
-				undist = undist[y:y+h, x:x+w] # Adjust the image resolution
-    
-				# Update the undistorted_resolution and output_video
-				if undistorted_resolution is None: 
-					undistorted_resolution = undist.shape[:2]
-					output_video = cv.VideoWriter(f'../output_part3/{obj_id}_cube.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), np.flip(undistorted_resolution))
-    
 				# Draw the projected cube and centroid
-				edited_frame = draw_origin(undist, (1259, undistorted_resolution[0] // 2), np.int32(imgpts_centroid))
+				edited_frame = draw_origin(undist, (1259, 520), np.int32(imgpts_centroid))
 				edited_frame = draw_cube(edited_frame, np.int32(imgpts_cube))
       					
 

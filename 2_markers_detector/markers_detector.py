@@ -15,7 +15,7 @@ def main(using_laptop: bool) -> None:
 	'''
 	PURPOSE: function that start the whole computation
 	ARGUMENTS:
-		- using_laptop (bool): boolean variable to indicate the usage of a laptop or not
+		- using_laptop (bool): boolean variable to indicate the usage of an HD laptop or not
 	RETURN: None
 	'''
 	
@@ -69,17 +69,18 @@ def main(using_laptop: bool) -> None:
 			if not ret:	break
 
 			# Get the undistorted frame
-			frame = cv.undistort(frame, camera_matrix, dist, None, newCameraMatrix)	
+			undistorted_frame = cv.undistort(frame, camera_matrix, dist, None, newCameraMatrix)	
 			x, y, w, h = roi
-			frame = frame[y:y+h, x:x+w]
+			undistorted_frame = undistorted_frame[y:y+h, x:x+w] # Adjust the image resolution
 
-			# Update the output_video
+
+			# Update width, height and output_video
 			if output_video is None:
-				frame_width, frame_height = frame.shape[1], frame.shape[0] 
+				frame_width, frame_height = undistorted_frame.shape[1], undistorted_frame.shape[0] 
 				output_video = cv.VideoWriter(f"../output_part2/{obj_id}/{obj_id}_marker.mp4", cv.VideoWriter_fourcc(*"mp4v"), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
 				
 		 
-			frameg = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+			frameg = cv.cvtColor(undistorted_frame, cv.COLOR_BGR2GRAY)
 			_, thresh = cv.threshold(frameg, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
    
 			
@@ -97,7 +98,7 @@ def main(using_laptop: bool) -> None:
 			dict_stats_to_extend = board.compute_markers(thresh, reshaped_clockwise, actual_fps, marker_reference)
 
 			# Draw the marker detector stuff
-			edited_frame = board.draw_stuff(frame)
+			edited_frame = board.draw_stuff(undistorted_frame)
 
 			end = time.time()
 			fps = 1 / (end-start)
@@ -105,7 +106,7 @@ def main(using_laptop: bool) -> None:
 			avg_fps += fps
 
 			# Get the resized frame
-			frame_with_fps_resized = resize_for_laptop(using_laptop, copy.deepcopy(frame))
+			frame_with_fps_resized = resize_for_laptop(using_laptop, copy.deepcopy(undistorted_frame))
   
 			# Output the frame with the FPS
 			cv.putText(frame_with_fps_resized, f"{fps:.2f} FPS", (20, 20), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)

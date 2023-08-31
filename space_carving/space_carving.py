@@ -25,7 +25,7 @@ def main(using_laptop: bool, voxel_cube_edge_dim: int) -> None:
 	'''
 	PURPOSE: function that start the whole computation
 	ARGUMENTS:
-		- using_laptop (bool): boolean variable to indicate the usage of a laptop or not
+		- using_laptop (bool): boolean variable to indicate the usage of an HD laptop or not
 		- voxel_cube_edge_dim (int): pixel dimension of a voxel cube edge
 	RETURN: None
 	'''
@@ -88,7 +88,7 @@ def main(using_laptop: bool, voxel_cube_edge_dim: int) -> None:
 			# Get the undistorted frame
 			undist_frame = voxels_cube.get_undistorted_frame(frame)
 
-			# Update the undistorted_resolution and output_video
+			# Update width, height and output_video
 			if output_video is None: 
 				frame_width, frame_height = undist_frame.shape[1], undist_frame.shape[0] 
 				output_video = cv.VideoWriter(f'../output_project/{obj_id}/{obj_id}.mp4', cv.VideoWriter_fourcc(*'mp4v'), input_video.get(cv.CAP_PROP_FPS), (frame_width, frame_height))
@@ -128,7 +128,7 @@ def main(using_laptop: bool, voxel_cube_edge_dim: int) -> None:
 				threeD_points = markers_info[:,3:6]
     
     
-				# Get the projection of the cube, the board centroid and the voxels centroid
+				# Get the projection of the board centroid, of the cube vertices and of the voxels centroids
 				imgpts_centroid, imgpts_cube = voxels_cube.apply_projections(twoD_points, threeD_points)
 
 				# Get the RMS pixel error of reprojection points for the actual frame

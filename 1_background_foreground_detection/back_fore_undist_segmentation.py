@@ -171,7 +171,7 @@ def main(using_laptop: bool) -> None:
 	'''
 	PURPOSE: function that start the whole computation
 	ARGUMENTS:
-		- using_laptop (bool): boolean variable to indicate the usage of a laptop or not
+		- using_laptop (bool): boolean variable to indicate the usage of an HD laptop or not
 	RETURN: None
 	'''
  
@@ -215,7 +215,7 @@ def main(using_laptop: bool) -> None:
 			x, y, w, h = roi
 			frame = frame[y:y+h, x:x+w]
    
-			# Update the output_video
+			# Update width, height and output_video
 			if output_video is None:
 				frame_width, frame_height = frame.shape[1], frame.shape[0] 
 				output_video = cv.VideoWriter(f"../output_part1/{obj.split('.')[0]}_mask.mp4", cv.VideoWriter_fourcc(*"mp4v"), fps, (frame_width, frame_height))

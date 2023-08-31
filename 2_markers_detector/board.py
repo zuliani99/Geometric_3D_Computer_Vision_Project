@@ -209,7 +209,7 @@ class Board:
 	def compute_markers(self, thresh: np.ndarray[int, np.uint8], reshaped_clockwise: np.ndarray[int, np.float32], \
      		actual_fps: int, marker_reference: Dict[int, Tuple[int, int, int]]):
 		'''
-		PURPOSE: remove the polygon that are convex, order clockwie and remove the alst polygon by area
+		PURPOSE: compute the polygons index, the position of the A points in the image and in the marker reference coordinates for a given frame
 		ARGUMENTS:
 			- thresh (np.ndarray[int, np.uint8]):  threshold image
 			- reshaped_clockwise (np.ndarray[int, np.float32]): reshaped features in clockwise order
