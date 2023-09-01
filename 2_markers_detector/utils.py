@@ -111,8 +111,8 @@ def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid:
 	
 	# Remember that the y increase from the top of the image to the bottom
  
-	# x = x_middlepoint + ((dist_A_centre / dist_A_middlepoint) * (x_A - x_middlepoint))
-	# y = y_middlepoint + ((dist_A_centre / dist_A_middlepoint) * (y_A - y_middlepoint))
+	# x = x_extreme_middle_point + ((dist_A_Cir_Ctr / dist_A_Ext_Mid) * (x_A - x_extreme_middle_point))
+	# y = y_extreme_middle_point + ((dist_A_Cir_Ctr / dist_A_Ext_Mid) * (y_A - y_extreme_middle_point))
  
 	circles_ctr_coords = []
 
