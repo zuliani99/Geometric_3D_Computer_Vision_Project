@@ -54,6 +54,7 @@ python camera_calibration.py
 ```
 Then to run the *space_carving* program you have also to specify the following positional argument:
 * *voxel_cube_edge_dim*: which is the dimension of one voxel cube edge
+
 And you can add the following option:
 * *--hd_laptop*: if you have HD screen resolution
 
