@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 
-from utils import compute_index_and_cc_coords, find_distance_between_points, find_middle_point, sort_vertices_clockwise
+from utils import compute_index_and_cc_coords, find_distance_between_points, find_extreme_middle_point, sort_vertices_clockwise
 from polygon import Polygon
 
 from typing import List, Tuple, Dict
@@ -46,7 +46,7 @@ class Board:
 
 				cv.drawMarker(image, np.int32(poly.point_A), (0,255,0), cv.MARKER_CROSS, 20, 1, cv.LINE_AA)
 
-				cv.line(image, np.int32(poly.point_A), np.int32(poly.middle_point), (0, 255, 255), 1, cv.LINE_AA) 
+				cv.line(image, np.int32(poly.point_A), np.int32(poly.extreme_middle_point), (0, 255, 255), 1, cv.LINE_AA) 
 				
 				for x, y in poly.vertex_coords:
 					cv.circle(image, (int(x), int(y)), 4, poly.color, -1)
@@ -238,7 +238,7 @@ class Board:
    
 
 			# Obtain the point between the two farthest point
-			middle_point = find_middle_point(poly[id_external_points[0][0]], poly[id_external_points[1][0]])
+			extreme_middle_point = find_extreme_middle_point(poly[id_external_points[0][0]], poly[id_external_points[1][0]])
 
 			# Compute the convex hull of the contour
 			hull = np.squeeze(cv.convexHull(poly, returnPoints=False))
@@ -251,12 +251,12 @@ class Board:
 			if(len(A.shape) == 1):
        
 				# Compute the index and circles centre coordinates
-				index, circles_ctr_coords = compute_index_and_cc_coords(A, middle_point, thresh) 
+				index, circles_ctr_coords = compute_index_and_cc_coords(A, extreme_middle_point, thresh) 
 
 				if(index < 24):
         
 					# Update the infromations
-					self.__polygon_list[index].update_info(False, circles_ctr_coords, poly, A, middle_point)
+					self.__polygon_list[index].update_info(False, circles_ctr_coords, poly, A, extreme_middle_point)
 					covered_polys[index] = 0
 
 					# Get the X, Y and Z marker reference 2D coordinates for the polygon with given index

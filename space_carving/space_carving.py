@@ -11,12 +11,12 @@ from board import Board
 from voxels_cube import VoxelsCube
 
 
-# Objects half_cube_edge parameters
+# Objects cube_half_edge parameters
 parameters = {
-	'obj01.mp4': {'half_cube_edge': 55},
-	'obj02.mp4': {'half_cube_edge': 60},
-	'obj03.mp4': {'half_cube_edge': 75},
-	'obj04.mp4': {'half_cube_edge': 55},
+	'obj01.mp4': {'cube_half_edge': 55},
+	'obj02.mp4': {'cube_half_edge': 60},
+	'obj03.mp4': {'cube_half_edge': 75},
+	'obj04.mp4': {'cube_half_edge': 55},
 }
 
 
@@ -62,13 +62,13 @@ def main(using_laptop: bool, voxel_cube_edge_dim: int) -> None:
 
 		prev_frameg = None
   
-		half_cube_edge = hyper_param['half_cube_edge']
+		cube_half_edge = hyper_param['cube_half_edge']
 
 		# Create the Board object
 		board = Board(n_polygons=24)
 
 		# Create the VoxelsCube object
-		voxels_cube = VoxelsCube(half_edge_len=half_cube_edge, voxel_cube_edge_dim=voxel_cube_edge_dim, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
+		voxels_cube = VoxelsCube(cube_half_edge=cube_half_edge, voxel_cube_edge_dim=voxel_cube_edge_dim, camera_matrix=camera_matrix, dist=dist, frame_width=frame_width, frame_height=frame_height)
   
 		# Create output video writer initialized at None since we do not know the undistorted resolution
 		output_video = None

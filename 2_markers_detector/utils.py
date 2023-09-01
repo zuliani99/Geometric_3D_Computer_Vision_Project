@@ -66,7 +66,7 @@ def save_stats(obj_id: str, dict_stats: List[Dict[int, Tuple[int, int, int]]]) -
 
 
 
-def find_middle_point(Ep1: np.ndarray[int, np.int32], Ep2: np.ndarray[int, np.int32]) -> np.ndarray[int, np.float32]:
+def find_extreme_middle_point(Ep1: np.ndarray[int, np.int32], Ep2: np.ndarray[int, np.int32]) -> np.ndarray[int, np.float32]:
 	'''
 	PURPOSE: find the middle point between two points
 	ARGUMENTS: 
@@ -97,13 +97,13 @@ def find_distance_between_points(p1: np.ndarray[int, np.int32], p2: np.ndarray[i
 
 
 def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid: np.float64,
-								   middle_point: np.ndarray[int, np.float64], A: np.ndarray[int, np.int32]) -> List[Tuple[np.float64, np.float64]]:
+								   extreme_middle_point: np.ndarray[int, np.float64], A: np.ndarray[int, np.int32]) -> List[Tuple[np.float64, np.float64]]:
 	'''
 	PURPOSE: find the coordinates of the 5 circles centre
 	ARGUMENTS: 
 		- dist_A_Cir_Ctr (List[np.float64]): list of distance between the point A and each circle center
 		- dist_A_Ext_Mid (np.float64): distance between the point A and the point between the two extreme points of a polygon
-		- middle_point (np.ndarray[int, np.float64]): X and Y cordinates of the middle point between the two extreme points
+		- extreme_middle_point (np.ndarray[int, np.float64]): X and Y cordinates of the middle point between the two extreme points
 		- A (np.ndarray[int, np.int32]): X and Y cordinates of the A point of a polygon
 	RETURN:
 		- circles_ctr_coords (List[Tuple[np.float64, np.float64]]): list of coordinates of each circle centre
@@ -116,16 +116,16 @@ def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid:
  
 	circles_ctr_coords = []
 
-	dx = A[0] - middle_point[0] # Difference the between X coordinates of point A and the middle point between the two extreme points
-	dy = A[1] - middle_point[1] # Difference the between Y coordinates of point A and the middle point between the two extreme points
+	dx = A[0] - extreme_middle_point[0] # Difference the between X coordinates of point A and the middle point between the two extreme points
+	dy = A[1] - extreme_middle_point[1] # Difference the between Y coordinates of point A and the middle point between the two extreme points
  
 	for dist in dist_A_Cir_Ctr:
 		# Find the rateo between the distance from A and the circle centre and the distance between A
 		# and the middle point between the two extreme points 
 		rateo = dist / dist_A_Ext_Mid
  
-		new_point_x = middle_point[0] + (rateo * dx) # Compute the X coordinates of a centre circle point
-		new_point_y = middle_point[1] + (rateo * dy) # Compute the Y coordinates of a centre circle point
+		new_point_x = extreme_middle_point[0] + (rateo * dx) # Compute the X coordinates of a centre circle point
+		new_point_y = extreme_middle_point[1] + (rateo * dy) # Compute the Y coordinates of a centre circle point
 
 		circles_ctr_coords.append((new_point_y, new_point_x)) # Add coordinates to the list
 	return circles_ctr_coords
@@ -133,13 +133,13 @@ def find_circles_centre_coords(dist_A_Cir_Ctr: List[np.float64], dist_A_Ext_Mid:
 
 
 
-def compute_index_and_cc_coords(A: np.ndarray[int, np.int32], middle_point: np.ndarray[int, np.float64],
+def compute_index_and_cc_coords(A: np.ndarray[int, np.int32], extreme_middle_point: np.ndarray[int, np.float64],
 								thresh: np.ndarray[int, np.uint8]) -> Tuple[int, List[Tuple[np.float64, np.float64]]]:
 	'''
 	PURPOSE: computing the polygon indexes and the circles centre coordinates
 	ARGUMENTS: 
 		- A (np.ndarray[int, np.int32]): X and Y cordinates of the A point of a polygon
-		- middle_point (np.ndarray[int, np.float64]): X and Y cordinates of the middle point between the two extreme points
+		- extreme_middle_point (np.ndarray[int, np.float64]): X and Y cordinates of the middle point between the two extreme points
 		- thresh (np.ndarray[int, np.uint8]): thresholded image
 	RETURN:
 		- index (int): index of the polygon
@@ -147,15 +147,15 @@ def compute_index_and_cc_coords(A: np.ndarray[int, np.int32], middle_point: np.n
 	'''	
 
 	# Computing the distance from the point A and the point between the two extreme points of a polygon
-	dist_A_Ext_Mid = find_distance_between_points(A, np.int32(middle_point))
+	dist_A_Ext_Mid = find_distance_between_points(A, np.int32(extreme_middle_point))
 	  
-	# Computing the 5 proportions to pbtain the distance from the point A and each circle centre
-	# The distances between the point A and the circle centre up to the middle point are the following one:
+	# Computing the 5 proportions to obtain the distance from the point A and each circle centre
+	# The consecutive distances within each polygon, considering the point A and the middle point as the two extremes and each circle centre as intermediate step are:
 	# 5 - 4.5 - 4.5 - 4.5 - 4.5 - 5		and the sum is equal to 28
 	dist_A_Cir_Ctr = [(dist_A_Ext_Mid * ((i * 4.5) + 5) / 28) for i in range(5)] 
 	  
 	# Obtaining the coordinates of each circles centre
-	circles_ctr_coords = find_circles_centre_coords(dist_A_Cir_Ctr, dist_A_Ext_Mid, middle_point, A) 
+	circles_ctr_coords = find_circles_centre_coords(dist_A_Cir_Ctr, dist_A_Ext_Mid, extreme_middle_point, A) 
 
 	# Obtain the list of bits forming the polygon index by checking the circles centre color in the threshold frame
 	bit_index = [1 if thresh[np.int32(coords[0]), np.int32(coords[1])] == 0 else 0 for coords in circles_ctr_coords] 

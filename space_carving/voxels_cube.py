@@ -7,21 +7,21 @@ from typing import Dict, Tuple
 
 class VoxelsCube:
     
-	def __init__(self, half_edge_len, voxel_cube_edge_dim, camera_matrix, dist, frame_width, frame_height) -> None:
+	def __init__(self, cube_half_edge, voxel_cube_edge_dim, camera_matrix, dist, frame_width, frame_height) -> None:
 		self.__frame_width = frame_width
 		self.__frame_height = frame_height
 		self.__camera_matrix = camera_matrix
 		self.__dist = dist
 		self.__voxel_cube_edge_dim = voxel_cube_edge_dim
-		self.__half_edge_len = half_edge_len
+		self.__cube_half_edge = cube_half_edge
 		self.__centroid_axes = np.float32([[20,0,0], [0,20,0], [0,0,30]]).reshape(-1,3)
 		self.__cube_vertices = np.float32([
-											[-half_edge_len, -half_edge_len, 70], [-half_edge_len, half_edge_len, 70],
-											[half_edge_len ,half_edge_len, 70], [half_edge_len, -half_edge_len, 70],
-											[-half_edge_len, -half_edge_len, 70 + half_edge_len * 2],[-half_edge_len, half_edge_len, 70 + half_edge_len * 2],
-											[half_edge_len, half_edge_len, 70 + half_edge_len * 2],[half_edge_len, -half_edge_len, 70 + half_edge_len * 2]
-										])
-		self.__voxels_center, self.__centroids_cubes_coords = self.get_cube_and_centroids_voxels()
+			[-cube_half_edge, -cube_half_edge, 70], [-cube_half_edge, cube_half_edge, 70],
+			[cube_half_edge, cube_half_edge, 70], [cube_half_edge, -cube_half_edge, 70],
+			[-cube_half_edge, -cube_half_edge, 70 + cube_half_edge * 2], [-cube_half_edge, cube_half_edge, 70 + cube_half_edge * 2],
+			[cube_half_edge, cube_half_edge, 70 + cube_half_edge * 2], [cube_half_edge, -cube_half_edge, 70 + cube_half_edge * 2]
+		])
+		self.__voxels_center, self.__voxs_cubes_verts_coords = self.get_cube_and_centroids_voxels()
 		self.__binary_centroids_fore_back = np.ones((np.power(self.__voxels_center.shape[0], 3), 1), dtype=np.int32)
   
 	
@@ -32,29 +32,35 @@ class VoxelsCube:
 		PURPOSE: obtain the centre voxels centroid coordinates and their respective corners coordinates that form the voxel cube
 		ARGUMENTS: None
 		RETURN: Tuple[np.ndarray[int, np.float32], np.ndarray[int, np.float32]]
-			- voxels_center (np.ndarray[int, np.float32]): voxels centroid
+			- voxels_center (np.ndarray[int, np.float32]): voxels centroids
 			- centroids_cubes_coords (np.ndarray[int, np.float32]) voxels cube coordinates
 		'''	
 
 		# Get the number of voxels in a single dimension 
-		first_dim_voxel = (self.__half_edge_len * 2) // self.__voxel_cube_edge_dim
+		first_dim_voxel = (self.__cube_half_edge * 2) // self.__voxel_cube_edge_dim
 		
 		# Initialize the np.array to store the voxels centre coords and voxels cube vertices coords
 		voxels_center = np.zeros((0, first_dim_voxel, first_dim_voxel, 3), dtype=np.float32)
 		centroids_cubes_coords = np.zeros((0, first_dim_voxel, first_dim_voxel, 8, 3), dtype=np.float32)
 	
 		# Iterate through the z axis
-		for z in np.arange(70 + (self.__voxel_cube_edge_dim / 2), 70 + (self.__half_edge_len * 2) - self.__voxel_cube_edge_dim / 2 + 1, self.__voxel_cube_edge_dim):
+		for z in np.arange(70 + (self.__voxel_cube_edge_dim / 2), 70 + (self.__cube_half_edge * 2) - self.__voxel_cube_edge_dim / 2 + 1, 
+					 		self.__voxel_cube_edge_dim):
+			
 			voxels_center_at_z = np.zeros((0, first_dim_voxel, 3), dtype=np.float32)
 			centroids_cubes_coords_at_z = np.zeros((0, first_dim_voxel, 8, 3), dtype=np.float32)
 			
 			# Iterate through the y axis
-			for y in np.arange(-self.__half_edge_len + self.__voxel_cube_edge_dim / 2, self.__half_edge_len - self.__voxel_cube_edge_dim / 2 + 1, self.__voxel_cube_edge_dim):
+			for y in np.arange(-self.__cube_half_edge + self.__voxel_cube_edge_dim / 2, 
+					  			self.__cube_half_edge - self.__voxel_cube_edge_dim / 2 + 1, self.__voxel_cube_edge_dim):
+				
 				rows = np.zeros((0,3), dtype=np.float32)
 				cubes = np.zeros((0,8,3), dtype=np.float32)
 				
 				# Iterate through the x axis
-				for x in np.arange(-self.__half_edge_len + self.__voxel_cube_edge_dim / 2, self.__half_edge_len - self.__voxel_cube_edge_dim / 2 + 1, self.__voxel_cube_edge_dim):
+				for x in np.arange(-self.__cube_half_edge + self.__voxel_cube_edge_dim / 2, 
+									self.__cube_half_edge - self.__voxel_cube_edge_dim / 2 + 1, self.__voxel_cube_edge_dim):
+					
 					rows = np.vstack((rows, np.array([x, y, z], dtype=np.float32))) # Voxel centre coords
 					cube = np.array([	# Voxel cube vertices coords
 						np.array([y + self.__voxel_cube_edge_dim / 2, x + self.__voxel_cube_edge_dim / 2, z + self.__voxel_cube_edge_dim / 2]),
@@ -125,15 +131,18 @@ class VoxelsCube:
 		'''	
 
 		# Find the rotation and translation vectors
-		_, rvecs, tvecs = cv.solvePnP(objectPoints=threeD_points.astype('float32'), imagePoints=twoD_points.astype('float32'), cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist, flags=cv.SOLVEPNP_IPPE)
+		_, rvecs, tvecs = cv.solvePnP(objectPoints=threeD_points.astype('float32'), imagePoints=twoD_points.astype('float32'),
+								cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist, flags=cv.SOLVEPNP_IPPE)
 		self.__rvecs = rvecs
 		self.__tvecs = tvecs
 
+		# Obtain the projection of the vocels cubes centroid
 		imgpts_voxels_cubes_centroid, _ = cv.projectPoints(objectPoints=np.reshape(self.__voxels_center, (np.power(self.__voxels_center.shape[0], 3), 3)),
                                             				rvec=self.__rvecs, tvec=self.__tvecs, cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist)
 		
 		self.__imgpts_voxels_cubes_centroid = np.squeeze(imgpts_voxels_cubes_centroid)
 
+	 	# Obtain the projection of the board centroid with axes and the cube that will inglobe the object
 		imgpts_centroid, _ = cv.projectPoints(objectPoints=self.__centroid_axes, rvec=self.__rvecs, tvec=self.__tvecs, cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist)
 		imgpts_cube, _ = cv.projectPoints(objectPoints=self.__cube_vertices, rvec=self.__rvecs, tvec=self.__tvecs, cameraMatrix=self.__camera_matrix, distCoeffs=self.__dist)
 	
@@ -206,7 +215,7 @@ class VoxelsCube:
 		mantained_centroids_idx = np.argwhere(binary_centroids_fore_back_reshaped == 1)
 
 		# Get their cube coordinates
-		resulting_voxels = self.__centroids_cubes_coords[mantained_centroids_idx[:, 0], mantained_centroids_idx[:, 1], mantained_centroids_idx[:, 2]]
+		resulting_voxels = self.__voxs_cubes_verts_coords[mantained_centroids_idx[:, 0], mantained_centroids_idx[:, 1], mantained_centroids_idx[:, 2]]
 
 		# Reshaping the coordinates
 		voxels_cube_coords = np.reshape(resulting_voxels, (resulting_voxels.shape[0] * 8, 3))
