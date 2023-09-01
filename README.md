@@ -47,7 +47,7 @@ pip install opencv-python
 ```
 
 ## Project Application Start Up
-The first step in order to start the project is to run the *camera_calibration* program to obtain the intrinsic matrix and distortion parameters 
+The first step in order to start the project is to run the *camera_calibration* program to obtain the camera matrix and distortion parameters 
 ```
 cd space_carving
 python camera_calibration.py

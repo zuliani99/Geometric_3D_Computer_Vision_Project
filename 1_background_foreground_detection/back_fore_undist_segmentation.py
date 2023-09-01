@@ -180,6 +180,7 @@ def main(using_laptop: bool) -> None:
 		print('Please, before running the background & foreground segmentation, execute the camera calibration program.')
 		return
 
+	# Load the camera matrix and distorsion coefficients
 	camera_matrix = np.load('../3_pose_estimation/calibration_info/cameraMatrix.npy')
 	dist = np.load('../3_pose_estimation/calibration_info/dist.npy')
  

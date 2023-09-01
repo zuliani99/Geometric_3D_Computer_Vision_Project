@@ -31,6 +31,7 @@ def main(using_laptop: bool) -> None:
 		print('Please, before running the pose estimation, execute the camera calibration program.')
 		return
 
+	# Load the camera matrix and distorsion coefficients
 	camera_matrix = np.load('./calibration_info/cameraMatrix.npy')
 	dist = np.load('./calibration_info/dist.npy')
  
