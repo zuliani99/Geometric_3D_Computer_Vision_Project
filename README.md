@@ -47,13 +47,17 @@ pip install opencv-python
 ```
 
 ## Project Application Start Up
+The first step in order to start the project is to run the *camera_calibration* program to obtain the intrinsic matrix and distortion parameters 
 ```
 cd space_carving
 python camera_calibration.py
 ```
-In the final project application you have also to specify the following attribute in the command line:
-1. *--hd_laptop*: if you have HD screen resolution
-2. *voxel_cube_edge_dim*: which is the dimension of one voxel cube edge
+Then to run the *space_carving* program you have also to specify the following positional argument:
+* *voxel_cube_edge_dim*: which is the dimension of one voxel cube edge
+And you can add the following option:
+* *--hd_laptop*: if you have HD screen resolution
+
+In this console example I run the *space_carving* program using a dimension of a voxel cube edge of 2 wrt the marker reference coordinates dimension
 ```
 python space_carving.py 2
 ```
