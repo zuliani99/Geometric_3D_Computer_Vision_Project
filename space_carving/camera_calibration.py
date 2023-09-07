@@ -45,7 +45,7 @@ def main() -> None:
 		if ret == True:
 			objpoints.append(objp)
 			corners2 = cv.cornerSubPix(frameg, corners, (11,11), (-1,-1), criteria)
-			imgpoints.append(corners)
+			imgpoints.append(corners2)
 
 			# Draw and display the corners
 			cv.drawChessboardCorners(frame, chessboard_size, corners2, ret)

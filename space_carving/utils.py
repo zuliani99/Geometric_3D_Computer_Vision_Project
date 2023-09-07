@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple
 
 def set_marker_reference_coords() -> Dict[int, Tuple[int, int, int]]:
 	'''
-	PURPOSE: set the 2D marker reference coordinates
+	PURPOSE: set the 3D marker reference coordinates
 	ARGUMENTS: None
 	RETURN:
 		- marker_reference_coords (Dict[int, Tuple[int, int, int]])
